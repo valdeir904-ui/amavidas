@@ -1,0 +1,154 @@
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/db";
+
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? "amavidas-admin-2024";
+
+function checkAuth(req: NextRequest): boolean {
+  const session = req.cookies.get("admin-session")?.value;
+  if (session === ADMIN_TOKEN) return true;
+
+  const auth = req.headers.get("authorization");
+  return auth === `Bearer ${ADMIN_TOKEN}`;
+}
+
+export async function GET(req: NextRequest) {
+  if (!checkAuth(req)) {
+    return Response.json({ error: "Não autorizado" }, { status: 401 });
+  }
+
+  const now = new Date();
+  const startOf30Days = new Date(now);
+  startOf30Days.setDate(startOf30Days.getDate() - 29);
+  startOf30Days.setHours(0, 0, 0, 0);
+
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(startOfWeek.getDate() - 6);
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const [leads, eventos, planos] = await Promise.all([
+    prisma.simulacao.findMany({ orderBy: { criadoEm: "asc" } }),
+    prisma.evento.findMany({
+      where: { criadoEm: { gte: startOf30Days } },
+      orderBy: { criadoEm: "asc" },
+    }),
+    prisma.plano.findMany(),
+  ]);
+
+  // Map plan prices
+  const planoPrices = Object.fromEntries(planos.map((p) => [p.slug.toLowerCase(), p.preco]));
+  const PLAN_FALLBACK_PRICES: Record<string, number> = {
+    essencial: 49,
+    familia: 99,
+    premium: 149,
+  };
+  const getPrecoPlano = (slug: string) => {
+    if (!slug) return 0;
+    const s = slug.toLowerCase();
+    return planoPrices[s] ?? PLAN_FALLBACK_PRICES[s] ?? 0;
+  };
+
+  // KPI cards
+  const totalLeads = leads.length;
+  const leadsThisWeek = leads.filter((l) => l.criadoEm >= startOfWeek).length;
+  const contatados = leads.filter((l) => l.contatado).length;
+  const taxaContato = totalLeads > 0 ? Math.round((contatados / totalLeads) * 100) : 0;
+  const totalContratados = leads.filter((l) => l.status === "ganho").length;
+
+  // Financial calculations
+  const mrr = leads.filter((l) => l.status === "ganho").reduce((acc, l) => acc + getPrecoPlano(l.planoRecomendado), 0);
+  const ticketMedio = totalContratados > 0 ? Math.round(mrr / totalContratados) : 0;
+  const previsaoReceita = leads.filter((l) => l.status === "contatado").reduce((acc, l) => acc + getPrecoPlano(l.planoRecomendado), 0);
+  const taxaConversaoGeral = totalLeads > 0 ? Math.round((totalContratados / totalLeads) * 100) : 0;
+
+  const planoCounts = { essencial: 0, familia: 0, premium: 0 };
+  for (const l of leads) {
+    if (l.planoRecomendado in planoCounts) {
+      planoCounts[l.planoRecomendado as keyof typeof planoCounts]++;
+    }
+  }
+  const topPlano = Object.entries(planoCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+
+  // Leads por dia (últimos 30 dias)
+  const leadsPorDia: Record<string, number> = {};
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(startOf30Days);
+    d.setDate(d.getDate() + i);
+    const key = d.toISOString().slice(0, 10);
+    leadsPorDia[key] = 0;
+  }
+  for (const l of leads) {
+    const key = l.criadoEm.toISOString().slice(0, 10);
+    if (key in leadsPorDia) leadsPorDia[key]++;
+  }
+  const leadsPorDiaArr = Object.entries(leadsPorDia).map(([data, total]) => ({
+    data: data.slice(5), // MM-DD
+    total,
+  }));
+
+  // Eventos por dia
+  const visitasPorDia: Record<string, number> = {};
+  const simsPorDia: Record<string, number> = {};
+  const whatsappPorDia: Record<string, number> = {};
+  for (const key of Object.keys(leadsPorDia)) {
+    visitasPorDia[key] = 0;
+    simsPorDia[key] = 0;
+    whatsappPorDia[key] = 0;
+  }
+  for (const e of eventos) {
+    const key = e.criadoEm.toISOString().slice(0, 10);
+    if (!(key in visitasPorDia)) continue;
+    if (e.tipo === "visita") visitasPorDia[key]++;
+    if (e.tipo === "simulacao_iniciada") simsPorDia[key]++;
+    if (e.tipo === "whatsapp_clicado") whatsappPorDia[key]++;
+  }
+
+  // Totais de eventos
+  const totalVisitas = eventos.filter((e) => e.tipo === "visita").length;
+  const totalSims = eventos.filter((e) => e.tipo === "simulacao_iniciada").length;
+  const totalWhatsapp = eventos.filter((e) => e.tipo === "whatsapp_clicado").length;
+
+  // Perfil dos leads
+  const faixaEtaria: Record<string, number> = {};
+  const orcamento: Record<string, number> = {};
+  const prioridade: Record<string, number> = {};
+  const paraQuem: Record<string, number> = { individual: 0, familia: 0 };
+
+  for (const l of leads) {
+    faixaEtaria[l.faixaEtaria] = (faixaEtaria[l.faixaEtaria] ?? 0) + 1;
+    orcamento[l.orcamento] = (orcamento[l.orcamento] ?? 0) + 1;
+    prioridade[l.prioridade] = (prioridade[l.prioridade] ?? 0) + 1;
+    if (l.paraQuem === "familia") paraQuem.familia++;
+    else paraQuem.individual++;
+  }
+
+  return Response.json({
+    kpi: {
+      totalLeads,
+      leadsThisWeek,
+      taxaContato,
+      topPlano,
+      contatados,
+      totalVisitas,
+      totalSims,
+      totalWhatsapp,
+      totalContratados,
+      mrr,
+      ticketMedio,
+      previsaoReceita,
+      taxaConversaoGeral,
+    },
+    planoCounts,
+    leadsPorDia: leadsPorDiaArr,
+    faixaEtaria: Object.entries(faixaEtaria).map(([k, v]) => ({ faixa: k, total: v })),
+    orcamento: Object.entries(orcamento).map(([k, v]) => ({ faixa: k, total: v })),
+    prioridade: Object.entries(prioridade).map(([k, v]) => ({ tipo: k, total: v })),
+    paraQuem: [
+      { tipo: "Individual", total: paraQuem.individual },
+      { tipo: "Família", total: paraQuem.familia },
+    ],
+    statusContato: [
+      { status: "Contatados", total: contatados },
+      { status: "Pendentes", total: totalLeads - contatados },
+    ],
+  });
+}

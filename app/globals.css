@@ -1,26 +1,177 @@
 @import "tailwindcss";
 
+@theme {
+  /* ── Cores AmaVidas (Design Handoff) ── */
+  --color-royal:        #2B3DA8;
+  --color-royal-deep:   #1E2D7D;
+  --color-royal-soft:   #E8EBFB;
+  --color-teal:         #00B4C8;
+  --color-teal-soft:    #E2F7FA;
+  --color-magenta:      #C4336A;
+  --color-magenta-soft: #FBE9F0;
+
+  /* Aliases para compatibilidade com código anterior */
+  --color-primary:      #2B3DA8;
+  --color-primary-dark: #1E2D7D;
+  --color-primary-light: #E8EBFB;
+  --color-cyan:         #00B4C8;
+  --color-cyan-dark:    #008FA0;
+  --color-cyan-light:   #E2F7FA;
+  --color-rose:         #C4336A;
+  --color-rose-light:   #FBE9F0;
+
+  /* Neutros */
+  --color-bg:           #FFFFFF;
+  --color-bg-alt:       #F8F6F2;
+  --color-surface:      #FFFFFF;
+  --color-ink:          #1A1F36;
+  --color-ink-soft:     #4A5066;
+  --color-ink-mute:     #767C92;
+  --color-line:         #E7E4DC;
+  --color-line-strong:  #D8D3C7;
+
+  /* Legacy aliases */
+  --color-text:         #1A1F36;
+  --color-muted:        #4A5066;
+  --color-border:       #E7E4DC;
+  --color-bege:         #F8F6F2;
+  --color-azul-suave:   #E8EBFB;
+
+  /* Tipografia */
+  --font-serif: 'Lora', Georgia, serif;
+  --font-sans:  'DM Sans', var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* ── CSS Custom Properties (para inline styles e não-Tailwind) ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --royal:        #2B3DA8;
+  --royal-deep:   #1E2D7D;
+  --royal-soft:   #E8EBFB;
+  --teal:         #00B4C8;
+  --teal-soft:    #E2F7FA;
+  --magenta:      #C4336A;
+  --magenta-soft: #FBE9F0;
+  --bg:           #FFFFFF;
+  --bg-alt:       #F8F6F2;
+  --ink:          #1A1F36;
+  --ink-soft:     #4A5066;
+  --ink-mute:     #767C92;
+  --line:         #E7E4DC;
+  --line-strong:  #D8D3C7;
+  --radius:       14px;
+  --radius-lg:    20px;
+  --shadow-sm:    0 1px 2px rgba(20,25,55,.05), 0 2px 8px rgba(20,25,55,.04);
+  --shadow-md:    0 6px 18px rgba(20,25,55,.07), 0 18px 40px rgba(20,25,55,.06);
+  --shadow-lg:    0 30px 80px rgba(20,25,55,.12);
+  --serif:        'Lora', Georgia, serif;
+  --sans:         'DM Sans', system-ui, -apple-system, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+* { box-sizing: border-box; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--sans);
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img { max-width: 100%; display: block; }
+/* Reseta apenas margem vertical para permitir mx-auto (margin-left/right: auto) funcionar */
+p { margin-top: 0; margin-bottom: 0; }
+
+::selection {
+  background: var(--royal);
+  color: white;
+}
+
+/* ── Tipografia ── */
+/* Reseta apenas margem vertical para permitir mx-auto (margin-left/right: auto) funcionar */
+h1, h2, h3, h4 { margin-top: 0; margin-bottom: 0; }
+h1 { font-family: var(--sans); font-size: 32px; line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-family: var(--sans); font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -0.015em; }
+h3 { font-family: var(--sans); font-size: 18px; line-height: 1.25; font-weight: 600; }
+
+/* ── Utilitários de marca ── */
+.brand-gradient {
+  background: linear-gradient(135deg, var(--royal) 0%, var(--teal) 100%);
+}
+.brand-gradient-text {
+  background: linear-gradient(135deg, var(--royal) 0%, var(--teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-serif { font-family: var(--serif); }
+.text-serif-italic { font-family: var(--serif); font-style: italic; font-weight: 400; }
+
+/* ── Animações ── */
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(33,178,107,.18); }
+  50%       { box-shadow: 0 0 0 8px rgba(33,178,107,0); }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.animate-pulse-ring  { animation: pulse-ring 1.8s ease-out infinite; }
+.animate-nav-pulse   { animation: pulse 2s infinite; }
+.animate-whatsapp-pulse {
+  animation: whatsapp-pulse 1.6s ease-in-out infinite;
+}
+@keyframes whatsapp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,.5), 0 4px 14px rgba(34,197,94,.35); }
+  50%       { box-shadow: 0 0 0 8px rgba(34,197,94,0),  0 4px 14px rgba(34,197,94,.35); }
+}
+
+/* ── Sistema de movimento (1 curva, 1 distância, sem exageros) ── */
+
+/* Camada 1: Hero — cascata sutil no carregamento (8px, 0.5s, stagger 60ms) */
+@keyframes heroFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-anim {
+  opacity: 0;
+  animation: heroFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.hero-anim-1 { animation-delay: 0s; }
+.hero-anim-2 { animation-delay: 0.06s; }
+.hero-anim-3 { animation-delay: 0.12s; }
+.hero-anim-4 { animation-delay: 0.18s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-anim {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* ── Scroll offset para navbar sticky ── */
+section[id] { scroll-margin-top: 66px; }
+@media (max-width: 980px) {
+  section[id] { scroll-margin-top: 56px; }
+}
+
+/* ── Responsivo global ── */
+@media (max-width: 980px) {
+  h1 { font-size: 26px; }
+  h2 { font-size: 20px; }
+
+  /* Plans — remove elevation on featured card when stacked */
+  .plan-featured { transform: none !important; }
+}
+
+@media (max-width: 1150px) {
+  /* ImpactoFinanceiro — price numbers scale down */
+  .impacto-price { font-size: 32px !important; }
+  .impacto-stat  { font-size: 52px !important; }
 }
