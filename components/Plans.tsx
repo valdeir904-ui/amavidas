@@ -421,18 +421,6 @@ export default function Plans() {
             );
           })}
         </motion.div>
-        
-        {/* Rodapé / Chamada final com tom acolhedor */}
-        <motion.p 
-          className="text-center mt-12 text-[14px]"
-          style={{ color: "#64748B" }}
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          * Sem taxas adicionais ou taxas de adesão ocultas. Carência padrão de 90 dias conforme contrato.
-        </motion.p>
-
       </div>
     </section>
   );
