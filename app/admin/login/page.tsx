@@ -219,7 +219,11 @@ function LoginForm() {
       router.refresh();
     } catch {
       setErro("Falha de conexão. Tente novamente.");
-      setLoadin  return (
+      setLoading(false);
+    }
+  };
+
+  return (
     <div
       className="h-screen h-[100dvh] w-screen flex items-center justify-center relative overflow-hidden font-sans"
       style={{
