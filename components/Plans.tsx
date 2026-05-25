@@ -269,9 +269,8 @@ export default function Plans() {
                     color: textColor,
                     border: cardBorder,
                     boxShadow: shadowStyle,
-                    padding: isMobile ? "28px 24px" : isFeatured ? "36px 30px" : isVidaPlus ? "44px 34px" : "32px 28px",
-                    flex: 1,
-                    minHeight: isVidaPlus && !isMobile ? "550px" : "auto"
+                    padding: isMobile ? "28px 24px" : isFeatured ? "36px 30px" : "32px 28px",
+                    flex: 1
                   }}
                   whileHover={
                     isMobile
