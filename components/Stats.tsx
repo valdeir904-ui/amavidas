@@ -16,7 +16,7 @@ function Counter({ target, suffix, prefix, isDecimal, noCount }: {
 }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const inView = useInView(ref, { once: true, margin: "0px" });
 
   useEffect(() => {
     if (!inView || noCount) return;
