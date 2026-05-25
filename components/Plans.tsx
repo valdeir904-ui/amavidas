@@ -350,20 +350,7 @@ export default function Plans() {
                   {plan.meta}
                 </p>
 
-                {/* Bloco de Destaque Emocional Rosado Exclusivo do Vida Plus */}
-                {isVidaPlus && (
-                  <div 
-                    className="mb-6 p-4 rounded-xl text-[13.5px] font-medium leading-relaxed text-center"
-                    style={{
-                      background: "linear-gradient(135deg, #FFF5F7 0%, #FFEBF0 100%)",
-                      border: "1px solid rgba(244, 63, 94, 0.15)",
-                      color: "#9F1239",
-                      boxShadow: "inset 0 1px 2px rgba(244, 63, 94, 0.02)"
-                    }}
-                  >
-                    “Mais conforto e acolhimento em cada detalhe da despedida.”
-                  </div>
-                )}
+
 
                 {/* Features (Sempre visíveis) */}
                 <ul className="flex flex-col gap-3.5 mt-4 mb-4 p-0 m-0" style={{ listStyle: "none" }}>
