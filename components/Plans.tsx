@@ -60,19 +60,19 @@ const FALLBACK_PLANS: DynamicPlan[] = [
   {
     slug: "vida-plus",
     name: "Vida Plus",
-    sub: "O plano mais completo da AmaVidas.",
+    sub: "Uma despedida com mais conforto, elegância e tranquilidade para toda a família.",
     price: 90,
     meta: "Protege você + 8 familiares",
     features: [
       "Tudo do Amar Plus incluso",
       "Urna em padrão superior",
       "Ornamentação especial com flores naturais premium",
-      "Traslado terrestre de até 500km",
+      "Até 10 vasos florais inclusos",
     ],
     expandedFeatures: [
-      "Remoção terrestre ampliada até 200km",
-      "Até 10 vasos florais inclusos",
       "Véu e itens especiais de homenagem",
+      "Traslado terrestre de até 500Km",
+      "Remoção terrestre ampliada até 200km",
     ],
     featured: false,
     badge: null,
@@ -148,12 +148,12 @@ export default function Plans() {
                 "Tudo do Amar Plus incluso",
                 "Urna em padrão superior",
                 "Ornamentação especial com flores naturais premium",
-                "Traslado terrestre de até 500km",
+                "Até 10 vasos florais inclusos",
               ];
               extraFeatures = [
-                "Remoção terrestre ampliada até 200km",
-                "Até 10 vasos florais inclusos",
                 "Véu e itens especiais de homenagem",
+                "Traslado terrestre de até 500Km",
+                "Remoção terrestre ampliada até 200km",
               ];
             } else {
               // Caso haja algum plano customizado vindo da API
@@ -165,7 +165,7 @@ export default function Plans() {
             return {
               slug: p.slug,
               name: p.nome,
-              sub: p.tagline,
+              sub: p.slug === "vida-plus" ? "Uma despedida com mais conforto, elegância e tranquilidade para toda a família." : p.tagline,
               price: p.preco,
               meta: `Protege você + ${p.slug === "cuidar-plus" ? 4 : p.slug === "amar-plus" ? 6 : 8} familiares`,
               features: mainFeatures,
@@ -247,11 +247,15 @@ export default function Plans() {
               cardBorder = "none";
               shadowStyle = "0 20px 45px -15px rgba(30, 46, 158, 0.45)";
             } else if (isVidaPlus) {
-              // Vida Plus - Premium/Luxo (Clean, Branco com borda sutil azul royal e tons rosados micro nos detalhes)
+              // Vida Plus - Premium/Luxo (Branco com borda azul sofisticada e sombras muito mais suaves e profundas)
               cardBg = "#ffffff";
-              cardBorder = "1px solid rgba(147, 197, 253, 0.4)";
-              shadowStyle = "0 20px 40px -20px rgba(37, 99, 235, 0.15), inset 0 0 0 1px rgba(37, 99, 235, 0.02)";
-              priceColor = "#0F172A";
+              textColor = "#0F172A";
+              subColor = "#475569";
+              priceColor = "var(--royal)";
+              btnBg = "linear-gradient(135deg, var(--royal) 0%, #1E2E9E 100%)";
+              btnTextColor = "#ffffff";
+              cardBorder = "1px solid rgba(147, 197, 253, 0.5)";
+              shadowStyle = "0 25px 50px -12px rgba(30, 46, 158, 0.08), 0 0 0 1px rgba(30, 46, 158, 0.01)";
             }
 
             return (
@@ -265,8 +269,9 @@ export default function Plans() {
                     color: textColor,
                     border: cardBorder,
                     boxShadow: shadowStyle,
-                    padding: isMobile ? "28px 24px" : isFeatured ? "36px 30px" : "32px 28px",
-                    flex: 1
+                    padding: isMobile ? "28px 24px" : isFeatured ? "36px 30px" : isVidaPlus ? "44px 34px" : "32px 28px",
+                    flex: 1,
+                    minHeight: isVidaPlus && !isMobile ? "550px" : "auto"
                   }}
                   whileHover={
                     isMobile
@@ -274,7 +279,7 @@ export default function Plans() {
                       : isFeatured
                       ? { y: -8, boxShadow: "0 28px 50px -12px rgba(30, 46, 158, 0.55), 0 0 20px rgba(0, 198, 255, 0.3)" }
                       : isVidaPlus
-                      ? { y: -6, borderColor: "rgba(147, 197, 253, 0.8)", boxShadow: "0 24px 45px -15px rgba(37, 99, 235, 0.2)" }
+                      ? { y: -10, borderColor: "rgba(30, 46, 158, 0.4)", boxShadow: "0 30px 60px -15px rgba(30, 46, 158, 0.15), inset 0 0 0 1px rgba(30, 46, 158, 0.05)" }
                       : { y: -5, borderColor: "rgba(30, 46, 158, 0.2)", boxShadow: "0 20px 35px -12px rgba(148, 163, 184, 0.2)" }
                   }
                 >
@@ -303,15 +308,15 @@ export default function Plans() {
                   <h3
                     style={{
                       fontFamily: "var(--serif)",
-                      fontSize: "24px",
+                      fontSize: isVidaPlus ? "28px" : "24px",
                       fontWeight: 500,
                       color: isFeatured ? "#ffffff" : isVidaPlus ? "var(--royal)" : "#1E293B",
-                      marginBottom: "6px"
+                      marginBottom: "8px"
                     }}
                   >
                     {plan.name}
                   </h3>
-                  <p className="text-[14px] leading-relaxed min-h-[40px]" style={{ color: subColor }}>
+                  <p className="text-[14px] leading-relaxed min-h-[40px]" style={{ color: subColor, fontSize: isVidaPlus ? "14.5px" : "14px" }}>
                     {plan.sub}
                   </p>
                 </div>
@@ -322,7 +327,7 @@ export default function Plans() {
                   <span
                     style={{
                       fontFamily: "var(--serif)",
-                      fontSize: "44px",
+                      fontSize: isVidaPlus ? "52px" : "44px",
                       fontWeight: 500,
                       lineHeight: 1,
                       letterSpacing: "-0.01em",
@@ -345,14 +350,29 @@ export default function Plans() {
                   {plan.meta}
                 </p>
 
+                {/* Bloco de Destaque Emocional Rosado Exclusivo do Vida Plus */}
+                {isVidaPlus && (
+                  <div 
+                    className="mb-6 p-4 rounded-xl text-[13.5px] font-medium leading-relaxed text-center"
+                    style={{
+                      background: "linear-gradient(135deg, #FFF5F7 0%, #FFEBF0 100%)",
+                      border: "1px solid rgba(244, 63, 94, 0.15)",
+                      color: "#9F1239",
+                      boxShadow: "inset 0 1px 2px rgba(244, 63, 94, 0.02)"
+                    }}
+                  >
+                    “Mais conforto e acolhimento em cada detalhe da despedida.”
+                  </div>
+                )}
+
                 {/* Features (Sempre visíveis) */}
-                <ul className="flex flex-col gap-3 mt-4 mb-4 p-0 m-0" style={{ listStyle: "none" }}>
+                <ul className="flex flex-col gap-3.5 mt-4 mb-4 p-0 m-0" style={{ listStyle: "none" }}>
                   {plan.features.map((f, idx) => (
                     <li key={idx} className="flex items-start gap-2.5 text-[14.5px] leading-snug">
                       <span className="mt-0.5" style={{ color: isFeatured ? "#5CE1E6" : "var(--royal)" }}>
                         {CHECK_ICON}
                       </span>
-                      <span style={{ color: isFeatured ? "rgba(255,255,255,0.95)" : "#334155" }}>{f}</span>
+                      <span style={{ color: isFeatured ? "rgba(255,255,255,0.95)" : isVidaPlus ? "#0F172A" : "#334155", fontWeight: isVidaPlus ? 400 : "normal" }}>{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -367,13 +387,13 @@ export default function Plans() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       style={{ overflow: "hidden" }}
                     >
-                      <ul className="flex flex-col gap-3 pt-1 pb-4 p-0 m-0" style={{ listStyle: "none", borderTop: isFeatured ? "1px dashed rgba(255,255,255,0.1)" : "1px dashed rgba(226, 232, 240, 0.8)", marginTop: "12px" }}>
+                      <ul className="flex flex-col gap-3.5 pt-1 pb-4 p-0 m-0" style={{ listStyle: "none", borderTop: isFeatured ? "1px dashed rgba(255,255,255,0.1)" : "1px dashed rgba(226, 232, 240, 0.8)", marginTop: "12px" }}>
                         {plan.expandedFeatures.map((ef, idx) => (
                           <li key={`exp-${idx}`} className="flex items-start gap-2.5 text-[14.5px] leading-snug pt-3">
                             <span className="mt-0.5" style={{ color: isFeatured ? "#5CE1E6" : "var(--royal)" }}>
                               {CHECK_ICON}
                             </span>
-                            <span style={{ color: isFeatured ? "rgba(255,255,255,0.95)" : "#334155" }}>{ef}</span>
+                            <span style={{ color: isFeatured ? "rgba(255,255,255,0.95)" : isVidaPlus ? "#0F172A" : "#334155" }}>{ef}</span>
                           </li>
                         ))}
                       </ul>
@@ -413,7 +433,7 @@ export default function Plans() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  Quero o {plan.name}
+                  {isVidaPlus ? "Quero mais tranquilidade para minha família" : `Quero o ${plan.name}`}
                 </motion.button>
 
                 </motion.div>
