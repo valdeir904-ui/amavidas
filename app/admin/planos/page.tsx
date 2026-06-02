@@ -168,7 +168,6 @@ function ModalNovoPlano({ onClose, onCreate }: { onClose: () => void; onCreate: 
   const [nome, setNome] = useState("");
   const [tagline, setTagline] = useState("");
   const [preco, setPreco] = useState("");
-  const [cobertura, setCobertura] = useState("");
   const [icone, setIcone] = useState("📄");
   const [criando, setCriando] = useState(false);
   const [erro, setErro] = useState("");
@@ -186,7 +185,7 @@ function ModalNovoPlano({ onClose, onCreate }: { onClose: () => void; onCreate: 
           nome: nome.trim(),
           tagline: tagline.trim(),
           preco: parseInt(preco),
-          cobertura: parseInt(cobertura) || 0,
+          cobertura: 0,
           icone,
         }),
       });
@@ -220,21 +219,14 @@ function ModalNovoPlano({ onClose, onCreate }: { onClose: () => void; onCreate: 
             <input value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Ex: Proteção especial para a melhor idade"
               className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 outline-none text-slate-900 placeholder:text-slate-400" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Preço (R$/mês) *</label>
-              <input type="number" min={1} value={preco} onChange={(e) => setPreco(e.target.value)} placeholder="Ex: 79"
-                className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 outline-none text-slate-900 placeholder:text-slate-400" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Cobertura (R$)</label>
-              <input type="number" min={0} value={cobertura} onChange={(e) => setCobertura(e.target.value)} placeholder="Ex: 2500"
-                className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 outline-none text-slate-900 placeholder:text-slate-400" />
-            </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Preço (R$/mês) *</label>
+            <input type="number" min={1} value={preco} onChange={(e) => setPreco(e.target.value)} placeholder="Ex: 79"
+              className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 outline-none text-slate-900 placeholder:text-slate-400" />
           </div>
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
           <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-            <p className="text-xs text-amber-700">⚠ O plano será criado como <strong>inativo</strong>. Configure as coberturas e ative quando estiver pronto.</p>
+            <p className="text-xs text-amber-700">⚠ O plano será criado como <strong>inativo</strong>. Configure os benefícios e ative quando estiver pronto.</p>
           </div>
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">Cancelar</button>
@@ -452,8 +444,8 @@ export default function PlanosPage() {
               <EmojiPicker value={editando.icone} onChange={(v) => campo("icone", v)} />
             </div>
 
-            {/* Nome + Preço + Cobertura */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Nome + Preço */}
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Nome</label>
                 <input value={editando.nome} onChange={(e) => campo("nome", e.target.value)}
@@ -462,11 +454,6 @@ export default function PlanosPage() {
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Preço (R$/mês)</label>
                 <input type="number" min={1} value={editando.preco} onChange={(e) => campo("preco", parseInt(e.target.value) || 0)}
-                  className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 outline-none text-slate-900" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Cobertura (R$)</label>
-                <input type="number" min={0} value={editando.cobertura || 0} onChange={(e) => campo("cobertura", parseInt(e.target.value) || 0)}
                   className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 outline-none text-slate-900" />
               </div>
             </div>
