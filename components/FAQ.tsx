@@ -23,7 +23,7 @@ const FAQS = [
   },
   {
     q: "Como faço para cancelar o plano?",
-    a: "Sem letras miúdas: você pode cancelar a qualquer momento, sem multa, ligando para nosso 0800 ou pelo WhatsApp. Sem burocracia.",
+    a: "Sem letras miúdas: você pode cancelar a qualquer momento, sem multa, diretamente com a nossa equipe através do WhatsApp. Sem burocracia.",
   },
   {
     q: "O plano cobre cremação?",

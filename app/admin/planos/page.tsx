@@ -137,11 +137,6 @@ function PreviewCard({ plano }: { plano: Plano }) {
           <span className="text-4xl font-bold text-slate-900">{plano.preco}</span>
           <span className="text-slate-400 text-sm mb-1">/mês</span>
         </div>
-        {plano.cobertura > 0 && (
-          <p className="text-xs text-slate-500 font-medium">
-            Cobertura funeral de R$ {plano.cobertura.toLocaleString("pt-BR")}
-          </p>
-        )}
       </div>
       <ul className="space-y-2.5 flex-1">
         {plano.beneficios.map((b, i) => (

@@ -144,7 +144,7 @@ export default function Footer() {
             
             {/* Informar Óbito Button */}
             <a
-              href="tel:08001000000"
+              href="tel:61985458010"
               className="flex items-center gap-2.5 mb-6 w-fit h-[44px] px-5 rounded-xl font-bold text-[14px] border whitespace-nowrap transition-all"
               style={{
                 color: "#fff",
@@ -181,8 +181,10 @@ export default function Footer() {
                   <path d="M22 16.92V21a1 1 0 0 1-1.1 1A19 19 0 0 1 2 4.1 1 1 0 0 1 3 3h4.09a1 1 0 0 1 1 .75c.12.7.34 1.38.66 2.01a1 1 0 0 1-.23 1.1L7.9 8.39a16 16 0 0 0 7.7 7.7l1.53-1.61a1 1 0 0 1 1.1-.23c.63.32 1.31.54 2.01.66a1 1 0 0 1 .76 1z" />
                 </svg>
                 <span>
-                  <strong className="block text-white">0800 100 0000</strong>
-                  Ligação gratuita
+                  <a href="tel:61984838124" className="hover:underline">
+                    <strong className="block text-white">(61) 98483-8124</strong>
+                  </a>
+                  Falar com Financeiro
                 </span>
               </li>
               <li className="flex gap-2.5 items-start">

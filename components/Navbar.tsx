@@ -63,7 +63,7 @@ export default function Navbar() {
           <div className="hidden min-[1100px]:flex items-center gap-3">
             {/* Informar Óbito (Emergência) */}
             <a
-              href="tel:08001000000"
+              href="tel:61985458010"
               className="flex items-center gap-2 h-[44px] px-4 rounded-xl font-bold text-[13px] border whitespace-nowrap transition-all"
               style={{
                 color: "#1E293B",
@@ -163,7 +163,7 @@ export default function Navbar() {
           {/* Mobile actions — aparece abaixo de 1100px */}
           <div className="flex items-center gap-2.5 min-[1100px]:hidden">
             <a
-              href="tel:08001000000"
+              href="tel:61985458010"
               className="flex items-center gap-1.5 h-[40px] px-3 rounded-[10px] font-bold text-[13px] border transition-all"
               style={{
                 color: "#991B1B",

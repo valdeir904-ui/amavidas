@@ -842,11 +842,9 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             <div className="bg-[var(--royal-soft)]/50 border border-[var(--royal)]/10 rounded-2xl p-5 mb-6 text-left shadow-inner">
               <p className="text-[12px] font-bold uppercase tracking-wider text-[var(--royal)] mb-1">Seu plano recomendado</p>
               <p className="text-xl font-bold text-[var(--ink)]">{planoAtual.nome}</p>
-              {planoAtual.cobertura > 0 && (
-                <p className="text-[14px] text-[var(--ink-soft)] mt-0.5">
-                  Preço: R$ {planoAtual.preco}/mês
-                </p>
-              )}
+              <p className="text-[14px] text-[var(--ink-soft)] mt-0.5">
+                Preço: R$ {planoAtual.preco}/mês
+              </p>
             </div>
 
             {onClose ? (
