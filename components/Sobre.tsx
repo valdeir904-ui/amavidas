@@ -26,10 +26,10 @@ export default function Sobre() {
             </div>
 
             <p className="text-[18px] mb-4 leading-relaxed max-[980px]:text-[17px]" style={{ color: "var(--ink-soft)" }}>
-              A AmaVidas começou em 2021, em Águas Lindas de Goiás, quando dois amigos decidiram que ninguém deveria atravessar o luto sozinho — nem se afundar em dívidas por causa dele.
+              A AmaVidas começou em 2021, em Águas Lindas de Goiás, quando dois amigos decidiram que nenhuma família deveria atravessar o luto desamparada — nem enfrentar despesas inesperadas em um momento de dor.
             </p>
             <p className="text-[18px] mb-8 leading-relaxed max-[980px]:text-[17px]" style={{ color: "var(--ink-soft)" }}>
-              Hoje, somos uma das funerárias mais bem avaliadas do país, com presença nacional e mais de 5.000 famílias atendidas. Mas o que nos move continua o mesmo:{" "}
+              Hoje, nos consolidamos como a maior empresa de planos funerários do país, oferecendo proteção completa com presença nacional e mais de 5.000 famílias atendidas. Mas a nossa essência continua a mesma:{" "}
               <strong style={{ color: "var(--ink)" }}>cuidar das pessoas como gostaríamos de ser cuidados.</strong>
             </p>
 
