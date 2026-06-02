@@ -86,3 +86,20 @@ model SimulacaoNota {
   @@index([simulacaoId], map: "simulacao_notas_simulacaoId_fkey")
   @@map("simulacao_notas")
 }
+
+model Depoimento {
+  id           String   @id @default(cuid())
+  nome         String
+  cidade       String
+  relacao      String?
+  texto        String?  @db.Text
+  tipo         String
+  mediaUrl     String?
+  fotoUrl      String?
+  ativo        Boolean  @default(true)
+  ordem        Int      @default(0)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("depoimentos")
+}
