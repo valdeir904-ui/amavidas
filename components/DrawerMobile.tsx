@@ -82,7 +82,9 @@ export default function DrawerMobile({ open, onClose }: Props) {
         <div className="mt-auto flex flex-col gap-3">
           {/* Informar Óbito (Emergência) */}
           <a
-            href="tel:61985458010"
+            href="https://wa.me/5561985458010?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato."
+            target="_blank"
+            rel="noopener noreferrer"
             className="h-14 flex items-center justify-center gap-2.5 rounded-xl font-bold text-[17px] border transition-all duration-200 active:scale-[0.98]"
             style={{
               color: "#991B1B",

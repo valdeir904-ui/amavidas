@@ -144,7 +144,9 @@ export default function Footer() {
             
             {/* Informar Óbito Button */}
             <a
-              href="tel:61985458010"
+              href="https://wa.me/5561985458010?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato."
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2.5 mb-6 w-fit h-[44px] px-5 rounded-xl font-bold text-[14px] border whitespace-nowrap transition-all"
               style={{
                 color: "#fff",
