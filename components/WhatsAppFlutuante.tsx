@@ -3,24 +3,21 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
+import { useConfig } from "@/contexts/ConfigContext";
+
 // Variável em escopo do módulo para persistência em memória durante a navegação.
 // Diferente do sessionStorage, ela se reseta completamente ao recarregar a página,
 // permitindo que o desenvolvedor teste o popup automático facilmente a cada F5/reload.
 let hasClosedThisSession = false;
 
-export default function WhatsAppFlutuante({ whatsapp = "5511999999999" }: { whatsapp?: string }) {
-  const [num, setNum] = useState(whatsapp);
+export default function WhatsAppFlutuante() {
+  const { configs } = useConfig();
+  const num = configs.whatsapp || "5561985825621";
   const [isOpen, setIsOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
 
   useEffect(() => {
-    // 1. Carrega o número configurado do admin
-    fetch("/api/configuracoes")
-      .then((r) => r.json())
-      .then((d: Record<string, string>) => { if (d.whatsapp) setNum(d.whatsapp); })
-      .catch(() => {});
-
-    // 2. Lógica de temporizador de 45 segundos (tempo ideal para leitura inicial antes do convite)
+    // 1. Lógica de temporizador de 45 segundos (tempo ideal para leitura inicial antes do convite)
     if (!hasClosedThisSession) {
       const timer = setTimeout(() => {
         setIsOpen(true);

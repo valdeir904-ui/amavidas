@@ -12,7 +12,11 @@ function maskPhone(v: string) {
   return "";
 }
 
-export default function ModalFormulario({ whatsapp = "5511999999999" }: { whatsapp?: string }) {
+import { useConfig } from "@/contexts/ConfigContext";
+
+export default function ModalFormulario() {
+  const { configs } = useConfig();
+  const whatsappNum = configs.whatsapp || "5561985825621";
   const { modal, closeForm, openTestimonials } = useModal();
   const { open, preselectedPlan } = modal.form;
 
@@ -276,7 +280,7 @@ export default function ModalFormulario({ whatsapp = "5511999999999" }: { whatsa
             </p>
             <div className="flex gap-2.5 justify-center flex-wrap mt-6">
               <button
-                onClick={() => abrirWhatsApp(whatsapp, "Olá! Acabei de enviar meu pedido no site da AmaVidas.")}
+                onClick={() => abrirWhatsApp(whatsappNum, "Olá! Acabei de enviar meu pedido no site da AmaVidas.")}
                 className="h-16 px-8 flex items-center justify-center gap-2.5 rounded-xl font-semibold text-[18px] text-white transition-all hover:opacity-90"
                 style={{ background: "var(--magenta)" }}
               >

@@ -187,7 +187,7 @@ export default function Footer() {
             
             {/* Informar Óbito Button */}
             <a
-              href={`https://wa.me/${configs.whatsapp || "5561985458010"}?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato.`}
+              href={`https://wa.me/${configs.whatsapp || "5561985825621"}?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato.`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2.5 mb-6 w-fit h-[44px] px-5 rounded-xl font-bold text-[14px] border whitespace-nowrap transition-all"
@@ -217,8 +217,8 @@ export default function Footer() {
                   <path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.4-2.4-1.5-.9-.8-1.5-1.8-1.6-2.1-.2-.3 0-.4.1-.6.1-.1.3-.4.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5 0-.1-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.3 3.1c.2.2 2.2 3.3 5.3 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1-.2-.3-.2-.5-.3z" />
                 </svg>
                 <span>
-                  <a href={`https://wa.me/${configs.whatsapp || "5561990000000"}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                    <strong className="block text-white">{exibirWpp(configs.whatsapp || "5561990000000")}</strong>
+                  <a href={`https://wa.me/${configs.whatsapp || "5561985825621"}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    <strong className="block text-white">{exibirWpp(configs.whatsapp || "5561985825621")}</strong>
                   </a>
                   WhatsApp 24 horas
                 </span>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useConfig } from "@/contexts/ConfigContext";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 type Fase = "quiz" | "confirmacao" | "calculando" | "resultado" | "confirmado";
@@ -230,6 +231,8 @@ const fadeSlide = {
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 export default function Simulador({ onClose }: { onClose?: () => void }) {
+  const { configs } = useConfig();
+  const whatsapp = configs.whatsapp || "5561985825621";
   const [fase, setFase] = useState<Fase>("quiz");
   const [passo, setPasso] = useState(0);
   const [respostas, setRespostas] = useState<Partial<Respostas>>({});
@@ -237,7 +240,6 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
   const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
   const [planoSlug, setPlanoSlug] = useState("amar-plus");
   const [planos, setPlanos] = useState<Record<string, PlanoInfo>>(FALLBACK);
-  const [whatsapp, setWhatsapp] = useState("5511999999999");
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [cidadeOutros, setCidadeOutros] = useState("");
@@ -266,13 +268,6 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
           }
           setPlanos((prev) => ({ ...prev, ...mapa }));
         }
-      })
-      .catch(() => {});
-
-    fetch("/api/configuracoes")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.configs?.whatsapp) setWhatsapp(data.configs.whatsapp);
       })
       .catch(() => {});
 
@@ -1025,9 +1020,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
               </button>
 
               <a
-                href={linkWhatsAppDireto()}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`tel:${(configs.telefone || configs.whatsapp || "5561985825621").replace(/\D/g, "")}`}
                 className="w-full flex items-center justify-center gap-2 border border-[var(--line-strong)] text-[var(--ink-soft)] hover:border-[var(--royal)] hover:text-[var(--royal)] text-[14px] font-bold py-3.5 rounded-xl transition-all min-h-[50px] bg-white hover:shadow-sm"
               >
                 Falar com consultor agora por ligação

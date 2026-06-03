@@ -6,16 +6,12 @@ import { motion } from "framer-motion";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { abrirWhatsApp } from "@/lib/whatsapp";
 
+import { useConfig } from "@/contexts/ConfigContext";
+
 export default function CTAFinal() {
   const { openForm } = useModal();
-  const [num, setNum] = useState("5561990000000");
-
-  useEffect(() => {
-    fetch("/api/configuracoes")
-      .then((r) => r.json())
-      .then((d: Record<string, string>) => { if (d.whatsapp) setNum(d.whatsapp); })
-      .catch(() => {});
-  }, []);
+  const { configs } = useConfig();
+  const num = configs.whatsapp || "5561985825621";
 
   return (
     <section
