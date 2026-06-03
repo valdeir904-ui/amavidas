@@ -40,6 +40,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { ConfigProvider } from "@/contexts/ConfigContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -56,7 +58,11 @@ export default function RootLayout({
         } as React.CSSProperties
       }
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ConfigProvider>
+          {children}
+        </ConfigProvider>
+      </body>
     </html>
   );
 }

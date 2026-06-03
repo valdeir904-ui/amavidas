@@ -11,12 +11,15 @@ const NAV_LINKS = [
   { label: "Dúvidas", href: "#faq" },
 ];
 
+import { useConfig } from "@/contexts/ConfigContext";
+
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
 export default function DrawerMobile({ open, onClose }: Props) {
+  const { configs } = useConfig();
   const { openForm, openSimulador } = useModal();
 
   // ESC fecha
@@ -82,7 +85,7 @@ export default function DrawerMobile({ open, onClose }: Props) {
         <div className="mt-auto flex flex-col gap-3">
           {/* Informar Óbito (Emergência) */}
           <a
-            href="https://wa.me/5561985458010?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato."
+            href={`https://wa.me/${configs.whatsapp || "5561985458010"}?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato.`}
             target="_blank"
             rel="noopener noreferrer"
             className="h-14 flex items-center justify-center gap-2.5 rounded-xl font-bold text-[17px] border transition-all duration-200 active:scale-[0.98]"

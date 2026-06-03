@@ -1,8 +1,51 @@
 "use client";
 
 import Image from "next/image";
+import { useConfig } from "@/contexts/ConfigContext";
+
+function exibirWpp(num: string) {
+  const d = num.replace(/\D/g, "");
+  if (d.length < 2) return d;
+  const ddi = d.slice(0, 2);
+  const ddd = d.slice(2, 4);
+  const rest = d.slice(4);
+  if (!ddd) return `+${ddi}`;
+  if (!rest) return `+${ddi} (${ddd})`;
+  if (rest.length <= 4) return `+${ddi} (${ddd}) ${rest}`;
+  const split = rest.length === 9 ? 5 : 4;
+  return `+${ddi} (${ddd}) ${rest.slice(0, split)}-${rest.slice(split)}`;
+}
+
+function exibirEndereco(end: string) {
+  if (!end) return null;
+  const partes = end.split("—"); // split by dash
+  if (partes.length >= 2) {
+    return (
+      <span>
+        <strong className="block text-white">{partes[0].trim()}</strong>
+        {partes.slice(1).join("—").trim()}
+      </span>
+    );
+  }
+  const partesVirgula = end.split(",");
+  if (partesVirgula.length >= 2) {
+    return (
+      <span>
+        <strong className="block text-white">{partesVirgula[0].trim()}</strong>
+        {partesVirgula.slice(1).join(",").trim()}
+      </span>
+    );
+  }
+  return (
+    <span>
+      <strong className="block text-white">{end}</strong>
+    </span>
+  );
+}
 
 export default function Footer() {
+  const { configs } = useConfig();
+
   return (
     <footer style={{ background: "var(--royal-deep)", color: "rgba(255,255,255,.78)", fontSize: 15 }}>
       <div className="max-w-[1400px] mx-auto px-5 min-[640px]:px-8 min-[1400px]:px-6 pt-20 pb-8 max-[980px]:pt-14 max-[980px]:pb-6">
@@ -144,7 +187,7 @@ export default function Footer() {
             
             {/* Informar Óbito Button */}
             <a
-              href="https://wa.me/5561985458010?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato."
+              href={`https://wa.me/${configs.whatsapp || "5561985458010"}?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato.`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2.5 mb-6 w-fit h-[44px] px-5 rounded-xl font-bold text-[14px] border whitespace-nowrap transition-all"
@@ -174,7 +217,9 @@ export default function Footer() {
                   <path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.4-2.4-1.5-.9-.8-1.5-1.8-1.6-2.1-.2-.3 0-.4.1-.6.1-.1.3-.4.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5 0-.1-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.3 3.1c.2.2 2.2 3.3 5.3 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1-.2-.3-.2-.5-.3z" />
                 </svg>
                 <span>
-                  <strong className="block text-white">(61) 99000-0000</strong>
+                  <a href={`https://wa.me/${configs.whatsapp || "5561990000000"}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    <strong className="block text-white">{exibirWpp(configs.whatsapp || "5561990000000")}</strong>
+                  </a>
                   WhatsApp 24 horas
                 </span>
               </li>
@@ -183,8 +228,8 @@ export default function Footer() {
                   <path d="M22 16.92V21a1 1 0 0 1-1.1 1A19 19 0 0 1 2 4.1 1 1 0 0 1 3 3h4.09a1 1 0 0 1 1 .75c.12.7.34 1.38.66 2.01a1 1 0 0 1-.23 1.1L7.9 8.39a16 16 0 0 0 7.7 7.7l1.53-1.61a1 1 0 0 1 1.1-.23c.63.32 1.31.54 2.01.66a1 1 0 0 1 .76 1z" />
                 </svg>
                 <span>
-                  <a href="tel:61984838124" className="hover:underline">
-                    <strong className="block text-white">(61) 98483-8124</strong>
+                  <a href={`tel:${(configs.telefone || "(61) 98483-8124").replace(/\D/g, "")}`} className="hover:underline">
+                    <strong className="block text-white">{configs.telefone || "(61) 98483-8124"}</strong>
                   </a>
                   Falar com Financeiro
                 </span>
@@ -193,10 +238,7 @@ export default function Footer() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18" style={{ flexShrink: 0, marginTop: 2, color: "var(--teal)" }}>
                   <path d="M12 22s8-7 8-13a8 8 0 1 0-16 0c0 6 8 13 8 13z" /><circle cx="12" cy="9" r="3" />
                 </svg>
-                <span>
-                  <strong className="block text-white">Águas Lindas, GO</strong>
-                  Av. Brasília, Quadra 100 · Lote 5
-                </span>
+                {exibirEndereco(configs.empresa_endereco || "Águas Lindas, GO — Av. Brasília, Quadra 100 · Lote 5")}
               </li>
             </ul>
           </div>
@@ -207,18 +249,26 @@ export default function Footer() {
           className="flex justify-between flex-wrap gap-6 pt-6 text-[13px] max-[980px]:flex-col max-[980px]:gap-3"
           style={{ borderTop: "1px solid rgba(255,255,255,.12)", color: "rgba(255,255,255,.55)" }}
         >
-          <div>© 2026 AmaVidas Assistência Funerária Ltda · CNPJ 42.159.966/0001-16 · Todos os direitos reservados</div>
+          <div>© 2026 {configs.empresa_nome || "AmaVidas Assistência Funerária Ltda"} · CNPJ {configs.empresa_cnpj || "42.159.966/0001-16"} · Todos os direitos reservados</div>
           <div className="flex gap-4 flex-wrap">
-            {["LGPD", "Cookies", "Instagram", "Facebook"].map((link) => (
+            {[
+              { label: "LGPD", href: "#" },
+              { label: "Cookies", href: "#" },
+              { label: "Instagram", href: configs.instagram || "#", target: configs.instagram ? "_blank" : undefined },
+              { label: "Facebook", href: configs.facebook || "#", target: configs.facebook ? "_blank" : undefined },
+              configs.youtube && { label: "YouTube", href: configs.youtube, target: "_blank" },
+            ].filter(Boolean).map((link: any) => (
               <a
-                key={link}
-                href="#"
+                key={link.label}
+                href={link.href}
+                target={link.target}
+                rel={link.target === "_blank" ? "noopener noreferrer" : undefined}
                 className="transition-colors"
                 style={{ color: "rgba(255,255,255,.55)" }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#fff")}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,.55)")}
               >
-                {link}
+                {link.label}
               </a>
             ))}
           </div>
@@ -227,3 +277,4 @@ export default function Footer() {
     </footer>
   );
 }
+
