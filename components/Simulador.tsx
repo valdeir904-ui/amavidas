@@ -186,8 +186,8 @@ const PERGUNTAS: Pergunta[] = [
     mensagemEmpatica: "Pronto! Quase lá...",
     opcoes: (r) => {
       const isAguasLindas = r.cidade && (
-        r.cidade.toLowerCase().replace(/\s+/g, "") === "aguaslindas" || 
-        r.cidade.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("aguas lindas")
+        r.cidade.toLowerCase().replace(/[\s_-]+/g, "") === "aguaslindas" || 
+        r.cidade.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\s_-]+/g, "").includes("aguaslindas")
       );
       const opts = [];
       if (isAguasLindas) {
