@@ -80,7 +80,7 @@ export default function CTAFinal() {
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 350, damping: 18 }}
             >
-              Ver planos a partir de R$ 35/mês
+              Ver planos a partir de R$ 43/mês
             </motion.a>
 
             <motion.button

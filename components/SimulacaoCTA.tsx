@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useModal } from "@/contexts/ModalContext";
@@ -18,11 +18,10 @@ const QUESTIONS = [
   },
 ];
 
-const PRICES: Record<string, number> = { "Cuidar Plus": 35, "Amar Plus": 43, "Vida Plus": 90 };
+const PRICES: Record<string, number> = { "Amar Plus": 43, "Vida Plus": 90 };
 
 function getRec(answers: number[]): string {
   const score = answers.reduce((s, a) => s + a, 0);
-  if (score <= 1) return "Cuidar Plus";
   if (score >= 4) return "Vida Plus";
   return "Amar Plus";
 }

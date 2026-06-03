@@ -195,7 +195,7 @@ export default function DepoimentosPage() {
         <section className="pb-16 px-5">
           <div className="max-w-2xl mx-auto text-center">
             <p className="text-muted mb-6">
-              Sua família também pode ter essa proteção. A partir de R$&nbsp;35/mês.
+              Sua família também pode ter essa proteção. A partir de R$&nbsp;43/mês.
             </p>
             <Link
               href="/simulacao"

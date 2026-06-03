@@ -18,15 +18,15 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "AmaVidas — Planos Funerários em Águas Lindas e DF | A partir de R$ 35/mês",
+  title: "AmaVidas — Planos Funerários em Águas Lindas e DF | A partir de R$ 43/mês",
   description:
-    "Proteja sua família agora com um plano funerário completo a partir de R$ 35/mês. Cobertura nacional, atendimento 24h e zero burocracia. 4,9⭐ no Google. Quem Ama, Cuida.",
+    "Proteja sua família agora com um plano funerário completo a partir de R$ 43/mês. Cobertura nacional, atendimento 24h e zero burocracia. 4,9⭐ no Google. Quem Ama, Cuida.",
   keywords: [
     "plano funerário", "plano funeral", "assistência funeral", "Águas Lindas de Goiás",
     "Distrito Federal", "plano funerário barato", "AmaVidas", "proteção familiar",
   ],
   openGraph: {
-    title: "AmaVidas — Planos Funerários a partir de R$ 35/mês",
+    title: "AmaVidas — Planos Funerários a partir de R$ 43/mês",
     description:
       "Proteja sua família agora. Cobertura nacional, atendimento 24h, 4,9⭐ no Google e zero reclamações no ReclameAqui. Quem Ama, Cuida.",
     locale: "pt_BR",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AmaVidas — Planos Funerários a partir de R$ 35/mês",
+    title: "AmaVidas — Planos Funerários a partir de R$ 43/mês",
     description: "Proteja sua família agora com a AmaVidas. Quem Ama, Cuida.",
   },
 };

@@ -123,7 +123,7 @@ export default function ImpactoFinanceiro() {
                 
                 <div className="mb-4">
                   <div className="impacto-price text-[32px] md:text-[36px] xl:text-[42px]" style={{ fontFamily: "var(--serif)", fontWeight: 500, lineHeight: 1, letterSpacing: "-0.02em", color: "var(--teal)" }}>
-                    R$ 35<small className="text-[14px] font-sans font-normal ml-1.5 text-slate-400">/mês</small>
+                    R$ 43<small className="text-[14px] font-sans font-normal ml-1.5 text-slate-400">/mês</small>
                   </div>
                   <p className="mt-2 text-[14px] leading-snug text-slate-500">
                     A partir de — tranquilidade previsível que cabe no orçamento da família.
@@ -204,7 +204,7 @@ export default function ImpactoFinanceiro() {
                       </span>
                     </div>
                     <div className="impacto-price" style={{ fontFamily: "var(--serif)", fontSize: "40px", fontWeight: 500, lineHeight: 1, letterSpacing: "-0.02em", color: "var(--teal)" }}>
-                      R$ 35<small className="text-[15px] font-medium ml-1" style={{ fontFamily: "var(--sans)", color: "var(--ink-mute)" }}>/mês</small>
+                      R$ 43<small className="text-[15px] font-medium ml-1" style={{ fontFamily: "var(--sans)", color: "var(--ink-mute)" }}>/mês</small>
                     </div>
                     <p className="mt-2.5 text-[14px] leading-snug" style={{ color: "var(--ink-soft)" }}>
                       A partir de — equivalente a uma pizza por mês. Tranquilidade que cabe no orçamento.
@@ -269,7 +269,7 @@ export default function ImpactoFinanceiro() {
                   className="impacto-stat text-[48px] min-[540px]:text-[64px] min-[1151px]:text-[56px] xl:text-[76px] leading-none font-medium text-royal"
                   style={{ fontFamily: "var(--serif)", fontWeight: 500, color: "var(--royal)", letterSpacing: "-0.03em" }}
                 >
-                  R$ <AnimatedCounter target={7580} />
+                  R$ <AnimatedCounter target={7484} />
                 </div>
                 <span className="text-[12px] font-bold text-teal-600 bg-teal-soft px-2 py-0.5 rounded-md" style={{ color: "var(--teal)", background: "var(--teal-soft)" }}>
                   -95%
@@ -281,7 +281,7 @@ export default function ImpactoFinanceiro() {
             </div>
             
             <p className="text-[14.5px] xl:text-[15.5px] leading-relaxed text-slate-600">
-              Em vez de R$ 8.000 de uma vez em um momento de dor, você paga R$ 420 no ano inteiro e ainda tem cobertura completa. <strong className="text-slate-800">Sua família não precisa se preocupar com burocracia ou taxas surpresas.</strong>
+              Em vez de R$ 8.000 de uma vez em um momento de dor, você paga R$ 516 no ano inteiro e ainda tem cobertura completa. <strong className="text-slate-800">Sua família não precisa se preocupar com burocracia ou taxas surpresas.</strong>
             </p>
             
             <div

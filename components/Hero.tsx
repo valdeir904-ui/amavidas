@@ -59,7 +59,7 @@ export default function Hero() {
               style={{ marginTop: "12px", lineHeight: "1.5", color: "var(--ink-soft)", maxWidth: "540px" }}
             >
               A AmaVidas resolve papelada, remoção e velório com{" "}
-              <span style={{ color: "var(--magenta)", fontWeight: 600 }}>gente de verdade no telefone</span> — não central terceirizada. Vocês cuidam uns dos outros. A partir de R$ 35/mês.
+              <span style={{ color: "var(--magenta)", fontWeight: 600 }}>gente de verdade no telefone</span> — não central terceirizada. Vocês cuidam uns dos outros. A partir de R$ 43/mês.
             </motion.p>
 
             {/* CTAs com hierarquia clara */}

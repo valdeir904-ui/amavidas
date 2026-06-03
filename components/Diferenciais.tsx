@@ -36,7 +36,7 @@ const CARDS = [
   },
   {
     title: "Preço acessível",
-    desc: "A partir de R$ 35/mês. O cuidado que sua família merece, sem comprometer o orçamento.",
+    desc: "A partir de R$ 43/mês. O cuidado que sua família merece, sem comprometer o orçamento.",
     iconBg: "var(--teal-soft)", iconColor: "var(--teal)",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h4l3-8 4 16 3-8h4" /></svg>,
   },

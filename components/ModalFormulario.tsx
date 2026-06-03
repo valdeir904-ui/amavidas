@@ -175,7 +175,6 @@ export default function ModalFormulario() {
                   style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231A1F36' stroke-width='2.4' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}
                 >
                   <option value="">Ainda não decidi — preciso de ajuda</option>
-                  <option value="Cuidar Plus">Cuidar Plus — R$ 35/mês</option>
                   <option value="Amar Plus">Amar Plus — R$ 43/mês (mais escolhido)</option>
                   <option value="Vida Plus">Vida Plus — R$ 90/mês</option>
                 </select>

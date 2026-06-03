@@ -19,37 +19,17 @@ interface DynamicPlan {
 
 const FALLBACK_PLANS: DynamicPlan[] = [
   {
-    slug: "cuidar-plus",
-    name: "Cuidar Plus",
-    sub: "O cuidado essencial para proteger sua família.",
-    price: 35,
-    meta: "Protege você + 4 familiares",
-    features: [
-      "Higienização e preparação completa",
-      "Urna padrão adulto e infantil",
-      "Ornamentação com flores naturais",
-      "Remoção e cortejo em Águas Lindas de Goiás",
-      "Traslado terrestre de até 100km",
-    ],
-    expandedFeatures: [
-      "Véu, terço, velas e itens de homenagem",
-      "Cerimônia organizada conforme o credo religioso",
-      "Livro de presença e cartões de homenagem",
-    ],
-    featured: false,
-    badge: null,
-  },
-  {
     slug: "amar-plus",
     name: "Amar Plus",
     sub: "Mais conforto e acolhimento para sua família.",
     price: 43,
     meta: "Protege você + 6 familiares",
     features: [
-      "Tudo do Cuidar Plus incluso",
-      "Remoção terrestre ampliada até 150km",
+      "Higienização e preparação completa",
+      "Urna padrão adulto e infantil",
+      "Ornamentação com flores naturais",
+      "Remoção e cortejo em Águas Lindas de Goiás",
       "Traslado terrestre de até 250km",
-      "Estrutura de homenagem mais completa",
     ],
     expandedFeatures: [
       "Atendimento pensado para proporcionar mais tranquilidade à família",
@@ -64,7 +44,7 @@ const FALLBACK_PLANS: DynamicPlan[] = [
     price: 90,
     meta: "Protege você + 8 familiares",
     features: [
-      "Tudo do Amar Plus incluso",
+      "Higienização e preparação completa premium",
       "Urna em padrão superior",
       "Ornamentação especial com flores naturais premium",
       "Até 10 vasos florais inclusos",
@@ -120,32 +100,20 @@ export default function Plans() {
             let mainFeatures: string[] = [];
             let extraFeatures: string[] = [];
 
-            if (p.slug === "cuidar-plus") {
+            if (p.slug === "amar-plus") {
               mainFeatures = [
                 "Higienização e preparação completa",
                 "Urna padrão adulto e infantil",
                 "Ornamentação com flores naturais",
                 "Remoção e cortejo em Águas Lindas de Goiás",
-                "Traslado terrestre de até 100km",
-              ];
-              extraFeatures = [
-                "Véu, terço, velas e itens de homenagem",
-                "Cerimônia organizada conforme o credo religioso",
-                "Livro de presença e cartões de homenagem",
-              ];
-            } else if (p.slug === "amar-plus") {
-              mainFeatures = [
-                "Tudo do Cuidar Plus incluso",
-                "Remoção terrestre ampliada até 150km",
                 "Traslado terrestre de até 250km",
-                "Estrutura de homenagem mais completa",
               ];
               extraFeatures = [
                 "Atendimento pensado para proporcionar mais tranquilidade à família",
               ];
             } else if (p.slug === "vida-plus") {
               mainFeatures = [
-                "Tudo do Amar Plus incluso",
+                "Higienização e preparação completa premium",
                 "Urna em padrão superior",
                 "Ornamentação especial com flores naturais premium",
                 "Até 10 vasos florais inclusos",
@@ -167,7 +135,7 @@ export default function Plans() {
               name: p.nome,
               sub: p.slug === "vida-plus" ? "Uma despedida com mais conforto, elegância e tranquilidade para toda a família." : p.tagline,
               price: p.preco,
-              meta: `Protege você + ${p.slug === "cuidar-plus" ? 4 : p.slug === "amar-plus" ? 6 : 8} familiares`,
+              meta: `Protege você + ${p.slug === "amar-plus" ? 6 : 8} familiares`,
               features: mainFeatures,
               expandedFeatures: extraFeatures,
               featured: p.destaque,

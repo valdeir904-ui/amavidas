@@ -29,19 +29,6 @@ interface PlanoInfo {
 
 // ─── Fallback (caso a API falhe) ──────────────────────────────────────────────
 const FALLBACK: Record<string, PlanoInfo> = {
-  "cuidar-plus": {
-    slug: "cuidar-plus",
-    nome: "Cuidar Plus",
-    preco: 35,
-    cobertura: 2100,
-    tagline: "Proteção acessível para você ou um familiar próximo",
-    beneficios: [
-      "Assistência funeral completa",
-      "Urna e ornamentação",
-      "Translado local",
-      "Atendimento 24 horas",
-    ],
-  },
   "amar-plus": {
     slug: "amar-plus",
     nome: "Amar Plus",
@@ -75,13 +62,6 @@ function recomendarSlug(r: Respostas): string {
   if (r.quantidadePessoas === "5+") return "vida-plus";
   if (r.prioridade === "melhor_cobertura") return "vida-plus";
   if (r.orcamento === "90-120") return "vida-plus";
-
-  if (r.orcamento === "ate-50") return "cuidar-plus";
-  if (
-    (r.quantidadePessoas === "1" || r.quantidadePessoas === "2") &&
-    r.prioridade === "menor_preco"
-  )
-    return "cuidar-plus";
 
   return "amar-plus";
 }
