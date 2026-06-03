@@ -66,6 +66,8 @@ model Simulacao {
   prioridade        String
   orcamento         String
   planoRecomendado  String
+  cidade            String          @default("")
+  comoContatar      String          @default("")
   contatado         Boolean         @default(false)
   status            String          @default("pendente")
   criadoEm          DateTime        @default(now())

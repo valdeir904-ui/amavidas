@@ -46,6 +46,8 @@ interface Lead {
   contatado: boolean;
   status: string;
   criadoEm: string;
+  cidade?: string;
+  comoContatar?: string;
 }
 
 const COLUNAS = [
@@ -89,6 +91,8 @@ export default function OportunidadesPage() {
     faixaEtaria: "",
     prioridade: "",
     orcamento: "",
+    cidade: "",
+    comoContatar: "whatsapp",
   });
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -163,6 +167,8 @@ export default function OportunidadesPage() {
         faixaEtaria: "",
         prioridade: "",
         orcamento: "",
+        cidade: "",
+        comoContatar: "whatsapp",
       });
       setShowExtraFields(false);
     } catch (err: any) {
@@ -297,6 +303,8 @@ export default function OportunidadesPage() {
       "Nome",
       "E-mail",
       "Telefone",
+      "Cidade",
+      "Contato por",
       "Plano Recomendado",
       "Status",
       "Para Quem",
@@ -312,6 +320,8 @@ export default function OportunidadesPage() {
       l.nome,
       l.email || "",
       l.telefone,
+      l.cidade || "",
+      l.comoContatar || "",
       PLANO_LABEL[l.planoRecomendado]?.label || l.planoRecomendado,
       l.status === "ganho" ? "Ganho" : l.status === "perdido" ? "Perdido" : l.status === "contatado" ? "Em Contato" : "Pendente",
       l.paraQuem === "familia" ? "Família" : "Individual",
@@ -797,7 +807,19 @@ export default function OportunidadesPage() {
                   </div>
                   <div>
                     <p className="text-[10px] text-slate-400 font-bold uppercase">Faixa Etária</p>
-                    <p className="text-sm font-semibold text-slate-800 mt-0.5">{selectedLead.faixaEtaria} anos</p>
+                    <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                      {selectedLead.faixaEtaria ? `${selectedLead.faixaEtaria} anos` : "Não informada"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Cidade</p>
+                    <p className="text-sm font-semibold text-slate-800 mt-0.5">{selectedLead.cidade || "Não informada"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Contato por</p>
+                    <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                      {selectedLead.comoContatar === "whatsapp" ? "💬 WhatsApp" : selectedLead.comoContatar === "ligacao" ? "📞 Ligação" : selectedLead.comoContatar === "visita" ? "🏠 Visita" : selectedLead.comoContatar || "Não informado"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-[10px] text-slate-400 font-bold uppercase">Orçamento</p>
@@ -1147,6 +1169,31 @@ export default function OportunidadesPage() {
                       <option value="cobertura">Cobertura completa</option>
                       <option value="servicos">Serviços diferenciados</option>
                     </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Cidade</label>
+                      <input 
+                        type="text"
+                        placeholder="Ex: Águas Lindas"
+                        value={newLead.cidade}
+                        onChange={(e) => setNewLead(prev => ({ ...prev, cidade: e.target.value }))}
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 placeholder:text-slate-400 shadow-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Contato por</label>
+                      <select
+                        value={newLead.comoContatar}
+                        onChange={(e) => setNewLead(prev => ({ ...prev, comoContatar: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 shadow-sm cursor-pointer"
+                      >
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="ligacao">Ligação</option>
+                        <option value="visita">Visita residencial</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}

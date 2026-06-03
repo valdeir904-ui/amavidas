@@ -4,14 +4,17 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
-type Fase = "quiz" | "calculando" | "lead" | "resultado" | "confirmado";
+type Fase = "quiz" | "confirmacao" | "calculando" | "resultado" | "confirmado";
 
 interface Respostas {
   paraQuem: string;
   quantidadePessoas: string;
-  faixaEtaria: string;
   prioridade: string;
   orcamento: string;
+  nome: string;
+  telefone: string;
+  cidade: string;
+  comoContatar: string;
 }
 
 interface PlanoInfo {
@@ -69,11 +72,10 @@ const FALLBACK: Record<string, PlanoInfo> = {
 // ─── Algoritmo de recomendação ────────────────────────────────────────────────
 function recomendarSlug(r: Respostas): string {
   if (r.quantidadePessoas === "5+") return "vida-plus";
-  if (r.faixaEtaria === "70+") return "vida-plus";
   if (r.prioridade === "melhor_cobertura") return "vida-plus";
-  if (r.orcamento === "acima-70") return "vida-plus";
+  if (r.orcamento === "90-120") return "vida-plus";
 
-  if (r.orcamento === "ate-40") return "cuidar-plus";
+  if (r.orcamento === "ate-50") return "cuidar-plus";
   if (
     (r.quantidadePessoas === "1" || r.quantidadePessoas === "2") &&
     r.prioridade === "menor_preco"
@@ -93,7 +95,7 @@ interface Opcao {
 interface Pergunta {
   campo: keyof Respostas;
   texto: string | ((r: Partial<Respostas>) => string);
-  opcoes: Opcao[] | ((r: Partial<Respostas>) => Opcao[]);
+  opcoes: Opcao[] | ((r: Partial<Respostas>) => Opcao[]) | null;
   mensagemEmpatica: string | ((r: Partial<Respostas>) => string);
 }
 
@@ -131,24 +133,20 @@ const PERGUNTAS: Pergunta[] = [
     },
   },
   {
-    campo: "faixaEtaria",
-    texto: (r) => {
-      if (r.paraQuem === "so_eu") return "Qual é a sua idade?";
-      if (r.paraQuem === "conjuge") return "Qual é a idade da pessoa mais velha entre vocês?";
-      if (r.paraQuem === "pais") return "Qual é a idade do seu familiar mais velho?";
-      return "Qual é a idade da pessoa mais velha que será incluída?";
-    },
-    mensagemEmpatica: "Entendido. Isso nos ajuda a indicar a melhor proteção.",
-    opcoes: [
-      { value: "ate-40", emoji: "🌱", label: "Até 40 anos" },
-      { value: "41-59", emoji: "🌿", label: "Entre 41 e 59 anos" },
-      { value: "60-70", emoji: "🍃", label: "Entre 60 e 70 anos" },
-      { value: "70+", emoji: "🌳", label: "Acima de 70 anos" },
-    ],
+    campo: "nome",
+    texto: "Como podemos te chamar? (Nome Completo)",
+    mensagemEmpatica: "Muito prazer! Vamos prosseguir para estruturar seu plano.",
+    opcoes: null,
+  },
+  {
+    campo: "telefone",
+    texto: "Qual é o seu WhatsApp de contato?",
+    mensagemEmpatica: "Perfeito! Isso nos ajudará a enviar os detalhes do seu plano.",
+    opcoes: null,
   },
   {
     campo: "prioridade",
-    texto: "Na hora de escolher, o que pesa mais para você?",
+    texto: "Na hora de escolher, o que é mais importante para você?",
     mensagemEmpatica: "Perfeito. Já temos quase tudo que precisamos.",
     opcoes: [
       { value: "menor_preco", emoji: "💰", label: "Pagar o menor valor possível" },
@@ -164,13 +162,41 @@ const PERGUNTAS: Pergunta[] = [
       if (r.paraQuem === "pais") return "Quanto você pode investir por mês na proteção dos seus familiares?";
       return "Quanto você pode investir por mês na proteção da sua família?";
     },
-    mensagemEmpatica: "Pronto! Calculando o melhor plano para você…",
+    mensagemEmpatica: "Excelente! Definindo as opções ideais para você...",
     opcoes: [
-      { value: "ate-40", emoji: "", label: "Até R$ 40,00 por mês" },
-      { value: "40-70", emoji: "", label: "Entre R$ 40,00 e R$ 70,00 por mês" },
-      { value: "acima-70", emoji: "", label: "Acima de R$ 70,00 por mês" },
-      { value: "nao_sei", emoji: "", label: "Não sei, quero uma indicação" },
+      { value: "ate-50", emoji: "", label: "Até R$ 50,00 por mês" },
+      { value: "50-90", emoji: "", label: "Entre R$ 50,00 e R$ 90,00 por mês" },
+      { value: "90-120", emoji: "", label: "Entre R$ 90,00 e R$ 120,00 por mês" },
+      { value: "nao_sei", emoji: "", label: "Ainda não sei, quero uma indicação" },
     ],
+  },
+  {
+    campo: "cidade",
+    texto: "De qual cidade você é?",
+    mensagemEmpatica: "Ótimo saber! Atendemos com excelência na sua região.",
+    opcoes: [
+      { value: "aguas_lindas", emoji: "🏙️", label: "Águas Lindas" },
+      { value: "brasilia", emoji: "🏛️", label: "Brasília" },
+      { value: "outros", emoji: "📍", label: "Outra Cidade" },
+    ],
+  },
+  {
+    campo: "comoContatar",
+    texto: "Como você deseja ser contatado pelo nosso time comercial?",
+    mensagemEmpatica: "Pronto! Quase lá...",
+    opcoes: (r) => {
+      const isAguasLindas = r.cidade && (
+        r.cidade.toLowerCase().replace(/\s+/g, "") === "aguaslindas" || 
+        r.cidade.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("aguas lindas")
+      );
+      const opts = [];
+      if (isAguasLindas) {
+        opts.push({ value: "visita", emoji: "🏠", label: "Visita residencial" });
+      }
+      opts.push({ value: "ligacao", emoji: "📞", label: "Ligação telefônica" });
+      opts.push({ value: "whatsapp", emoji: "💬", label: "WhatsApp para todos os formatos" });
+      return opts;
+    },
   },
 ];
 
@@ -214,6 +240,8 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
   const [whatsapp, setWhatsapp] = useState("5511999999999");
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [cidadeOutros, setCidadeOutros] = useState("");
+  const [mostrarInputCidade, setMostrarInputCidade] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
   const [loadingStep, setLoadingStep] = useState(0);
@@ -270,7 +298,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
   const perguntasAtivas = useMemo(() => {
     return PERGUNTAS.filter((p) => {
       if (p.campo === "quantidadePessoas") {
-        if (respostas.paraQuem === "so_eu" || respostas.paraQuem === "conjuge") {
+        if (respostas.paraQuem === "so_eu") {
           return false;
         }
       }
@@ -301,14 +329,17 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
   function responder(valor: string) {
     if (opcaoSelecionada) return;
 
+    if (perguntaAtual.campo === "cidade" && valor === "outros") {
+      setMostrarInputCidade(true);
+      return;
+    }
+
     const novasRespostas = { ...respostas, [perguntaAtual.campo]: valor };
     
     // Auto-preenchimento para perguntas que serão puladas
     if (perguntaAtual.campo === "paraQuem") {
       if (valor === "so_eu") {
         novasRespostas.quantidadePessoas = "1";
-      } else if (valor === "conjuge") {
-        novasRespostas.quantidadePessoas = "2";
       }
     }
 
@@ -319,7 +350,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     // Determina as perguntas ativas com base nas respostas atualizadas
     const ativasDepois = PERGUNTAS.filter((p) => {
       if (p.campo === "quantidadePessoas") {
-        if (novasRespostas.paraQuem === "so_eu" || novasRespostas.paraQuem === "conjuge") {
+        if (novasRespostas.paraQuem === "so_eu") {
           return false;
         }
       }
@@ -336,8 +367,60 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
       if (isUltima) {
         const slug = recomendarSlug(novasRespostas as Respostas);
         setPlanoSlug(slug);
-        setFase("calculando");
-        timerRef.current = setTimeout(() => setFase("lead"), 2000);
+        setFase("confirmacao");
+      } else {
+        setPasso(indexAtual + 1);
+      }
+    }, 1500);
+  }
+
+  function avancarTextoStep(valor: string) {
+    if (!valor.trim() || opcaoSelecionada) return;
+
+    const campoAtual = perguntaAtual.campo;
+    const novasRespostas = { ...respostas, [campoAtual]: valor };
+    
+    setRespostas(novasRespostas);
+    setOpcaoSelecionada(valor);
+    setMensagemEmpatica(obterMensagemEmpatica(perguntaAtual));
+
+    const indexAtual = perguntasAtivas.findIndex((p) => p.campo === campoAtual);
+    const isUltima = indexAtual === perguntasAtivas.length - 1;
+
+    timerRef.current = setTimeout(() => {
+      setMensagemEmpatica(null);
+      setOpcaoSelecionada(null);
+
+      if (isUltima) {
+        const slug = recomendarSlug(novasRespostas as Respostas);
+        setPlanoSlug(slug);
+        setFase("confirmacao");
+      } else {
+        setPasso(indexAtual + 1);
+      }
+    }, 1500);
+  }
+
+  function confirmarCidadeOutros() {
+    if (!cidadeOutros.trim() || opcaoSelecionada) return;
+    setMostrarInputCidade(false);
+
+    const novasRespostas = { ...respostas, cidade: cidadeOutros.trim() };
+    setRespostas(novasRespostas);
+    setOpcaoSelecionada(cidadeOutros.trim());
+    setMensagemEmpatica(obterMensagemEmpatica(perguntaAtual));
+
+    const indexAtual = perguntasAtivas.findIndex((p) => p.campo === "cidade");
+    const isUltima = indexAtual === perguntasAtivas.length - 1;
+
+    timerRef.current = setTimeout(() => {
+      setMensagemEmpatica(null);
+      setOpcaoSelecionada(null);
+
+      if (isUltima) {
+        const slug = recomendarSlug(novasRespostas as Respostas);
+        setPlanoSlug(slug);
+        setFase("confirmacao");
       } else {
         setPasso(indexAtual + 1);
       }
@@ -348,6 +431,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     if (timerRef.current) clearTimeout(timerRef.current);
     setMensagemEmpatica(null);
     setOpcaoSelecionada(null);
+    setMostrarInputCidade(false);
     if (passo === 0) {
       if (onClose) onClose();
     } else {
@@ -355,16 +439,12 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     }
   }
 
-  // Envia lead e revela o plano
-  async function enviarLead(e: React.FormEvent) {
-    e.preventDefault();
+  // Envia lead e avança para carregamento
+  async function salvarLeadEGerarRecomendacao() {
     setErro("");
-    if (!nome.trim()) { setErro("Por favor, informe seu nome."); return; }
-    if (telefone.replace(/\D/g, "").length < 10) { setErro("Por favor, informe um telefone válido."); return; }
-
     setEnviando(true);
     try {
-      await fetch("/api/simulacao", {
+      const resp = await fetch("/api/simulacao", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -373,12 +453,17 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
           email: "",
           paraQuem: respostas.paraQuem ?? "",
           quantidadePessoas: respostas.quantidadePessoas ?? "",
-          faixaEtaria: respostas.faixaEtaria ?? "",
           prioridade: respostas.prioridade ?? "",
           orcamento: respostas.orcamento ?? "",
           planoRecomendado: planoSlug,
+          cidade: respostas.cidade === "aguas_lindas" ? "Águas Lindas" : respostas.cidade === "brasilia" ? "Brasília" : respostas.cidade,
+          comoContatar: respostas.comoContatar ?? "",
         }),
-      }).catch(() => {});
+      });
+
+      if (!resp.ok) {
+        throw new Error("Erro ao salvar os dados da simulação.");
+      }
 
       fetch("/api/eventos", {
         method: "POST",
@@ -386,7 +471,12 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
         body: JSON.stringify({ tipo: "simulacao_iniciada" }),
       }).catch(() => {});
 
-      setFase("resultado");
+      setFase("calculando");
+      timerRef.current = setTimeout(() => {
+        setFase("resultado");
+      }, 2000);
+    } catch (err: any) {
+      setErro(err.message || "Erro de conexão. Tente novamente.");
     } finally {
       setEnviando(false);
     }
@@ -426,9 +516,11 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
                 <span className="text-[12px] font-bold uppercase tracking-wider text-[var(--royal)]">
                   {perguntaAtual.campo === "paraQuem" || perguntaAtual.campo === "quantidadePessoas"
                     ? "Fase 1: Perfil Familiar"
-                    : perguntaAtual.campo === "faixaEtaria"
-                    ? "Fase 2: Faixas de Idade"
-                    : "Fase 3: Suas Preferências"}
+                    : perguntaAtual.campo === "nome" || perguntaAtual.campo === "telefone"
+                    ? "Fase 2: Identificação"
+                    : perguntaAtual.campo === "prioridade" || perguntaAtual.campo === "orcamento"
+                    ? "Fase 3: Suas Preferências"
+                    : "Fase 4: Localização e Contato"}
                 </span>
                 <span className="text-sm font-semibold text-[var(--ink-soft)]">
                   Pergunta {passo + 1} de {perguntasAtivas.length}
@@ -450,51 +542,133 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             </p>
 
             {/* Opções interativas */}
-            <div className="space-y-2.5 mb-6.5">
-              {obterOpcoes(perguntaAtual).map((opcao) => {
-                const selecionada = opcaoSelecionada === opcao.value;
-                return (
-                  <button
-                    key={opcao.value}
-                    onClick={() => responder(opcao.value)}
-                    disabled={!!opcaoSelecionada}
-                    className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl border text-left transition-all min-h-[62px] text-[15px] font-semibold cursor-pointer ${
-                      selecionada
-                        ? "border-[var(--magenta)] bg-[var(--magenta-soft)]/45 text-[var(--ink)] shadow-sm"
-                        : opcaoSelecionada
-                        ? "border-[var(--line)] bg-[var(--bg-alt)]/50 text-[var(--ink-mute)] opacity-40 cursor-default"
-                        : "border-[var(--line)] bg-white text-[var(--ink)] hover:border-[var(--royal)]/60 hover:bg-[var(--royal-soft)]/20 active:scale-[0.99] shadow-sm hover:shadow"
-                    }`}
-                  >
-                    {/* Container do Emoji */}
-                    {opcao.emoji && (
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 transition-all ${
-                        selecionada 
-                          ? "bg-white text-white shadow-sm border border-[var(--magenta)]/20" 
-                          : "bg-[var(--bg-alt)] border border-[var(--line)]"
-                      }`}>
-                        {opcao.emoji}
-                      </div>
-                    )}
-                    
-                    <span className="flex-1 leading-snug">{opcao.label}</span>
-                    
-                    {/* Botão de Rádio customizado no final */}
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-all ${
-                      selecionada
-                        ? "border-[var(--magenta)] bg-[var(--magenta)]"
-                        : "border-[var(--line-strong)] bg-white"
-                    }`}>
-                      {selecionada && (
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+            {obterOpcoes(perguntaAtual) !== null ? (
+              mostrarInputCidade ? (
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    required
+                    value={cidadeOutros}
+                    onChange={(e) => setCidadeOutros(e.target.value)}
+                    placeholder="Digite o nome da sua cidade"
+                    className="w-full px-5 py-4 border border-[var(--line-strong)] rounded-2xl focus:border-[var(--royal)] focus:ring-4 focus:ring-[var(--royal-soft)]/50 focus:outline-none transition-all bg-white text-[var(--ink)] placeholder-[var(--ink-mute)]/50 font-medium text-[15px]"
+                    onKeyDown={(e) => { if (e.key === "Enter" && cidadeOutros.trim()) confirmarCidadeOutros(); }}
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setMostrarInputCidade(false);
+                        setOpcaoSelecionada(null);
+                      }}
+                      className="px-4 py-3 rounded-xl border border-[var(--line-strong)] text-[14px] font-bold text-[var(--ink-soft)] bg-white hover:bg-[var(--bg-alt)] cursor-pointer"
+                    >
+                      Voltar
+                    </button>
+                    <button
+                      disabled={!cidadeOutros.trim()}
+                      onClick={confirmarCidadeOutros}
+                      className="flex-1 bg-[var(--royal)] hover:bg-[var(--royal)]/90 active:scale-[0.99] text-white text-[15px] font-bold py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      Confirmar Cidade
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2.5 mb-6.5">
+                  {obterOpcoes(perguntaAtual)!.map((opcao) => {
+                    const selecionada = opcaoSelecionada === opcao.value;
+                    return (
+                      <button
+                        key={opcao.value}
+                        onClick={() => responder(opcao.value)}
+                        disabled={!!opcaoSelecionada}
+                        className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl border text-left transition-all min-h-[62px] text-[15px] font-semibold cursor-pointer ${
+                          selecionada
+                            ? "border-[var(--magenta)] bg-[var(--magenta-soft)]/45 text-[var(--ink)] shadow-sm"
+                            : opcaoSelecionada
+                            ? "border-[var(--line)] bg-[var(--bg-alt)]/50 text-[var(--ink-mute)] opacity-40 cursor-default"
+                            : "border-[var(--line)] bg-white text-[var(--ink)] hover:border-[var(--royal)]/60 hover:bg-[var(--royal-soft)]/20 active:scale-[0.99] shadow-sm hover:shadow"
+                        }`}
+                      >
+                        {/* Container do Emoji */}
+                        {opcao.emoji && (
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 transition-all ${
+                            selecionada 
+                              ? "bg-white text-white shadow-sm border border-[var(--magenta)]/20" 
+                              : "bg-[var(--bg-alt)] border border-[var(--line)]"
+                          }`}>
+                            {opcao.emoji}
+                          </div>
+                        )}
+                        
+                        <span className="flex-1 leading-snug">{opcao.label}</span>
+                        
+                        {/* Botão de Rádio customizado no final */}
+                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-all ${
+                          selecionada
+                            ? "border-[var(--magenta)] bg-[var(--magenta)]"
+                            : "border-[var(--line-strong)] bg-white"
+                        }`}>
+                          {selecionada && (
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )
+            ) : (
+              <div className="space-y-4 mb-6.5">
+                {perguntaAtual.campo === "nome" ? (
+                  <>
+                    <input
+                      type="text"
+                      required
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                      placeholder="Ex: Maria da Silva"
+                      className="w-full px-5 py-4 border border-[var(--line-strong)] rounded-2xl focus:border-[var(--royal)] focus:ring-4 focus:ring-[var(--royal-soft)]/50 focus:outline-none transition-all bg-white text-[var(--ink)] placeholder-[var(--ink-mute)]/50 font-medium text-[15px]"
+                      onKeyDown={(e) => { if (e.key === "Enter" && nome.trim()) avancarTextoStep(nome); }}
+                    />
+                    <button
+                      disabled={!nome.trim() || !!opcaoSelecionada}
+                      onClick={() => avancarTextoStep(nome)}
+                      className="w-full bg-[var(--royal)] hover:bg-[var(--royal)]/90 active:scale-[0.99] text-white text-[15px] font-bold py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      Avançar
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="tel"
+                      required
+                      value={telefone}
+                      onChange={(e) => setTelefone(mascaraTelefone(e.target.value))}
+                      placeholder="Ex: (61) 99999-9999"
+                      className="w-full px-5 py-4 border border-[var(--line-strong)] rounded-2xl focus:border-[var(--royal)] focus:ring-4 focus:ring-[var(--royal-soft)]/50 focus:outline-none transition-all bg-white text-[var(--ink)] placeholder-[var(--ink-mute)]/50 font-medium text-[15px]"
+                      onKeyDown={(e) => { if (e.key === "Enter" && telefone.replace(/\D/g, "").length >= 10) avancarTextoStep(telefone); }}
+                    />
+                    <button
+                      disabled={telefone.replace(/\D/g, "").length < 10 || !!opcaoSelecionada}
+                      onClick={() => avancarTextoStep(telefone)}
+                      className="w-full bg-[var(--royal)] hover:bg-[var(--royal)]/90 active:scale-[0.99] text-white text-[15px] font-bold py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      Avançar
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Mensagem empática estilizada */}
             <AnimatePresence>
@@ -583,106 +757,82 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
           </motion.div>
         )}
 
-        {/* ── Lead Gate: Coleta Nome + WhatsApp ── */}
-        {fase === "lead" && (
+        {/* ── Confirmação de Dados ── */}
+        {fase === "confirmacao" && (
           <motion.div
-            key="lead"
+            key="confirmacao"
             variants={fadeSlide}
             initial="hidden"
             animate="visible"
             exit="exit"
           >
-            {/* Título */}
             <div className="text-center mb-6">
               <div className="flex justify-center mb-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--magenta-soft)] text-[12px] font-bold uppercase tracking-wider text-[var(--magenta)] border border-[var(--magenta)]/15 shadow-sm">
-                  ✨ Quase lá!
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--royal-soft)] text-[12px] font-bold uppercase tracking-wider text-[var(--royal)] border border-[var(--royal)]/15 shadow-sm">
+                  📋 Confirmação de Dados
                 </span>
               </div>
               <h3 className="text-xl font-bold leading-tight text-[var(--ink)] text-serif">
-                Seu plano personalizado está pronto!
+                Confirme suas informações abaixo
               </h3>
               <p className="text-sm text-[var(--ink-soft)] mt-1.5 leading-relaxed max-w-sm mx-auto">
-                Para revelar qual plano a nossa plataforma calculou para seu perfil familiar, insira seu contato abaixo.
+                Para que nossa equipe possa te dar o atendimento adequado, verifique se todos os dados inseridos estão corretos.
               </p>
             </div>
 
-            {/* Preview desbloqueável sob vidro */}
-            <div className="relative mb-6 rounded-2xl overflow-hidden border border-[var(--line-strong)] bg-gradient-to-br from-white to-[var(--bg-alt)] shadow-sm">
-              <div className="blur-[5px] select-none pointer-events-none px-6 py-4.5 flex justify-between items-center bg-white/50">
-                <div className="text-left">
-                  <p className="text-[11px] font-bold text-[var(--ink-mute)] uppercase tracking-wider">Plano Ideal</p>
-                  <p className="text-lg font-bold text-[var(--ink)] mt-0.5">Plano Indicado</p>
+            <div className="bg-[var(--bg-alt)] border border-[var(--line-strong)] rounded-2xl p-5 space-y-4 mb-6 shadow-sm">
+              <div className="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1">
+                <div>
+                  <span className="text-[11px] font-bold uppercase text-[var(--ink-mute)] tracking-wider">Nome</span>
+                  <p className="text-sm font-semibold text-[var(--ink)] mt-0.5">{nome}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-[11px] font-bold text-[var(--ink-mute)] uppercase tracking-wider">Valor Estimado</p>
-                  <p className="text-2xl font-bold text-[var(--royal)] mt-0.5">R$ XX,XX/mês</p>
+                <div>
+                  <span className="text-[11px] font-bold uppercase text-[var(--ink-mute)] tracking-wider">WhatsApp</span>
+                  <p className="text-sm font-semibold text-[var(--ink)] mt-0.5">{telefone}</p>
                 </div>
-              </div>
-              <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
-                <div className="flex items-center gap-2 bg-white/95 border border-[var(--magenta)]/20 shadow-md px-4 py-2 rounded-full transform hover:scale-105 transition-transform duration-200">
-                  <svg className="w-4 h-4 text-[var(--magenta)] flex-shrink-0 animate-bounce" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                  </svg>
-                  <span className="text-[12px] font-bold text-[var(--ink)]">Preencha abaixo para desbloquear</span>
+                <div>
+                  <span className="text-[11px] font-bold uppercase text-[var(--ink-mute)] tracking-wider">Cidade</span>
+                  <p className="text-sm font-semibold text-[var(--ink)] mt-0.5">
+                    {respostas.cidade === "aguas_lindas" ? "Águas Lindas" : respostas.cidade === "brasilia" ? "Brasília" : respostas.cidade}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold uppercase text-[var(--ink-mute)] tracking-wider">Contato por</span>
+                  <p className="text-sm font-semibold text-[var(--ink)] mt-0.5">
+                    {respostas.comoContatar === "whatsapp" ? "💬 WhatsApp" : respostas.comoContatar === "ligacao" ? "📞 Ligação" : "🏠 Visita residencial"}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold uppercase text-[var(--ink-mute)] tracking-wider">Para Quem</span>
+                  <p className="text-sm font-semibold text-[var(--ink)] mt-0.5">
+                    {respostas.paraQuem === "so_eu" ? "🙋 Só para mim" : respostas.paraQuem === "conjuge" ? "👫 Para mim e cônjuge" : respostas.paraQuem === "familia" ? "👨‍👩‍👧‍👦 Família" : "👴 Pais/Familiares"}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold uppercase text-[var(--ink-mute)] tracking-wider">Total de Pessoas</span>
+                  <p className="text-sm font-semibold text-[var(--ink)] mt-0.5">{respostas.quantidadePessoas} pessoa(s)</p>
+                </div>
+                <div className="col-span-2 max-[500px]:col-span-1">
+                  <span className="text-[11px] font-bold uppercase text-[var(--ink-mute)] tracking-wider">Preferência / Orçamento</span>
+                  <p className="text-sm font-semibold text-[var(--ink)] mt-0.5">
+                    🎯 {respostas.prioridade === "menor_preco" ? "Menor Preço" : respostas.prioridade === "equilibrio" ? "Custo-Benefício" : "Melhor Cobertura"} 
+                    {" · "} 💰 {respostas.orcamento === "ate-50" ? "Até R$ 50" : respostas.orcamento === "50-90" ? "De R$ 50 a R$ 90" : respostas.orcamento === "90-120" ? "De R$ 90 a R$ 120" : "A indicação do plano"}
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Formulário com ícones internos */}
-            <form onSubmit={enviarLead} className="space-y-4">
-              <div>
-                <label className="block text-[13px] font-bold text-[var(--ink)] uppercase tracking-wider mb-1.5 pl-0.5">
-                  Seu Nome Completo
-                </label>
-                <div className="relative rounded-xl shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[var(--ink-mute)]">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    placeholder="Ex: Maria da Silva"
-                    className="w-full pl-11 pr-4 py-3.5 text-base border border-[var(--line-strong)] rounded-xl focus:border-[var(--royal)] focus:ring-4 focus:ring-[var(--royal-soft)]/50 focus:outline-none transition-all bg-white text-[var(--ink)] placeholder-[var(--ink-mute)]/50 font-medium"
-                  />
-                </div>
+            {erro && (
+              <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-[14px] font-semibold flex items-center gap-2 mb-4">
+                <span>⚠️</span> {erro}
               </div>
+            )}
 
-              <div>
-                <label className="block text-[13px] font-bold text-[var(--ink)] uppercase tracking-wider mb-1.5 pl-0.5">
-                  Seu WhatsApp
-                </label>
-                <div className="relative rounded-xl shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[var(--ink-mute)]">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.62214C2.25 5.6149 3.0649 4.8 4.07214 4.8H6.55171C7.14725 4.8 7.68305 5.17646 7.88298 5.7388L8.85735 8.48784C9.03457 8.98629 8.89531 9.54477 8.5029 9.89736L6.96781 11.2789C7.96205 13.2505 9.59371 14.8821 11.5653 15.8764L12.9469 14.3413C13.2995 13.9489 13.858 13.8097 14.3564 13.9869L17.1054 14.9613C17.6678 15.1612 18.0442 15.697 18.0442 16.2926V18.7721C18.0442 19.7794 17.2293 20.6042 16.2221 20.6042H15.2215C8.06208 20.6042 2.25 14.7922 2.25 7.63273V6.62214Z" />
-                    </svg>
-                  </div>
-                  <input
-                    type="tel"
-                    required
-                    value={telefone}
-                    onChange={(e) => setTelefone(mascaraTelefone(e.target.value))}
-                    placeholder="(11) 99999-9999"
-                    className="w-full pl-11 pr-4 py-3.5 text-base border border-[var(--line-strong)] rounded-xl focus:border-[var(--royal)] focus:ring-4 focus:ring-[var(--royal-soft)]/50 focus:outline-none transition-all bg-white text-[var(--ink)] placeholder-[var(--ink-mute)]/50 font-medium"
-                  />
-                </div>
-              </div>
-
-              {erro && (
-                <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-[14px] font-semibold flex items-center gap-2">
-                  <span>⚠️</span> {erro}
-                </div>
-              )}
-
+            <div className="flex flex-col gap-3">
               <button
-                type="submit"
+                onClick={salvarLeadEGerarRecomendacao}
                 disabled={enviando}
-                className="w-full bg-[var(--magenta)] hover:bg-[var(--magenta)]/95 hover:shadow-lg active:scale-[0.99] text-white text-[14px] sm:text-base font-bold py-4 px-4 sm:px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2.5 min-h-[56px] disabled:opacity-60 cursor-pointer whitespace-nowrap"
+                className="w-full bg-[var(--royal)] hover:bg-[var(--royal)]/95 hover:shadow-lg active:scale-[0.99] text-white text-[15px] font-bold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2.5 min-h-[56px] disabled:opacity-60 cursor-pointer"
               >
                 {enviando ? (
                   <>
@@ -690,22 +840,29 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Processando...
+                    Salvando dados...
                   </>
                 ) : (
                   <>
-                    Desbloquear Plano Recomendado
+                    Confirmar Dados e Ver Plano Recomendado
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                   </>
                 )}
               </button>
 
-              <p className="text-[12px] text-[var(--ink-mute)] text-center">
-                🔒 Seus dados estão seguros de acordo com a LGPD. Sem spam.
-              </p>
-            </form>
+              <button
+                onClick={() => {
+                  setFase("quiz");
+                  setPasso(perguntasAtivas.length - 1);
+                }}
+                disabled={enviando}
+                className="w-full border border-[var(--line-strong)] text-[var(--ink-soft)] hover:bg-[var(--bg-alt)] text-[14px] font-bold py-3.5 rounded-xl transition-all min-h-[50px] bg-white cursor-pointer"
+              >
+                Corrigir Informações
+              </button>
+            </div>
           </motion.div>
         )}
 

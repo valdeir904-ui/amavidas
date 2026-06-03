@@ -62,6 +62,8 @@ export default function ModalFormulario({ whatsapp = "5511999999999" }: { whatsa
         faixaEtaria: "",
         prioridade: "",
         orcamento: "",
+        cidade: form.city,
+        comoContatar: "whatsapp",
       }),
     }).catch(() => {});
 

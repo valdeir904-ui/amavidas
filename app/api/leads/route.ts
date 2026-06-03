@@ -70,6 +70,8 @@ export async function POST(req: NextRequest) {
       orcamento,
       planoRecomendado,
       status,
+      cidade,
+      comoContatar,
     } = body;
 
     if (!nome || !telefone || !planoRecomendado) {
@@ -95,6 +97,8 @@ export async function POST(req: NextRequest) {
         planoRecomendado,
         status: initialStatus,
         contatado,
+        cidade: cidade ?? "",
+        comoContatar: comoContatar ?? "",
       },
     });
 

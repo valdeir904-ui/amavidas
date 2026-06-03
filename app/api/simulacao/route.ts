@@ -15,6 +15,8 @@ export async function POST(req: NextRequest) {
       prioridade,
       orcamento,
       planoRecomendado,
+      cidade,
+      comoContatar,
     } = body;
 
     if (!nome || !telefone || !planoRecomendado) {
@@ -27,7 +29,7 @@ export async function POST(req: NextRequest) {
     const simulacao = await prisma.simulacao.create({
       data: {
         nome: nome.trim(),
-        email: email.trim().toLowerCase(),
+        email: (email ?? "").trim().toLowerCase(),
         telefone: telefone.trim(),
         paraQuem: paraQuem ?? "",
         quantidadePessoas: quantidadePessoas ?? "",
@@ -35,6 +37,8 @@ export async function POST(req: NextRequest) {
         prioridade: prioridade ?? "",
         orcamento: orcamento ?? "",
         planoRecomendado,
+        cidade: cidade ?? "",
+        comoContatar: comoContatar ?? "",
       },
     });
 
