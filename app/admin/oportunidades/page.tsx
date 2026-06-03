@@ -806,12 +806,6 @@ export default function OportunidadesPage() {
                     <p className="text-sm font-semibold text-slate-800 mt-0.5">{selectedLead.quantidadePessoas} pessoa(s)</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">Faixa Etária</p>
-                    <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                      {selectedLead.faixaEtaria ? `${selectedLead.faixaEtaria} anos` : "Não informada"}
-                    </p>
-                  </div>
-                  <div>
                     <p className="text-[10px] text-slate-400 font-bold uppercase">Cidade</p>
                     <p className="text-sm font-semibold text-slate-800 mt-0.5">{selectedLead.cidade || "Não informada"}</p>
                   </div>
@@ -1135,17 +1129,6 @@ export default function OportunidadesPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Faixa Etária</label>
-                      <input 
-                        type="text"
-                        placeholder="Ex: 30 a 45 anos"
-                        value={newLead.faixaEtaria}
-                        onChange={(e) => setNewLead(prev => ({ ...prev, faixaEtaria: e.target.value }))}
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 placeholder:text-slate-400 shadow-sm"
-                      />
-                    </div>
-
-                    <div>
                       <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Orçamento Máximo</label>
                       <input 
                         type="text"
@@ -1155,20 +1138,20 @@ export default function OportunidadesPage() {
                         className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 placeholder:text-slate-400 shadow-sm"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Prioridade</label>
-                    <select
-                      value={newLead.prioridade}
-                      onChange={(e) => setNewLead(prev => ({ ...prev, prioridade: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 shadow-sm cursor-pointer"
-                    >
-                      <option value="">Não informado</option>
-                      <option value="preco">Preço acessível</option>
-                      <option value="cobertura">Cobertura completa</option>
-                      <option value="servicos">Serviços diferenciados</option>
-                    </select>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Prioridade</label>
+                      <select
+                        value={newLead.prioridade}
+                        onChange={(e) => setNewLead(prev => ({ ...prev, prioridade: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 shadow-sm cursor-pointer"
+                      >
+                        <option value="">Não informado</option>
+                        <option value="preco">Preço acessível</option>
+                        <option value="cobertura">Cobertura completa</option>
+                        <option value="servicos">Serviços diferenciados</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
