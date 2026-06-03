@@ -242,6 +242,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
   const [telefone, setTelefone] = useState("");
   const [cidadeOutros, setCidadeOutros] = useState("");
   const [mostrarInputCidade, setMostrarInputCidade] = useState(false);
+  const [leadId, setLeadId] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
   const [loadingStep, setLoadingStep] = useState(0);
@@ -347,6 +348,26 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     setOpcaoSelecionada(valor);
     setMensagemEmpatica(obterMensagemEmpatica(perguntaAtual));
 
+    const currentSlug = recomendarSlug(novasRespostas as Respostas);
+
+    // Envia atualização em tempo real se o lead já existe
+    if (leadId) {
+      const field = perguntaAtual.campo;
+      let valorParaSalvar = valor;
+      if (field === "cidade" && valor === "aguas_lindas") valorParaSalvar = "Águas Lindas";
+      if (field === "cidade" && valor === "brasilia") valorParaSalvar = "Brasília";
+
+      fetch("/api/simulacao", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: leadId,
+          [field]: valorParaSalvar,
+          planoRecomendado: currentSlug,
+        }),
+      }).catch((e) => console.error("Erro ao atualizar lead:", e));
+    }
+
     // Determina as perguntas ativas com base nas respostas atualizadas
     const ativasDepois = PERGUNTAS.filter((p) => {
       if (p.campo === "quantidadePessoas") {
@@ -365,8 +386,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
       setOpcaoSelecionada(null);
 
       if (isUltima) {
-        const slug = recomendarSlug(novasRespostas as Respostas);
-        setPlanoSlug(slug);
+        setPlanoSlug(currentSlug);
         setFase("confirmacao");
       } else {
         setPasso(indexAtual + 1);
@@ -374,7 +394,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     }, 1500);
   }
 
-  function avancarTextoStep(valor: string) {
+  async function avancarTextoStep(valor: string) {
     if (!valor.trim() || opcaoSelecionada) return;
 
     const campoAtual = perguntaAtual.campo;
@@ -383,6 +403,36 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     setRespostas(novasRespostas);
     setOpcaoSelecionada(valor);
     setMensagemEmpatica(obterMensagemEmpatica(perguntaAtual));
+
+    // Se respondeu o telefone, cria o lead imediatamente no banco de dados!
+    if (campoAtual === "telefone") {
+      try {
+        const resp = await fetch("/api/simulacao", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome: nome.trim(),
+            telefone: valor.trim(),
+            email: "",
+            paraQuem: respostas.paraQuem ?? "",
+            quantidadePessoas: respostas.quantidadePessoas ?? "",
+            prioridade: "",
+            orcamento: "",
+            planoRecomendado: "indefinido",
+            cidade: "",
+            comoContatar: "",
+          }),
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.id) {
+            setLeadId(data.id);
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao criar lead em tempo real:", e);
+      }
+    }
 
     const indexAtual = perguntasAtivas.findIndex((p) => p.campo === campoAtual);
     const isUltima = indexAtual === perguntasAtivas.length - 1;
@@ -410,6 +460,21 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     setOpcaoSelecionada(cidadeOutros.trim());
     setMensagemEmpatica(obterMensagemEmpatica(perguntaAtual));
 
+    const currentSlug = recomendarSlug(novasRespostas as Respostas);
+
+    // Envia atualização de Cidade em tempo real
+    if (leadId) {
+      fetch("/api/simulacao", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: leadId,
+          cidade: cidadeOutros.trim(),
+          planoRecomendado: currentSlug,
+        }),
+      }).catch((e) => console.error("Erro ao atualizar cidade do lead:", e));
+    }
+
     const indexAtual = perguntasAtivas.findIndex((p) => p.campo === "cidade");
     const isUltima = indexAtual === perguntasAtivas.length - 1;
 
@@ -418,8 +483,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
       setOpcaoSelecionada(null);
 
       if (isUltima) {
-        const slug = recomendarSlug(novasRespostas as Respostas);
-        setPlanoSlug(slug);
+        setPlanoSlug(currentSlug);
         setFase("confirmacao");
       } else {
         setPasso(indexAtual + 1);
@@ -439,37 +503,42 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     }
   }
 
-  // Envia lead e avança para carregamento
+  // Confirmação final (apenas transiciona se os dados já estiverem salvos)
   async function salvarLeadEGerarRecomendacao() {
     setErro("");
     setEnviando(true);
     try {
-      const resp = await fetch("/api/simulacao", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: nome.trim(),
-          telefone,
-          email: "",
-          paraQuem: respostas.paraQuem ?? "",
-          quantidadePessoas: respostas.quantidadePessoas ?? "",
-          prioridade: respostas.prioridade ?? "",
-          orcamento: respostas.orcamento ?? "",
-          planoRecomendado: planoSlug,
-          cidade: respostas.cidade === "aguas_lindas" ? "Águas Lindas" : respostas.cidade === "brasilia" ? "Brasília" : respostas.cidade,
-          comoContatar: respostas.comoContatar ?? "",
-        }),
-      });
-
-      if (!resp.ok) {
-        throw new Error("Erro ao salvar os dados da simulação.");
-      }
-
       fetch("/api/eventos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tipo: "simulacao_iniciada" }),
       }).catch(() => {});
+
+      // Fallback: se por qualquer falha de rede o lead não foi criado no passo do telefone, criamos agora
+      if (!leadId) {
+        const resp = await fetch("/api/simulacao", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome: nome.trim(),
+            telefone,
+            email: "",
+            paraQuem: respostas.paraQuem ?? "",
+            quantidadePessoas: respostas.quantidadePessoas ?? "",
+            prioridade: respostas.prioridade ?? "",
+            orcamento: respostas.orcamento ?? "",
+            planoRecomendado: planoSlug,
+            cidade: respostas.cidade === "aguas_lindas" ? "Águas Lindas" : respostas.cidade === "brasilia" ? "Brasília" : respostas.cidade,
+            comoContatar: respostas.comoContatar ?? "",
+          }),
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.id) {
+            setLeadId(data.id);
+          }
+        }
+      }
 
       setFase("calculando");
       timerRef.current = setTimeout(() => {

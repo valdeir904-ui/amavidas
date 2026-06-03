@@ -48,3 +48,24 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "Erro interno" }, { status: 500 });
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { id, ...updateData } = body;
+
+    if (!id) {
+      return Response.json({ error: "ID é obrigatório" }, { status: 400 });
+    }
+
+    const updated = await prisma.simulacao.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return Response.json({ success: true, lead: updated }, { status: 200 });
+  } catch (err) {
+    console.error("Erro ao atualizar simulação:", err);
+    return Response.json({ error: "Erro interno" }, { status: 500 });
+  }
+}
