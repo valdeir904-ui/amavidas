@@ -170,8 +170,4 @@ section[id] { scroll-margin-top: 66px; }
   .plan-featured { transform: none !important; }
 }
 
-@media (max-width: 1150px) {
-  /* ImpactoFinanceiro — price numbers scale down */
-  .impacto-price { font-size: 32px !important; }
-  .impacto-stat  { font-size: 52px !important; }
-}
+/* ImpactoFinanceiro responsive rules removed — handled inline */
