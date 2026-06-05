@@ -68,7 +68,7 @@ export default function WhatsAppFlutuante() {
               <div className="relative w-10.5 h-10.5 rounded-full border border-white/20 overflow-hidden bg-slate-100 flex-shrink-0 shadow-sm">
                 <Image
                   src="/Ceo_Livia.png"
-                  alt="Lívia Antonietti — CEO AmaVidas"
+                  alt="Lívia Antonieti — CEO AmaVidas"
                   fill
                   sizes="42px"
                   className="object-cover object-center"
@@ -79,7 +79,7 @@ export default function WhatsAppFlutuante() {
 
               {/* Informações da CEO */}
               <div>
-                <p className="text-white text-[13px] font-extrabold leading-tight">Lívia Antonietti</p>
+                <p className="text-white text-[13px] font-extrabold leading-tight">Lívia Antonieti</p>
                 <p className="text-emerald-100 text-[10px] leading-none mt-0.5 flex items-center gap-1 font-semibold">
                   <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                   Online agora

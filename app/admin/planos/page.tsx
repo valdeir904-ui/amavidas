@@ -86,30 +86,183 @@ function EmojiPicker({ value, onChange }: { value: string; onChange: (e: string)
 }
 
 // ─── Lista editável ───────────────────────────────────────────────────────────
-function ItemList({ items, onAdd, onRemove, placeholder, iconColor = "text-blue-500" }: {
-  items: string[]; onAdd: (v: string) => void; onRemove: (i: number) => void;
-  placeholder: string; iconColor?: string;
+function ItemList({
+  items,
+  onAdd,
+  onRemove,
+  onEdit,
+  onReorder,
+  placeholder,
+  limit,
+  iconColor = "text-blue-500",
+}: {
+  items: string[];
+  onAdd: (v: string) => void;
+  onRemove: (i: number) => void;
+  onEdit: (i: number, v: string) => void;
+  onReorder: (from: number, to: number) => void;
+  placeholder: string;
+  limit: number;
+  iconColor?: string;
 }) {
   const [novo, setNovo] = useState("");
-  const add = () => { const t = novo.trim(); if (t) { onAdd(t); setNovo(""); } };
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const add = () => {
+    const t = novo.trim();
+    if (t && items.length < limit) {
+      onAdd(t);
+      setNovo("");
+    }
+  };
+
+  const startEdit = (index: number, val: string) => {
+    setEditingIndex(index);
+    setEditValue(val);
+  };
+
+  const saveEdit = (index: number) => {
+    const t = editValue.trim();
+    if (t) {
+      onEdit(index, t);
+    }
+    setEditingIndex(null);
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDrop = (index: number) => {
+    if (draggedIndex !== null && draggedIndex !== index) {
+      onReorder(draggedIndex, index);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const reachedLimit = items.length >= limit;
+
   return (
     <div>
+      <div className="flex justify-between items-center mb-1.5 px-1">
+        <span className="text-xs font-semibold text-slate-400">
+          {items.length} de {limit} itens
+        </span>
+        {reachedLimit && (
+          <span className="text-xs text-amber-600 font-semibold animate-pulse">
+            Limite máximo atingido
+          </span>
+        )}
+      </div>
       <div className="space-y-1.5 mb-2">
         {items.length === 0 && <p className="text-slate-400 text-xs italic px-1">Nenhum item ainda.</p>}
-        {items.map((item, i) => (
-          <div key={i} className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 group">
-            <svg className={`w-3.5 h-3.5 ${iconColor} flex-shrink-0`} fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            <span className="text-sm text-slate-700 flex-1 leading-tight">{item}</span>
-            <button onClick={() => onRemove(i)} className="text-slate-300 hover:text-red-500 transition-colors ml-1 opacity-0 group-hover:opacity-100 text-lg leading-none">×</button>
-          </div>
-        ))}
+        {items.map((item, i) => {
+          const isDragging = draggedIndex === i;
+          const isDragOver = dragOverIndex === i;
+          return (
+            <div
+              key={i}
+              draggable={editingIndex === null}
+              onDragStart={(e) => handleDragStart(e, i)}
+              onDragOver={(e) => handleDragOver(e, i)}
+              onDragLeave={() => setDragOverIndex(null)}
+              onDrop={() => handleDrop(i)}
+              onDragEnd={handleDragEnd}
+              className={`flex items-center gap-2 bg-slate-50 border rounded-lg px-3 py-2 group transition-all duration-150 ${
+                isDragging ? "opacity-40 bg-slate-100 border-dashed border-slate-300" : "border-slate-100"
+              } ${
+                isDragOver && draggedIndex !== i
+                  ? "border-t-2 border-t-blue-500 bg-blue-50/50"
+                  : ""
+              }`}
+            >
+              <div
+                className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 transition-colors p-0.5"
+                title="Arraste para reordenar"
+              >
+                <svg className="w-4 h-4 flex-shrink-0 fill-current" viewBox="0 0 20 20">
+                  <path d="M7 2a2 2 0 11-2 2 2 2 0 012-2zm0 6a2 2 0 11-2 2 2 2 0 012-2zm0 6a2 2 0 11-2 2 2 2 0 012-2zm6-12a2 2 0 11-2 2 2 2 0 012-2zm0 6a2 2 0 11-2 2 2 2 0 012-2zm0 6a2 2 0 11-2 2 2 2 0 012-2z" />
+                </svg>
+              </div>
+              <svg className={`w-3.5 h-3.5 ${iconColor} flex-shrink-0`} fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              {editingIndex === i ? (
+                <input
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => saveEdit(i)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveEdit(i);
+                    if (e.key === "Escape") setEditingIndex(null);
+                  }}
+                  className="flex-1 text-sm bg-white border border-blue-400 rounded px-2 py-0.5 outline-none text-slate-700"
+                  autoFocus
+                />
+              ) : (
+                <>
+                  <span
+                    onDoubleClick={() => startEdit(i, item)}
+                    className="text-sm text-slate-700 flex-1 leading-tight select-none cursor-text hover:text-slate-900"
+                    title="Duplo clique para editar"
+                  >
+                    {item}
+                  </span>
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                    <button
+                      onClick={() => startEdit(i, item)}
+                      className="text-slate-400 hover:text-blue-500 transition-colors p-0.5"
+                      title="Editar item"
+                    >
+                      <svg className="w-3.5 h-3.5 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => onRemove(i)}
+                      className="text-slate-400 hover:text-red-500 transition-colors p-0.5 text-lg leading-none"
+                      title="Excluir item"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
       <div className="flex gap-2">
-        <input value={novo} onChange={(e) => setNovo(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder={placeholder}
-          className="flex-1 text-sm px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-400 outline-none bg-white text-slate-700 placeholder:text-slate-400" />
-        <button onClick={add} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold transition-colors">+</button>
+        <input
+          value={novo}
+          onChange={(e) => setNovo(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && add()}
+          placeholder={reachedLimit ? "Limite máximo atingido" : placeholder}
+          disabled={reachedLimit}
+          className="flex-1 text-sm px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-400 outline-none bg-white text-slate-700 placeholder:text-slate-400 disabled:bg-slate-50 disabled:cursor-not-allowed disabled:placeholder:text-slate-300"
+        />
+        <button
+          onClick={add}
+          disabled={reachedLimit}
+          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          +
+        </button>
       </div>
     </div>
   );
@@ -355,6 +508,36 @@ export default function PlanosPage() {
   const addAusente   = (v: string) => setEditando((p) => p ? { ...p, ausentes: [...p.ausentes, v] } : p);
   const remAusente   = (i: number) => setEditando((p) => p ? { ...p, ausentes: p.ausentes.filter((_, j) => j !== i) } : p);
 
+  const editBeneficio = (i: number, v: string) => setEditando((p) => {
+    if (!p) return p;
+    const list = [...p.beneficios];
+    list[i] = v;
+    return { ...p, beneficios: list };
+  });
+
+  const reorderBeneficios = (from: number, to: number) => setEditando((p) => {
+    if (!p) return p;
+    const list = [...p.beneficios];
+    const [item] = list.splice(from, 1);
+    list.splice(to, 0, item);
+    return { ...p, beneficios: list };
+  });
+
+  const editAusente = (i: number, v: string) => setEditando((p) => {
+    if (!p) return p;
+    const list = [...p.ausentes];
+    list[i] = v;
+    return { ...p, ausentes: list };
+  });
+
+  const reorderAusentes = (from: number, to: number) => setEditando((p) => {
+    if (!p) return p;
+    const list = [...p.ausentes];
+    const [item] = list.splice(from, 1);
+    list.splice(to, 0, item);
+    return { ...p, ausentes: list };
+  });
+
   const handleCriado = (plano: Plano) => {
     setPlanos((prev) => [...prev, plano]);
     selecionar(plano);
@@ -484,7 +667,16 @@ export default function PlanosPage() {
             {/* Benefícios */}
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Coberturas incluídas</label>
-              <ItemList items={editando.beneficios} onAdd={addBeneficio} onRemove={remBeneficio} placeholder="Ex: Translado nacional gratuito" iconColor="text-blue-500" />
+              <ItemList
+                items={editando.beneficios}
+                onAdd={addBeneficio}
+                onRemove={remBeneficio}
+                onEdit={editBeneficio}
+                onReorder={reorderBeneficios}
+                limit={10}
+                placeholder="Ex: Translado nacional gratuito"
+                iconColor="text-blue-500"
+              />
             </div>
 
             {/* Ausentes */}
@@ -492,7 +684,16 @@ export default function PlanosPage() {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
                 Itens não incluídos <span className="text-slate-400 normal-case font-normal">(aparecem riscados)</span>
               </label>
-              <ItemList items={editando.ausentes} onAdd={addAusente} onRemove={remAusente} placeholder="Ex: Translado internacional" iconColor="text-slate-400" />
+              <ItemList
+                items={editando.ausentes}
+                onAdd={addAusente}
+                onRemove={remAusente}
+                onEdit={editAusente}
+                onReorder={reorderAusentes}
+                limit={6}
+                placeholder="Ex: Translado internacional"
+                iconColor="text-slate-400"
+              />
             </div>
 
             {/* Salvar */}

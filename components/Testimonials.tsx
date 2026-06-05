@@ -294,7 +294,7 @@ export default function Testimonials() {
               <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden flex-shrink-0 border-2 border-[var(--teal-soft)] shadow-md max-[640px]:mx-auto">
                 <Image
                   src="/Ceo_Livia.png"
-                  alt="Lívia Costa - CEO AmaVidas"
+                  alt="Lívia Antonieti - CEO AmaVidas"
                   fill
                   sizes="(max-width: 640px) 96px, 112px"
                   className="object-cover"
@@ -305,7 +305,7 @@ export default function Testimonials() {
                   "Não somos nós que falamos sobre o cuidado e a dedicação da AmaVidas, mas sim os depoimentos reais dos nossos clientes que contam, por si sós, a qualidade e o prestígio que colocamos em cada atendimento."
                 </blockquote>
                 <div className="mt-3">
-                  <span className="text-xs font-bold text-[var(--teal)] uppercase tracking-wider block">Lívia Costa</span>
+                  <span className="text-xs font-bold text-[var(--teal)] uppercase tracking-wider block">Lívia Antonieti</span>
                   <span className="text-[11px] text-slate-400 block mt-0.5">CEO da AmaVidas</span>
                 </div>
               </div>

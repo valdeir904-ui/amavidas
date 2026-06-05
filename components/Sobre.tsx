@@ -85,10 +85,10 @@ export default function Sobre() {
                     backgroundPosition: "center",
                   }}
                   role="img"
-                  aria-label="Livia Antonietti, Co-fundadora & CEO"
+                  aria-label="Lívia Antonieti, Co-fundadora & CEO"
                 />
                 <div className="px-5 py-4">
-                  <strong className="block font-semibold text-[17px]" style={{ color: "var(--ink)" }}>Livia Antonietti</strong>
+                  <strong className="block font-semibold text-[17px]" style={{ color: "var(--ink)" }}>Lívia Antonieti</strong>
                   <span className="text-[14px]" style={{ color: "var(--ink-mute)" }}>Co-fundadora & CEO</span>
                 </div>
               </motion.div>
