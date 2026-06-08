@@ -39,7 +39,7 @@ export default function ImpactoFinanceiro() {
     "Sem suporte emocional",
   ];
   const positives = [
-    "Cuidamos de toda a documentação",
+    "Suporte em toda a documentação",
     "Remoção em qualquer cidade",
     "Velório completo e digno",
     "Apoio psicológico incluso",

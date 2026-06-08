@@ -103,7 +103,7 @@ export default function ModalFormulario() {
         {step === "form" ? (
           <>
             <p className="text-[var(--magenta)] text-[13px] font-semibold tracking-[0.14em] uppercase mb-2.5">
-              Vamos cuidar de você
+              Estamos aqui para apoiar você
             </p>
             <h3
               id="formModalTitle"
@@ -275,7 +275,7 @@ export default function ModalFormulario() {
             <p className="text-[var(--ink-soft)]">
               Um de nossos consultores vai entrar em contato pelo WhatsApp em até{" "}
               <strong>15 minutos</strong>.<br />
-              Enquanto isso, fique tranquilo — nós cuidamos do resto.
+              Enquanto isso, fique tranquilo — daremos todo o suporte daqui em diante.
             </p>
             <div className="flex gap-2.5 justify-center flex-wrap mt-6">
               <button

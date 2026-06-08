@@ -5,7 +5,7 @@ import { fadeUp, scaleIn, staggerContainer } from "@/lib/animations";
 
 const STEPS = [
   { n: 1, color: "#2B3DA8", title: "Aviso do óbito", desc: "Você liga 24h e nós ativamos toda a operação in 15 minutos." },
-  { n: 2, color: "#3D55B8", title: "Documentação", desc: "Cuidamos da declaração de óbito, certidão e cartórios." },
+  { n: 2, color: "#3D55B8", title: "Documentação", desc: "Damos suporte e orientação com a declaração de óbito, certidão e cartórios." },
   { n: 3, color: "#4F70C8", title: "Remoção", desc: "Equipe especializada faz a remoção com discrição e respeito." },
   { n: 4, color: "#2D8BBA", title: "Velório", desc: "Sala preparada, ornamentação, café e suporte por toda a cerimônia." },
   { n: 5, color: "#19A2C2", title: "Cerimônia", desc: "Cortejo e cerimônia de despedida conduzidos com respeito e dignidade." },
@@ -31,7 +31,7 @@ export default function Features() {
           </p>
           <h2>Como funciona o atendimento</h2>
           <p className="mt-4 text-[19px] max-[980px]:text-[17px]" style={{ color: "var(--ink-soft)" }}>
-            Uma única ligação resolve tudo. A partir do aviso, a AmaVidas cuida de cada detalhe — você só precisa estar com a sua família.
+            Uma única ligação resolve tudo. A partir do aviso, a AmaVidas dá suporte em cada detalhe — você só precisa estar com a sua família.
           </p>
         </motion.div>
 

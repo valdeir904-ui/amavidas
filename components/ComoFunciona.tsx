@@ -16,12 +16,12 @@ const STEPS = [
   },
   {
     title: "Comunicar o óbito",
-    description: "Quando ocorrido, ligue para nossa central 24h e assumimos tudo.",
+    description: "Quando ocorrido, ligue para nossa central 24h e daremos suporte a tudo.",
     icon: "📞",
   },
   {
     title: "Se despedir de quem Ama",
-    description: "Pois a AmaVidas está cuidando de todo o resto com muito respeito.",
+    description: "Pois a AmaVidas estará prestando todo o suporte com muito respeito.",
     icon: "🕊️",
   },
 ];
