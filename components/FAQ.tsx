@@ -11,11 +11,11 @@ const FAQS = [
   },
   {
     q: "Quem pode ser incluído como dependente?",
-    a: "Cônjuge, filhos, pais, sogros, irmãos, netos, avós e até pets (no plano Vida Plus). Não exigimos vínculo de sangue obrigatório — quem você ama, pode estar protegido.",
+    a: "Cônjuge, filhos, pais, sogros, irmãos, netos e avós. Não exigimos vínculo de sangue obrigatório — quem você ama, pode estar protegido.",
   },
   {
     q: "O plano atende em qualquer cidade do Brasil?",
-    a: "Sim. A AmaVidas tem cobertura em mais de 1.700 cidades em todos os estados. Caso o óbito ocorra fora da sua cidade de origem, fazemos a remoção sem custo adicional.",
+    a: "Atendemos remotamente e damos todo o apoio necessário, prestando o serviço de acordo com o plano contratado, com total transparência.",
   },
   {
     q: "Existe limite de idade para contratar?",
@@ -23,7 +23,7 @@ const FAQS = [
   },
   {
     q: "Como faço para cancelar o plano?",
-    a: "Sem letras miúdas: você pode cancelar a qualquer momento, sem multa, diretamente com a nossa equipe através do WhatsApp. Sem burocracia.",
+    a: "O plano pode ser cancelado a qualquer momento pelo titular do plano, atentando-se aos prazos estipulados em contrato.",
   },
   {
     q: "O plano cobre cremação?",
