@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 
 const NAV_LINKS = [
   { label: "Planos", href: "#planos" },
+  { label: "Clube de Benefícios", href: "#beneficios" },
   { label: "Como funciona", href: "#como" },
   { label: "Diferenciais", href: "#diferenciais" },
   { label: "Sobre", href: "#sobre" },

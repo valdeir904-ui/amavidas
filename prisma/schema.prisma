@@ -105,3 +105,18 @@ model Depoimento {
 
   @@map("depoimentos")
 }
+
+model Parceiro {
+  id           String   @id @default(cuid())
+  nome         String
+  tipo         String
+  desconto     String
+  contato      String?
+  logoUrl      String?  @db.Text
+  ativo        Boolean  @default(true)
+  ordem        Int      @default(0)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("parceiros")
+}
