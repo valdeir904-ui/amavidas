@@ -84,14 +84,14 @@ export default function ClubeDescontos() {
 
   if (loading) {
     return (
-      <section id="beneficios" className="py-24 bg-white flex items-center justify-center">
+      <section id="beneficios" style={{ background: "rgba(43, 61, 168, 0.04)" }} className="py-24 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </section>
     );
   }
 
   return (
-    <section id="beneficios" className="py-24 bg-white overflow-hidden relative">
+    <section id="beneficios" style={{ background: "rgba(43, 61, 168, 0.04)" }} className="py-24 overflow-hidden relative">
       {/* Decorative Blur BG elements */}
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
