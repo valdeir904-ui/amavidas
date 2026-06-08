@@ -9,7 +9,7 @@ const STEPS = [
   { n: 3, color: "#4F70C8", title: "Remoção", desc: "Equipe especializada faz a remoção com discrição e respeito." },
   { n: 4, color: "#2D8BBA", title: "Velório", desc: "Sala preparada, ornamentação, café e suporte por toda a cerimônia." },
   { n: 5, color: "#19A2C2", title: "Cerimônia", desc: "Cortejo e cerimônia de despedida conduzidos com respeito e dignidade." },
-  { n: 6, color: "#00B4C8", title: "Pós-funeral", desc: "Apoio psicológico, regularização e acompanhamento da família." },
+  { n: 6, color: "#00B4C8", title: "Pós-funeral", desc: "Orientação para regularização de documentos e apoio para a família." },
 ];
 
 export default function Features() {

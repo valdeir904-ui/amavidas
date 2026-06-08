@@ -24,7 +24,7 @@ const SEED: any[] = [
       "Atendimento 24 horas",
       "Documentação básica incluída",
     ]),
-    ausentes: JSON.stringify(["Translado nacional","Cônjuge e filhos","Suporte psicológico"]),
+    ausentes: JSON.stringify(["Translado nacional","Cônjuge e filhos","Clube de descontos"]),
     ordem: 0,
   },
   {
@@ -51,7 +51,7 @@ const SEED: any[] = [
       "Translado nacional e internacional",
       "Família ampliada (até 6 pessoas)",
       "Atendimento VIP 24 horas",
-      "Suporte psicológico incluído",
+      "Clube de descontos e benefícios",
       "Urna e ornamentação superior",
     ]),
     ausentes: JSON.stringify([]),

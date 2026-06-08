@@ -30,8 +30,8 @@ const FAQS = [
     a: "A AmaVidas organiza e dá suporte em todo o processo da cerimônia de despedida. As opções disponíveis para cada família dependem do plano contratado e da cidade. Nossos consultores podem orientar você com clareza sobre o que está incluso — é só entrar em contato pelo WhatsApp.",
   },
   {
-    q: "Como funciona o apoio psicológico?",
-    a: "Disponibilizamos sessões com psicólogos especializados em luto, presenciais ou online, para todos os familiares próximos. Inclusas a partir do plano Amar Plus.",
+    q: "Como funciona o clube de descontos?",
+    a: "Disponibilizamos uma rede de parceiros conveniados que oferecem descontos exclusivos para nossos clientes em diversos estabelecimentos comerciais e de saúde. O acesso é liberado logo após a contratação.",
   },
   {
     q: "Posso pagar anualmente com desconto?",

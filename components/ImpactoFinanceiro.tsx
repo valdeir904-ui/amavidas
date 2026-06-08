@@ -42,7 +42,7 @@ export default function ImpactoFinanceiro() {
     "Suporte em toda a documentação",
     "Remoção em qualquer cidade",
     "Velório completo e digno",
-    "Apoio psicológico incluso",
+    "Clube de descontos em parceiros",
   ];
 
   return (
