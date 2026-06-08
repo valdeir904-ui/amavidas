@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 
 interface Parceiro {
   id: string;
@@ -90,8 +89,8 @@ function PreviewCard({ parceiro }: { parceiro: Parceiro }) {
       <div className="flex items-start justify-between">
         {/* Logo or Icon */}
         {parceiro.logoUrl ? (
-          <div className="relative w-14 h-14 rounded-xl border border-slate-100 overflow-hidden bg-white">
-            <Image src={parceiro.logoUrl} alt={parceiro.nome} fill className="object-contain p-1" />
+          <div className="w-14 h-14 rounded-xl border border-slate-100 overflow-hidden bg-white flex items-center justify-center">
+            <img src={parceiro.logoUrl} alt={parceiro.nome} className="max-w-full max-h-full object-contain p-1" />
           </div>
         ) : (
           <div className={`w-14 h-14 rounded-xl flex items-center justify-center border ${colors.bg}`}>
@@ -504,8 +503,8 @@ export default function ParceirosPage() {
               <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Logo do Parceiro (Imagem PNG/JPG)</p>
               {editando.logoUrl ? (
                 <div className="flex items-center gap-3">
-                  <div className="relative w-14 h-14 rounded-xl border border-slate-200 overflow-hidden bg-white">
-                    <Image src={editando.logoUrl} alt={editando.nome} fill className="object-contain p-1" />
+                  <div className="w-14 h-14 rounded-xl border border-slate-200 overflow-hidden bg-white flex items-center justify-center">
+                    <img src={editando.logoUrl} alt={editando.nome} className="max-w-full max-h-full object-contain p-1" />
                   </div>
                   <button 
                     onClick={() => campo("logoUrl", null)}

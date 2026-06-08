@@ -429,12 +429,11 @@ export default function Testimonials() {
                         <div className="mt-auto pt-4 flex-shrink-0">
                           <div className="flex items-center gap-4">
                             {activeDepo.fotoUrl ? (
-                              <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-100 flex-shrink-0">
-                                <Image
+                              <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-100 flex-shrink-0 flex items-center justify-center">
+                                <img
                                   src={activeDepo.fotoUrl}
                                   alt={activeDepo.nome}
-                                  fill
-                                  className="object-cover"
+                                  className="w-full h-full object-cover"
                                 />
                               </div>
                             ) : (

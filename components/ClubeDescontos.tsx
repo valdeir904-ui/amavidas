@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { useModal } from "@/contexts/ModalContext";
@@ -151,8 +150,8 @@ export default function ClubeDescontos() {
                 <div className="flex items-start justify-between">
                   {/* Logo or Icon */}
                   {parceiro.logoUrl ? (
-                    <div className="relative w-14 h-14 rounded-xl border border-slate-100 overflow-hidden bg-white">
-                      <Image src={parceiro.logoUrl} alt={parceiro.nome} fill className="object-contain p-1" />
+                    <div className="w-14 h-14 rounded-xl border border-slate-100 overflow-hidden bg-white flex items-center justify-center">
+                      <img src={parceiro.logoUrl} alt={parceiro.nome} className="max-w-full max-h-full object-contain p-1" />
                     </div>
                   ) : (
                     <div className={`w-14 h-14 rounded-xl flex items-center justify-center border ${colors.bg}`}>

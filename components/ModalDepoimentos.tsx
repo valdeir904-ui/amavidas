@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useModal } from "@/contexts/ModalContext";
-import Image from "next/image";
 
 interface Depoimento {
   id: string;
@@ -279,8 +278,8 @@ export default function ModalDepoimentos() {
 
                   <div className="flex items-center gap-3">
                     {t.fotoUrl ? (
-                      <div className="relative w-11 h-11 rounded-full overflow-hidden border border-slate-100 flex-shrink-0">
-                        <Image src={t.fotoUrl} alt={t.nome} fill className="object-cover" />
+                      <div className="w-11 h-11 rounded-full overflow-hidden border border-slate-100 flex-shrink-0 flex items-center justify-center">
+                        <img src={t.fotoUrl} alt={t.nome} className="w-full h-full object-cover" />
                       </div>
                     ) : (
                       <div

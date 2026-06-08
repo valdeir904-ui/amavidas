@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Image from "next/image";
 
 interface Depoimento {
   id: string;
@@ -119,12 +118,11 @@ function PreviewCard({ depoimento }: { depoimento: Depoimento }) {
         <div className="w-full h-full flex flex-col justify-between relative z-10">
           <div className="w-full h-[300px] rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center relative overflow-hidden group cursor-pointer">
             {depoimento.mediaUrl ? (
-              <div className="relative w-full h-full">
-                <Image 
+              <div className="w-full h-full relative">
+                <img 
                   src={depoimento.mediaUrl} 
                   alt="Chat print preview" 
-                  fill 
-                  className="object-cover transition-transform group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                   <svg className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,8 +168,8 @@ function PreviewCard({ depoimento }: { depoimento: Depoimento }) {
           <div className="mt-auto pt-4 flex-shrink-0">
             <div className="flex items-center gap-4">
               {depoimento.fotoUrl ? (
-                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-100 flex-shrink-0">
-                  <Image src={depoimento.fotoUrl} alt={depoimento.nome} fill className="object-cover" />
+                <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-100 flex-shrink-0 flex items-center justify-center">
+                  <img src={depoimento.fotoUrl} alt={depoimento.nome} className="w-full h-full object-cover" />
                 </div>
               ) : (
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#e3d4d8] to-[#c9b5bd] text-[#6f4a55] font-serif font-semibold text-lg flex items-center justify-center flex-shrink-0">
@@ -675,8 +673,8 @@ export default function DepoimentosPage() {
                 <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Foto do Autor (Opcional)</p>
                 {editando.fotoUrl ? (
                   <div className="flex items-center gap-3">
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden border border-slate-200">
-                      <Image src={editando.fotoUrl} alt={editando.nome} fill className="object-cover" />
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 flex items-center justify-center">
+                      <img src={editando.fotoUrl} alt={editando.nome} className="w-full h-full object-cover" />
                     </div>
                     <button 
                       onClick={() => campo("fotoUrl", null)}
