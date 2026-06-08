@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { useModal } from "@/contexts/ModalContext";
 
+import { useConfig } from "@/contexts/ConfigContext";
+
 interface Parceiro {
   id: string;
   nome: string;
@@ -18,11 +20,16 @@ interface Parceiro {
 }
 
 export default function ClubeDescontos() {
+  const { configs } = useConfig();
   const { openForm } = useModal();
   const [parceiros, setParceiros] = useState<Parceiro[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (configs.secao_beneficios_ativa === "false") {
+      setLoading(false);
+      return;
+    }
     fetch("/api/parceiros")
       .then((r) => r.json())
       .then((data) => {
@@ -32,7 +39,9 @@ export default function ClubeDescontos() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [configs.secao_beneficios_ativa]);
+
+  if (configs.secao_beneficios_ativa === "false") return null;
 
   const getIcon = (tipo: string) => {
     const t = tipo.toLowerCase();

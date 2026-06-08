@@ -24,6 +24,21 @@ function Toast({ msg, tipo }: { msg: string; tipo: "ok" | "erro" }) {
   );
 }
 
+// ─── Toggle Component ───────────────────────────────────────────────────────────
+function Toggle({ label, sub, checked, onChange }: { label: string; sub?: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center justify-between cursor-pointer py-1 gap-4">
+      <div>
+        <p className="text-sm text-slate-700 font-medium">{label}</p>
+        {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+      </div>
+      <div onClick={() => onChange(!checked)} className={`relative flex-shrink-0 w-10 h-5 rounded-full transition-colors ${checked ? "bg-blue-500" : "bg-slate-200"}`}>
+        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`} />
+      </div>
+    </label>
+  );
+}
+
 // ── Campo de texto ────────────────────────────────────────────────────────────
 function Campo({
   label,
@@ -337,6 +352,27 @@ export default function ConfiguracoesPage() {
             onChange={(v) => set("youtube", v)}
             placeholder="https://youtube.com/@amavidas"
             prefix="🌐"
+          />
+        </Secao>
+
+        {/* ── Seção Funcionalidades ── */}
+        <Secao
+          titulo="Funcionalidades da Landing Page"
+          descricao="Ative ou desative seções interativas do site."
+          icone={
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+          }
+          onSalvar={() => salvar(["secao_beneficios_ativa"], "funcionalidades")}
+          salvando={salvandoSecao === "funcionalidades"}
+          alterado={alteradoIn(["secao_beneficios_ativa"])}
+        >
+          <Toggle
+            label="Clube de Benefícios"
+            sub="Exibir a seção do Clube de Descontos/Parceiros na página inicial"
+            checked={configs.secao_beneficios_ativa === "true"}
+            onChange={(v) => set("secao_beneficios_ativa", v ? "true" : "false")}
           />
         </Secao>
 

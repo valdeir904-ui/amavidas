@@ -13,6 +13,7 @@ function auth(req: NextRequest) {
 // Valores padrão que são criados na primeira requisição
 const DEFAULTS: Record<string, string> = {
   whatsapp:        "5561985825621",
+  secao_beneficios_ativa: "true",
   telefone:        "",
   email_contato:   "contato@amavidas.com.br",
   empresa_nome:    "AmaVidas",

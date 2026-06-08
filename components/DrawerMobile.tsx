@@ -70,7 +70,7 @@ export default function DrawerMobile({ open, onClose }: Props) {
 
         {/* Links */}
         <nav className="flex flex-col gap-1">
-          {NAV_LINKS.map((item) => (
+          {NAV_LINKS.filter(item => item.href !== "#beneficios" || configs.secao_beneficios_ativa !== "false").map((item) => (
             <a
               key={item.label}
               href={item.href}

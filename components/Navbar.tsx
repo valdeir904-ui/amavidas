@@ -50,7 +50,7 @@ export default function Navbar() {
 
           {/* Links desktop — aparecem a partir de 1100px */}
           <nav className="hidden min-[1100px]:flex items-center gap-5">
-            {NAV_LINKS.map((item) => (
+            {NAV_LINKS.filter(item => item.href !== "#beneficios" || configs.secao_beneficios_ativa !== "false").map((item) => (
               <a
                 key={item.label}
                 href={item.href}
