@@ -334,7 +334,7 @@ export default function Testimonials() {
 
           {/* Lado Direito - Carrossel de Depoimentos */}
           <div className="relative flex flex-col gap-6 w-full max-w-[620px] max-[980px]:mx-auto">
-            <div className="h-[480px] max-[640px]:h-[450px] relative overflow-hidden w-full flex items-center">
+            <div className="h-[520px] max-[640px]:h-[480px] relative overflow-hidden w-full flex items-center">
               <AnimatePresence initial={false} custom={direction} mode="wait">
                 <motion.div
                   key={index}
@@ -350,7 +350,7 @@ export default function Testimonials() {
                   className="w-full h-full"
                 >
                   <div
-                    className="relative bg-gradient-to-br from-white to-slate-50/60 rounded-[20px] border border-[var(--line)] p-10 max-[640px]:p-6 cursor-default w-full select-none flex flex-col justify-between h-full overflow-hidden"
+                    className="relative bg-gradient-to-br from-white to-slate-50/60 rounded-[20px] border border-[var(--line)] p-8 max-[640px]:p-6 cursor-default w-full select-none flex flex-col justify-between h-full overflow-hidden"
                     style={{ boxShadow: "var(--shadow-md)" }}
                   >
                     {/* Glows decorativos de fundo */}
@@ -421,7 +421,7 @@ export default function Testimonials() {
 
                     {/* Texto simples ou Áudio com texto */}
                     {(activeDepo.tipo === "texto" || activeDepo.tipo === "audio") && (
-                      <div className="w-full h-full flex flex-col justify-between relative z-10">
+                      <div className="w-full flex-1 flex flex-col justify-between relative z-10 min-h-0">
                         {/* Selo e estrelas no topo do card */}
                         <div className="flex items-center justify-between gap-4 mb-3">
                           <div className="text-yellow-400 text-base tracking-[-1px]">★★★★★</div>
@@ -448,7 +448,7 @@ export default function Testimonials() {
                           </div>
 
                           <div 
-                            className="relative z-10 m-0 text-[17px] sm:text-[19px] leading-relaxed text-slate-800 overflow-y-auto max-h-[190px] pr-2 scrollbar-thin flex items-center"
+                            className="relative z-10 m-0 text-[17px] sm:text-[19px] leading-relaxed text-slate-800 overflow-y-auto max-h-[250px] pr-2 scrollbar-thin flex items-center"
                             style={{ fontFamily: "var(--serif)" }}
                           >
                             <span className="w-full block text-left">{activeDepo.texto}</span>
