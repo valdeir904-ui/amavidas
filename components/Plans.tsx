@@ -25,14 +25,21 @@ const FALLBACK_PLANS: DynamicPlan[] = [
     price: 43,
     meta: "Protege você + 6 familiares",
     features: [
-      "Higienização e preparação completa",
-      "Urna padrão adulto e infantil",
+      "Urna (caixão) modelo padrão",
       "Ornamentação com flores naturais",
-      "Remoção e cortejo em Águas Lindas de Goiás",
-      "Traslado terrestre de até 250km",
+      "Translado 500 km rodados",
+      "Necromaquiagem",
+      "Conjunto de vestimenta",
+      "Coroa de flores",
     ],
     expandedFeatures: [
-      "Atendimento pensado para proporcionar mais tranquilidade à família",
+      "Kit lanche",
+      "Tule padrão",
+      "Terço",
+      "Velas",
+      "Cartões de homenagem",
+      "Livro de presença",
+      "Nota de falecimento",
     ],
     featured: true,
     badge: "Mais Escolhido",
@@ -44,15 +51,22 @@ const FALLBACK_PLANS: DynamicPlan[] = [
     price: 90,
     meta: "Protege você + 8 familiares",
     features: [
-      "Higienização e preparação completa premium",
-      "Urna em padrão superior",
-      "Ornamentação especial com flores naturais premium",
-      "Até 10 vasos florais inclusos",
+      "Urna (caixão alto padrão)",
+      "Ornamentação",
+      "Traslado de até 1.000 km rodados",
+      "Necromaquiagem",
+      "Conjunto de vestimenta alto padrão",
+      "Coroa de flores",
     ],
     expandedFeatures: [
-      "Véu e itens especiais de homenagem",
-      "Traslado terrestre de até 500Km",
-      "Remoção terrestre ampliada até 200km",
+      "Mini buffet para até 30 pessoas",
+      "Tule especial",
+      "Terço",
+      "Velas",
+      "Cartões de homenagem",
+      "Livro de registro de presença",
+      "Higienização",
+      "Nota de falecimento",
     ],
     featured: false,
     badge: null,
@@ -97,43 +111,14 @@ export default function Plans() {
         if (data.planos?.length) {
           const mapped = data.planos.map((p: any) => {
             // Dividir benefícios para a funcionalidade de colapso/expansão de forma inteligente
-            let mainFeatures: string[] = [];
-            let extraFeatures: string[] = [];
-
-            if (p.slug === "amar-plus") {
-              mainFeatures = [
-                "Higienização e preparação completa",
-                "Urna padrão adulto e infantil",
-                "Ornamentação com flores naturais",
-                "Remoção e cortejo em Águas Lindas de Goiás",
-                "Traslado terrestre de até 250km",
-              ];
-              extraFeatures = [
-                "Atendimento pensado para proporcionar mais tranquilidade à família",
-              ];
-            } else if (p.slug === "vida-plus") {
-              mainFeatures = [
-                "Higienização e preparação completa premium",
-                "Urna em padrão superior",
-                "Ornamentação especial com flores naturais premium",
-                "Até 10 vasos florais inclusos",
-              ];
-              extraFeatures = [
-                "Véu e itens especiais de homenagem",
-                "Traslado terrestre de até 500Km",
-                "Remoção terrestre ampliada até 200km",
-              ];
-            } else {
-              // Caso haja algum plano customizado vindo da API
-              const all = p.beneficios || [];
-              mainFeatures = all.slice(0, 4);
-              extraFeatures = all.slice(4);
-            }
+            const all = p.beneficios || [];
+            const mainFeatures = all.slice(0, 6);
+            const extraFeatures = all.slice(6);
 
             return {
               slug: p.slug,
               name: p.nome,
-              sub: p.slug === "vida-plus" ? "Uma despedida com mais conforto, elegância e tranquilidade para toda a família." : p.tagline,
+              sub: p.tagline,
               price: p.preco,
               meta: `Protege você + ${p.slug === "amar-plus" ? 6 : 8} familiares`,
               features: mainFeatures,

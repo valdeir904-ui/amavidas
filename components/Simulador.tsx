@@ -36,10 +36,10 @@ const FALLBACK: Record<string, PlanoInfo> = {
     cobertura: 2500,
     tagline: "O equilíbrio certo entre proteção e valor para toda a família",
     beneficios: [
-      "Assistência funeral completa",
-      "Translado nacional",
-      "Atendimento 24 horas prioritário",
-      "Cônjuge e filhos incluídos",
+      "Urna (caixão) modelo padrão",
+      "Ornamentação com flores naturais",
+      "Translado 500 km rodados",
+      "Necromaquiagem",
     ],
   },
   "vida-plus": {
@@ -49,10 +49,10 @@ const FALLBACK: Record<string, PlanoInfo> = {
     cobertura: 3500,
     tagline: "A cobertura mais completa para famílias maiores",
     beneficios: [
-      "Assistência funeral premium",
-      "Translado nacional e internacional",
-      "Família ampliada (até 6 pessoas)",
-      "Atendimento VIP 24 horas",
+      "Urna (caixão alto padrão)",
+      "Ornamentação",
+      "Traslado de até 1.000 km rodados",
+      "Necromaquiagem",
     ],
   },
 };
