@@ -438,21 +438,21 @@ export default function Testimonials() {
                           )}
                         </div>
 
-                        <div className="relative flex-1 flex flex-col justify-center">
+                        <div className="relative flex-1 flex flex-col justify-center min-h-0 py-2">
                           <div
-                            className="absolute -top-4 right-2 pointer-events-none select-none leading-none font-medium text-[90px] text-slate-100"
+                            className="absolute -top-4 right-2 pointer-events-none select-none leading-none font-medium text-[90px] text-slate-100 z-0"
                             style={{ fontFamily: "var(--serif)", lineHeight: 1 }}
                             aria-hidden="true"
                           >
                             &ldquo;
                           </div>
 
-                          <div 
-                            className="relative z-10 m-0 text-[17px] sm:text-[19px] leading-relaxed text-slate-800 overflow-y-auto max-h-[250px] pr-2 scrollbar-thin flex items-center"
+                          <blockquote 
+                            className="relative z-10 m-0 text-[16px] sm:text-[18px] leading-relaxed text-slate-800 overflow-y-auto max-h-[270px] pr-2 scrollbar-thin block w-full text-left"
                             style={{ fontFamily: "var(--serif)" }}
                           >
-                            <span className="w-full block text-left">{activeDepo.texto}</span>
-                          </div>
+                            {activeDepo.texto}
+                          </blockquote>
                         </div>
 
                         <div className="mt-auto pt-4 flex-shrink-0">
