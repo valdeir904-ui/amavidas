@@ -95,6 +95,7 @@ function ItemList({
   placeholder,
   limit,
   iconColor = "text-blue-500",
+  showPrimaryBadge = false,
 }: {
   items: string[];
   onAdd: (v: string) => void;
@@ -104,6 +105,7 @@ function ItemList({
   placeholder: string;
   limit: number;
   iconColor?: string;
+  showPrimaryBadge?: boolean;
 }) {
   const [novo, setNovo] = useState("");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -174,6 +176,7 @@ function ItemList({
         {items.map((item, i) => {
           const isDragging = draggedIndex === i;
           const isDragOver = dragOverIndex === i;
+          const isPrimaryItem = showPrimaryBadge && i < 6;
           return (
             <div
               key={i}
@@ -183,8 +186,12 @@ function ItemList({
               onDragLeave={() => setDragOverIndex(null)}
               onDrop={() => handleDrop(i)}
               onDragEnd={handleDragEnd}
-              className={`flex items-center gap-2 bg-slate-50 border rounded-lg px-3 py-2 group transition-all duration-150 ${
-                isDragging ? "opacity-40 bg-slate-100 border-dashed border-slate-300" : "border-slate-100"
+              className={`flex items-center gap-2 border rounded-lg px-3 py-2 group transition-all duration-150 ${
+                isDragging
+                  ? "opacity-40 bg-slate-100 border-dashed border-slate-300"
+                  : isPrimaryItem
+                  ? "bg-blue-50/70 border-blue-200 shadow-sm"
+                  : "bg-slate-50 border-slate-100"
               } ${
                 isDragOver && draggedIndex !== i
                   ? "border-t-2 border-t-blue-500 bg-blue-50/50"
@@ -223,6 +230,11 @@ function ItemList({
                   >
                     {item}
                   </span>
+                  {isPrimaryItem && (
+                    <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full select-none whitespace-nowrap">
+                      Principal (Visível)
+                    </span>
+                  )}
                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
                     <button
                       onClick={() => startEdit(i, item)}
@@ -676,6 +688,7 @@ export default function PlanosPage() {
                 limit={10}
                 placeholder="Ex: Translado nacional gratuito"
                 iconColor="text-blue-500"
+                showPrimaryBadge={true}
               />
             </div>
 

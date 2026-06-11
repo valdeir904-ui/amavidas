@@ -15,6 +15,8 @@ interface DynamicPlan {
   expandedFeatures: string[]; // Extras (exibidos ao expandir)
   featured: boolean;
   badge: string | null;
+  icone?: string;
+  ausentes?: string[];
 }
 
 const FALLBACK_PLANS: DynamicPlan[] = [
@@ -43,6 +45,8 @@ const FALLBACK_PLANS: DynamicPlan[] = [
     ],
     featured: true,
     badge: "Mais Escolhido",
+    icone: "🏡",
+    ausentes: ["Família ampliada"],
   },
   {
     slug: "vida-plus",
@@ -70,12 +74,20 @@ const FALLBACK_PLANS: DynamicPlan[] = [
     ],
     featured: false,
     badge: null,
+    icone: "⭐",
+    ausentes: [],
   },
 ];
 
 const CHECK_ICON = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18" style={{ flexShrink: 0 }}>
     <path d="M5 12l5 5L20 7" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const X_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18" style={{ flexShrink: 0 }}>
+    <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -125,6 +137,8 @@ export default function Plans() {
               expandedFeatures: extraFeatures,
               featured: p.destaque,
               badge: p.badge,
+              icone: p.icone,
+              ausentes: p.ausentes || [],
             };
           });
           setPlans(mapped);
@@ -265,8 +279,12 @@ export default function Plans() {
                       color: isFeatured ? "#ffffff" : isVidaPlus ? "var(--royal)" : "#1E293B",
                       marginBottom: "8px"
                     }}
+                    className="flex items-center gap-2.5"
                   >
-                    {plan.name}
+                    {plan.icone && (
+                      <span className="text-[32px] leading-none flex-shrink-0">{plan.icone}</span>
+                    )}
+                    <span>{plan.name}</span>
                   </h3>
                   <p className="text-[14px] leading-relaxed min-h-[40px]" style={{ color: subColor, fontSize: isVidaPlus ? "14.5px" : "14px" }}>
                     {plan.sub}
@@ -326,13 +344,21 @@ export default function Plans() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       style={{ overflow: "hidden" }}
                     >
-                      <ul className="flex flex-col gap-3.5 pt-1 pb-4 p-0 m-0" style={{ listStyle: "none", borderTop: isFeatured ? "1px dashed rgba(255,255,255,0.1)" : "1px dashed rgba(226, 232, 240, 0.8)", marginTop: "12px" }}>
+                      <ul className="flex flex-col gap-3.5 pb-4 p-0 m-0" style={{ listStyle: "none" }}>
                         {plan.expandedFeatures.map((ef, idx) => (
-                          <li key={`exp-${idx}`} className="flex items-start gap-2.5 text-[14.5px] leading-snug pt-3">
+                          <li key={`exp-${idx}`} className="flex items-start gap-2.5 text-[14.5px] leading-snug">
                             <span className="mt-0.5" style={{ color: isFeatured ? "#5CE1E6" : "var(--royal)" }}>
                               {CHECK_ICON}
                             </span>
-                            <span style={{ color: isFeatured ? "rgba(255,255,255,0.95)" : isVidaPlus ? "#0F172A" : "#334155" }}>{ef}</span>
+                            <span style={{ color: isFeatured ? "rgba(255,255,255,0.95)" : isVidaPlus ? "#0F172A" : "#334155", fontWeight: isVidaPlus ? 400 : "normal" }}>{ef}</span>
+                          </li>
+                        ))}
+                        {plan.ausentes && plan.ausentes.map((ae, idx) => (
+                          <li key={`aus-${idx}`} className="flex items-start gap-2.5 text-[14.5px] leading-snug opacity-40">
+                            <span className="mt-0.5" style={{ color: isFeatured ? "rgba(255, 255, 255, 0.4)" : "#94A3B8" }}>
+                              {X_ICON}
+                            </span>
+                            <span style={{ color: isFeatured ? "rgba(255,255,255,0.75)" : isVidaPlus ? "#475569" : "#64748B", textDecoration: "line-through" }}>{ae}</span>
                           </li>
                         ))}
                       </ul>
@@ -341,7 +367,7 @@ export default function Plans() {
                 </AnimatePresence>
 
                 {/* Botão de Expansão */}
-                {plan.expandedFeatures.length > 0 && (
+                {(plan.expandedFeatures.length > 0 || (plan.ausentes && plan.ausentes.length > 0)) && (
                   <button
                     onClick={() => toggleExpand(plan.slug)}
                     className="flex items-center justify-center gap-1.5 w-full py-2 mb-5 text-[13px] font-semibold transition-colors duration-200"
