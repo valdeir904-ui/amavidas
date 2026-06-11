@@ -268,8 +268,8 @@ export default function Hero() {
                 </svg>
               </div>
               <div>
-                <div className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ink)" }}>Resposta em 15 min</div>
-                <div className="text-[12px] leading-tight" style={{ color: "var(--ink-mute)" }}>Em qualquer cidade do país</div>
+                <div className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ink)" }}>Sempre ao seu lado</div>
+                <div className="text-[12px] leading-tight" style={{ color: "var(--ink-mute)" }}>Suporte 24h em todo o país</div>
               </div>
             </motion.div>
           </motion.div>

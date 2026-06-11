@@ -17,6 +17,7 @@ import ComoFunciona from "@/components/ComoFunciona";
 import CTAFinal from "@/components/CTAFinal";
 import Footer from "@/components/Footer";
 import WhatsAppFlutuante from "@/components/WhatsAppFlutuante";
+import SocialProofToast from "@/components/SocialProofToast";
 
 export default function HomePage() {
   return (
@@ -38,6 +39,7 @@ export default function HomePage() {
       </main>
       <Footer />
       <WhatsAppFlutuante />
+      <SocialProofToast />
       {/* Global modals */}
       <ModalFormulario />
       <ModalDepoimentos />
