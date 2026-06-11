@@ -44,7 +44,7 @@ const CARDS = [
 
 export default function Diferenciais() {
   return (
-    <section id="diferenciais" style={{ padding: "96px 0", background: "var(--bg-alt)" }} className="max-[980px]:py-14">
+    <section id="diferenciais" style={{ padding: "96px 0", background: "linear-gradient(180deg, #FFF5F8 0%, var(--magenta-soft) 100%)" }} className="max-[980px]:py-14">
       <div className="max-w-[1400px] mx-auto px-5 min-[640px]:px-8 min-[1400px]:px-6">
 
         {/* Section head */}
