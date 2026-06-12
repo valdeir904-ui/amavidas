@@ -1,3 +1,4 @@
+import { verifySession } from "@/lib/session";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 
@@ -37,7 +38,8 @@ async function ensureSeed() {
 
 // ── GET — retorna todas as configs ────────────────────────────────────────────
 export async function GET(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
   await ensureSeed();
   const rows = await prisma.configuracao.findMany();
   const configs = Object.fromEntries(rows.map((r) => [r.chave, r.valor]));
@@ -46,7 +48,8 @@ export async function GET(req: NextRequest) {
 
 // ── PATCH — upsert em lote { configs: Record<string, string> } ────────────────
 export async function PATCH(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { configs } = await req.json() as { configs: Record<string, string> };
   if (!configs || typeof configs !== "object")

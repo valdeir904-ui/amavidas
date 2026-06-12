@@ -1,3 +1,4 @@
+import { verifySession } from "@/lib/session";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 
@@ -55,7 +56,8 @@ async function ensureSeed() {
 
 // GET - List all testimonials
 export async function GET(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
   await ensureSeed();
   const depoimentos = await prisma.depoimento.findMany({
     orderBy: [
@@ -68,7 +70,8 @@ export async function GET(req: NextRequest) {
 
 // POST - Create a new testimonial
 export async function POST(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();
@@ -104,7 +107,8 @@ export async function POST(req: NextRequest) {
 
 // PATCH - Update a testimonial
 export async function PATCH(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();
@@ -128,7 +132,8 @@ export async function PATCH(req: NextRequest) {
 
 // DELETE - Delete a testimonial
 export async function DELETE(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();

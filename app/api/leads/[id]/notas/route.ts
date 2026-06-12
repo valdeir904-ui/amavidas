@@ -1,3 +1,4 @@
+import { verifySession } from "@/lib/session";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 
@@ -15,7 +16,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!checkAuth(req)) {
+  const session = await verifySession();
+  if (!session) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
 
@@ -37,7 +39,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!checkAuth(req)) {
+  const session = await verifySession();
+  if (!session) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
 

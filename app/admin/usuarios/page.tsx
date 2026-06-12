@@ -8,6 +8,7 @@ interface Usuario {
   nome: string;
   email: string;
   ativo: boolean;
+  perfil: string;
   ultimoAcesso: string | null;
   criadoEm: string;
   atualizadoEm: string;
@@ -142,6 +143,7 @@ function ModalNovoUsuario({
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirma, setConfirma] = useState("");
+  const [perfil, setPerfil] = useState("ATENDENTE");
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
 
@@ -158,7 +160,7 @@ function ModalNovoUsuario({
       const res = await fetch("/api/admin/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, senha }),
+        body: JSON.stringify({ nome, email, senha, perfil }),
       });
       const data = await res.json();
       if (!res.ok) { setErro(data.error ?? "Erro ao criar usuário."); return; }
@@ -196,6 +198,17 @@ function ModalNovoUsuario({
               placeholder="Ex: maria@amavidas.com.br"
               className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Perfil de Acesso</label>
+            <select
+              value={perfil}
+              onChange={(e) => setPerfil(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
+            >
+              <option value="ATENDENTE">Atendente</option>
+              <option value="MASTER">Master</option>
+            </select>
           </div>
           <CampoSenha label="Senha" value={senha} onChange={setSenha} placeholder="Mín. 6 caracteres" />
           <CampoSenha label="Confirmar senha" value={confirma} onChange={setConfirma} placeholder="Repita a senha" />
@@ -237,6 +250,7 @@ function ModalEditar({
 }) {
   const [nome, setNome] = useState(usuario.nome);
   const [email, setEmail] = useState(usuario.email);
+  const [perfil, setPerfil] = useState(usuario.perfil || "ATENDENTE");
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
 
@@ -251,7 +265,7 @@ function ModalEditar({
       const res = await fetch("/api/admin/usuarios", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: usuario.id, nome, email }),
+        body: JSON.stringify({ id: usuario.id, nome, email, perfil }),
       });
       const data = await res.json();
       if (!res.ok) { setErro(data.error ?? "Erro ao salvar."); return; }
@@ -287,6 +301,17 @@ function ModalEditar({
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Perfil de Acesso</label>
+            <select
+              value={perfil}
+              onChange={(e) => setPerfil(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
+            >
+              <option value="ATENDENTE">Atendente</option>
+              <option value="MASTER">Master</option>
+            </select>
           </div>
           {erro && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3.5 py-2.5">
@@ -477,6 +502,7 @@ function Toast({ msg, tipo }: { msg: string; tipo: "ok" | "erro" }) {
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [currentUser, setCurrentUser] = useState<{ id: string; email: string; perfil: string } | null>(null);
   const [modal, setModal] = useState<ModalState>({ tipo: "fechado" });
   const [toast, setToast] = useState<{ msg: string; tipo: "ok" | "erro" } | null>(null);
 
@@ -496,7 +522,12 @@ export default function UsuariosPage() {
     }
   }
 
-  useEffect(() => { carregar(); }, []);
+  useEffect(() => { 
+    carregar(); 
+    fetch("/api/admin/me").then(r => r.json()).then(d => {
+      if (d.user) setCurrentUser(d.user);
+    }).catch(() => {});
+  }, []);
 
   async function toggleAtivo(u: Usuario) {
     const res = await fetch("/api/admin/usuarios", {
@@ -560,6 +591,7 @@ export default function UsuariosPage() {
                 <tr className="border-b border-slate-100 bg-slate-50">
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Usuário</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Último acesso</th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Perfil</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Criado em</th>
                   <th className="text-center px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                   <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Ações</th>
@@ -584,6 +616,15 @@ export default function UsuariosPage() {
                     {/* Último acesso */}
                     <td className="px-5 py-4 text-slate-500 hidden md:table-cell">
                       {fmtDatetime(u.ultimoAcesso)}
+                    </td>
+
+                    {/* Perfil */}
+                    <td className="px-5 py-4 hidden md:table-cell">
+                      <span className={`inline-block px-2 py-1 rounded text-[10px] font-bold tracking-wider ${
+                        u.perfil === "MASTER" ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-600"
+                      }`}>
+                        {u.perfil}
+                      </span>
                     </td>
 
                     {/* Criado em */}
@@ -690,6 +731,17 @@ export default function UsuariosPage() {
           onClose={() => setModal({ tipo: "fechado" })}
           onDeleted={() => { setModal({ tipo: "fechado" }); showToast("Usuário excluído."); carregar(); }}
         />
+      )}
+
+      {currentUser && currentUser.perfil !== "MASTER" && (
+        <div className="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4 text-red-500 text-2xl">
+            🔒
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Acesso Negado</h2>
+          <p className="text-slate-500 max-w-sm mb-6">Esta página é restrita apenas para administradores com perfil Master.</p>
+          <a href="/admin/dashboard" className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-semibold">Voltar ao Dashboard</a>
+        </div>
       )}
 
       {toast && <Toast msg={toast.msg} tipo={toast.tipo} />}

@@ -215,8 +215,7 @@ function LoginForm() {
       }
 
       const redirect = searchParams.get("redirect") ?? "/admin/dashboard";
-      router.push(redirect);
-      router.refresh();
+      window.location.href = redirect;
     } catch {
       setErro("Falha de conexão. Tente novamente.");
       setLoading(false);

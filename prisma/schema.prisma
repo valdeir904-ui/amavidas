@@ -41,9 +41,11 @@ model Usuario {
   email        String    @unique
   senhaHash    String
   ativo        Boolean   @default(true)
+  perfil       String    @default("ATENDENTE")
   ultimoAcesso DateTime?
   criadoEm     DateTime  @default(now())
   atualizadoEm DateTime  @updatedAt
+  simulacoes   Simulacao[]
 
   @@map("usuarios")
 }
@@ -70,10 +72,13 @@ model Simulacao {
   comoContatar      String          @default("")
   contatado         Boolean         @default(false)
   status            String          @default("pendente")
+  responsavelId     String?
+  responsavel       Usuario?        @relation(fields: [responsavelId], references: [id])
   criadoEm          DateTime        @default(now())
   atualizadoEm      DateTime        @updatedAt
   notas             SimulacaoNota[]
 
+  @@index([responsavelId], map: "simulacoes_responsavelId_fkey")
   @@map("simulacoes")
 }
 

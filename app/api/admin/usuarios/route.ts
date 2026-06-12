@@ -1,15 +1,9 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { hashSenha } from "@/lib/auth-helpers";
+import { verifySession } from "@/lib/session";
 
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? "amavidas-admin-2024";
-
-function auth(req: NextRequest) {
-  const session = req.cookies.get("admin-session")?.value;
-  if (session === ADMIN_TOKEN) return true;
-
-  return req.headers.get("authorization") === `Bearer ${ADMIN_TOKEN}`;
-}
 
 // Seed: cria o usuário admin padrão na primeira execução
 export async function ensureSeed() {
@@ -20,6 +14,7 @@ export async function ensureSeed() {
         email: "admin@amavidas.com.br",
         senhaHash: hashSenha(ADMIN_TOKEN),
         ativo: true,
+        perfil: "MASTER", // Garante que o Admin raiz é Master
       },
     });
   }
@@ -34,7 +29,11 @@ function sanitize(u: { senhaHash?: string; [k: string]: unknown }) {
 
 // ── GET — lista todos os usuários ─────────────────────────────────────────────
 export async function GET(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session || session.perfil !== "MASTER") {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   await ensureSeed();
   const usuarios = await prisma.usuario.findMany({ orderBy: { criadoEm: "asc" } });
   return Response.json({ usuarios: usuarios.map(sanitize) });
@@ -42,9 +41,12 @@ export async function GET(req: NextRequest) {
 
 // ── POST — cria novo usuário ──────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session || session.perfil !== "MASTER") {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const { nome, email, senha } = await req.json();
+  const { nome, email, senha, perfil } = await req.json();
 
   if (!nome?.trim())  return Response.json({ error: "Nome obrigatório."  }, { status: 400 });
   if (!email?.trim()) return Response.json({ error: "E-mail obrigatório."}, { status: 400 });
@@ -55,14 +57,23 @@ export async function POST(req: NextRequest) {
   if (existe) return Response.json({ error: "E-mail já cadastrado." }, { status: 409 });
 
   const usuario = await prisma.usuario.create({
-    data: { nome: nome.trim(), email: email.trim().toLowerCase(), senhaHash: hashSenha(senha), ativo: true },
+    data: { 
+      nome: nome.trim(), 
+      email: email.trim().toLowerCase(), 
+      senhaHash: hashSenha(senha), 
+      ativo: true,
+      perfil: perfil || "ATENDENTE"
+    },
   });
   return Response.json({ ok: true, usuario: sanitize(usuario) }, { status: 201 });
 }
 
-// ── PATCH — edita nome/email/ativo  OU  troca senha ──────────────────────────
+// ── PATCH — edita nome/email/ativo/perfil  OU  troca senha ──────────────────────────
 export async function PATCH(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session || session.perfil !== "MASTER") {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const body = await req.json();
   const { id, novaSenha, ...rest } = body;
@@ -91,16 +102,19 @@ export async function PATCH(req: NextRequest) {
 
 // ── DELETE — exclui usuário ───────────────────────────────────────────────────
 export async function DELETE(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session || session.perfil !== "MASTER") {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { id } = await req.json();
   if (!id) return Response.json({ error: "id obrigatório." }, { status: 400 });
 
-  const ativos = await prisma.usuario.count({ where: { ativo: true } });
+  const ativos = await prisma.usuario.count({ where: { ativo: true, perfil: "MASTER" } });
   const alvo   = await prisma.usuario.findUnique({ where: { id } });
   if (!alvo) return Response.json({ error: "Usuário não encontrado." }, { status: 404 });
-  if (alvo.ativo && ativos <= 1)
-    return Response.json({ error: "Não é possível excluir o único usuário ativo." }, { status: 400 });
+  if (alvo.ativo && alvo.perfil === "MASTER" && ativos <= 1)
+    return Response.json({ error: "Não é possível excluir o único usuário MASTER ativo." }, { status: 400 });
 
   await prisma.usuario.delete({ where: { id } });
   return Response.json({ ok: true });

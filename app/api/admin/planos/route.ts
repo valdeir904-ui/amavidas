@@ -1,3 +1,4 @@
+import { verifySession } from "@/lib/session";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 
@@ -91,7 +92,8 @@ function parse(p: { beneficios: string; ausentes: string; [k: string]: unknown }
 
 // ── GET — lista todos os planos ───────────────────────────────────────────────
 export async function GET(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
   await ensureSeed();
   const planos = await prisma.plano.findMany({ orderBy: { ordem: "asc" } });
   return Response.json({ planos: planos.map(parse) });
@@ -99,7 +101,8 @@ export async function GET(req: NextRequest) {
 
 // ── POST — cria novo plano ────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
   const nome: string = (body.nome ?? "Novo Plano").trim();
@@ -129,7 +132,8 @@ export async function POST(req: NextRequest) {
 
 // ── PATCH — atualiza plano ────────────────────────────────────────────────────
 export async function PATCH(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, beneficios, ausentes, criadoEm, atualizadoEm, ...rest } = await req.json();
   if (!id) return Response.json({ error: "id obrigatório" }, { status: 400 });
@@ -143,7 +147,8 @@ export async function PATCH(req: NextRequest) {
 
 // ── DELETE — exclui plano ─────────────────────────────────────────────────────
 export async function DELETE(req: NextRequest) {
-  if (!auth(req)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await verifySession();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await req.json();
   if (!id) return Response.json({ error: "id obrigatório" }, { status: 400 });

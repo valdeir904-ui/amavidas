@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const navItems = [
   {
@@ -83,6 +83,23 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ perfil: string; nome?: string; email?: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) setCurrentUser(data.user);
+      })
+      .catch(() => {});
+  }, []);
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (currentUser?.perfil !== "MASTER") {
+      return item.label === "Dashboard" || item.label === "Oportunidades";
+    }
+    return true;
+  });
 
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -111,34 +128,41 @@ export default function AdminSidebar() {
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         <p className="text-white/30 text-xs font-semibold uppercase tracking-widest px-3 mb-3">Menu</p>
-        {navItems.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.soon ? "#" : item.href}
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative ${
-                active
-                  ? "bg-white/10 text-white"
-                  : item.soon
-                  ? "text-white/30 cursor-not-allowed"
-                  : "text-white/60 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              {active && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-gradient-to-b from-[#4f6ef7] to-[#06b6d4] rounded-full" />
-              )}
-              <span className={active ? "text-white" : ""}>{item.icon}</span>
-              <span className="flex-1">{item.label}</span>
-              {item.soon && (
-                <span className="text-[10px] font-semibold bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full">
-                  Em breve
-                </span>
-              )}
-            </Link>
-          );
-        })}
+        {!currentUser ? (
+          <div className="px-3 py-2 space-y-3">
+            <div className="h-8 bg-white/5 rounded-xl animate-pulse"></div>
+            <div className="h-8 bg-white/5 rounded-xl animate-pulse"></div>
+          </div>
+        ) : (
+          visibleNavItems.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.soon ? "#" : item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative ${
+                  active
+                    ? "bg-white/10 text-white"
+                    : item.soon
+                    ? "text-white/30 cursor-not-allowed"
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                {active && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-gradient-to-b from-[#4f6ef7] to-[#06b6d4] rounded-full" />
+                )}
+                <span className={active ? "text-white" : ""}>{item.icon}</span>
+                <span className="flex-1">{item.label}</span>
+                {item.soon && (
+                  <span className="text-[10px] font-semibold bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full">
+                    Em breve
+                  </span>
+                )}
+              </Link>
+            );
+          })
+        )}
       </nav>
 
       {/* Bottom */}
@@ -166,8 +190,12 @@ export default function AdminSidebar() {
             <span className="text-white text-xs font-bold">A</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white/70 text-xs font-medium truncate">Admin</p>
-            <p className="text-white/30 text-xs truncate">amavidas.com.br</p>
+            <p className="text-white/70 text-xs font-medium truncate">
+              {currentUser?.email?.split("@")[0] || "Usuário"}
+            </p>
+            <p className="text-white/30 text-xs truncate">
+              {currentUser?.perfil === "MASTER" ? "Admin Master" : "Atendente"}
+            </p>
           </div>
         </div>
       </div>

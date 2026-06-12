@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verificarSenha } from "@/lib/auth-helpers";
 import { ensureSeed } from "@/app/api/admin/usuarios/route";
-
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? "amavidas-admin-2024";
+import { createSession } from "@/lib/session";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
@@ -38,14 +37,8 @@ export async function POST(req: NextRequest) {
     data: { ultimoAcesso: new Date() },
   }).catch(() => {});
 
-  const response = NextResponse.json({ ok: true });
-  response.cookies.set("admin-session", ADMIN_TOKEN, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7,
-    path: "/",
-  });
+  // Criar sessão JWT (cookie configurado dentro de createSession)
+  await createSession(usuario.id, usuario.email, usuario.perfil);
 
-  return response;
+  return NextResponse.json({ ok: true });
 }

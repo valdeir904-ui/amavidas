@@ -1,3 +1,4 @@
+import { verifySession } from "@/lib/session";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 
@@ -12,7 +13,8 @@ function checkAuth(req: NextRequest): boolean {
 }
 
 export async function GET(req: NextRequest) {
-  if (!checkAuth(req)) {
+  const session = await verifySession();
+  if (!session) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
 
