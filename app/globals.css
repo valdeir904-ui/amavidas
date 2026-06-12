@@ -171,3 +171,22 @@ section[id] { scroll-margin-top: 66px; }
 }
 
 /* ImpactoFinanceiro responsive rules removed — handled inline */
+
+@keyframes marquee-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes marquee-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+.animate-marquee-left {
+  animation: marquee-left 90s linear infinite;
+}
+.animate-marquee-right {
+  animation: marquee-right 90s linear infinite;
+}
+.animate-marquee-left:hover, .animate-marquee-right:hover {
+  animation-play-state: paused;
+}
+

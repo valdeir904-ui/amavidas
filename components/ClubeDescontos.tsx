@@ -2,11 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { fadeUp, staggerContainer } from "@/lib/animations";
+import { fadeUp } from "@/lib/animations";
 import { useModal } from "@/contexts/ModalContext";
 import { useConfig } from "@/contexts/ConfigContext";
-import useEmblaCarousel from "embla-carousel-react";
-import Autoplay from "embla-carousel-autoplay";
 
 interface Parceiro {
   id: string;
@@ -25,14 +23,6 @@ export default function ClubeDescontos() {
   const [parceiros, setParceiros] = useState<Parceiro[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoriaAtiva, setCategoriaAtiva] = useState("todos");
-
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { align: "start", loop: true, dragFree: true },
-    [Autoplay({ delay: 4000, stopOnInteraction: true })]
-  );
-
-  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
 
   useEffect(() => {
     if (configs.secao_beneficios_ativa === "false") {
@@ -75,13 +65,14 @@ export default function ClubeDescontos() {
     return true;
   });
 
-  // Dividir em blocos de 2 (duas linhas no carrossel)
-  const chunkArray = (arr: Parceiro[], size: number) => {
-    return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
-      arr.slice(i * size, i * size + size)
-    );
-  };
-  const parceirosChunks = chunkArray(parceirosFiltrados, 2);
+  // Split array in half for two rows
+  const half = Math.ceil(parceirosFiltrados.length / 2);
+  const row1 = parceirosFiltrados.slice(0, half);
+  const row2 = parceirosFiltrados.slice(half);
+
+  // Duplicar arrays para o efeito de loop contínuo
+  const row1Duplicated = [...row1, ...row1, ...row1, ...row1];
+  const row2Duplicated = [...row2, ...row2, ...row2, ...row2];
 
   if (configs.secao_beneficios_ativa === "false") return null;
 
@@ -180,7 +171,7 @@ export default function ClubeDescontos() {
           ].map((cat) => (
             <button
               key={cat.id}
-              onClick={() => { setCategoriaAtiva(cat.id); emblaApi?.scrollTo(0); }}
+              onClick={() => setCategoriaAtiva(cat.id)}
               className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer ${
                 categoriaAtiva === cat.id
                   ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
@@ -196,89 +187,100 @@ export default function ClubeDescontos() {
           ))}
         </div>
 
-        {/* Partners Carousel */}
-        <motion.div
-          className="relative max-w-full px-1"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={staggerContainer}
-        >
-          <div className="overflow-hidden w-full" ref={emblaRef}>
-            <div className="flex touch-pan-y" style={{ marginLeft: "-1.5rem", backfaceVisibility: "hidden" }}>
-              {parceirosChunks.map((chunk, chunkIndex) => (
-                <div key={chunkIndex} className="flex-none min-w-0 shrink-0 grow-0 w-full sm:w-1/2 lg:w-1/3 pl-6">
-                  <div className="flex flex-col gap-6">
-                    {chunk.map((parceiro) => {
-                      const colors = getColors(parceiro.tipo);
-                      return (
-                        <div
-                          key={parceiro.id}
-                          className="bg-white rounded-[24px] border border-slate-200 p-6 flex flex-col justify-between shadow-sm h-[260px] cursor-default transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-lg"
-                        >
-                          <div className="flex items-start justify-between">
-                            {/* Logo or Icon */}
-                            {parceiro.logoUrl ? (
-                              <div className="w-14 h-14 rounded-xl border border-slate-100 overflow-hidden bg-white flex items-center justify-center">
-                                <img src={parceiro.logoUrl} alt={parceiro.nome} className="max-w-full max-h-full object-contain p-1" />
-                              </div>
-                            ) : (
-                              <div className={`w-14 h-14 rounded-xl flex items-center justify-center border ${colors.bg}`}>
-                                {getIcon(parceiro.tipo)}
-                              </div>
-                            )}
+        {/* Infinite CSS Marquee */}
+        <div className="relative max-w-full overflow-hidden flex flex-col gap-6 mask-image-fade">
+          
+          {/* Linha 1: Move para a direita (right to left) */}
+          <div className="flex w-max animate-marquee-left gap-6 pl-6">
+            {row1Duplicated.map((parceiro, i) => {
+              const colors = getColors(parceiro.tipo);
+              return (
+                <div
+                  key={`r1-${i}`}
+                  className="bg-white rounded-[24px] border border-slate-200 p-6 flex flex-col justify-between shadow-sm h-[260px] w-[320px] shrink-0 cursor-default transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-lg"
+                >
+                  <div className="flex items-start justify-between">
+                    {parceiro.logoUrl ? (
+                      <div className="w-14 h-14 rounded-xl border border-slate-100 overflow-hidden bg-white flex items-center justify-center">
+                        <img src={parceiro.logoUrl} alt={parceiro.nome} className="max-w-full max-h-full object-contain p-1" />
+                      </div>
+                    ) : (
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center border ${colors.bg}`}>
+                        {getIcon(parceiro.tipo)}
+                      </div>
+                    )}
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${colors.badge}`}>
+                      {parceiro.tipo}
+                    </span>
+                  </div>
 
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${colors.badge}`}>
-                              {parceiro.tipo}
-                            </span>
-                          </div>
+                  <div className="my-auto pt-3">
+                    <h4 className="text-[19px] font-bold text-slate-900 leading-snug">{parceiro.nome}</h4>
+                    <p className="text-[22px] font-black mt-1 leading-none font-serif text-blue-600">
+                      {parceiro.desconto}
+                    </p>
+                  </div>
 
-                          <div className="my-auto pt-3">
-                            <h4 className="text-[19px] font-bold text-slate-900 leading-snug">{parceiro.nome}</h4>
-                            <p className="text-[22px] font-black mt-1 leading-none font-serif text-blue-600">
-                              {parceiro.desconto}
-                            </p>
-                          </div>
-
-                          <div className="border-t border-slate-100 pt-3 flex items-center justify-between text-xs text-slate-400">
-                            <span className="truncate max-w-[85%]">{parceiro.contato || "Disponível para clientes"}</span>
-                            <svg className="w-4 h-4 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="border-t border-slate-100 pt-3 flex items-center justify-between text-xs text-slate-400">
+                    <span className="truncate max-w-[85%]">Disponível para clientes</span>
+                    <svg className="w-4 h-4 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
-          {/* Controls */}
-          {parceirosFiltrados.length > 4 && (
-            <div className="flex justify-center items-center gap-4 mt-12">
-              <button 
-                onClick={scrollPrev} 
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600 shadow-sm transition-all hover:scale-105"
-                aria-label="Anterior"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m15 18-6-6 6-6"/>
-                </svg>
-              </button>
-              <button 
-                onClick={scrollNext} 
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600 shadow-sm transition-all hover:scale-105"
-                aria-label="Próximo"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m9 18 6-6-6-6"/>
-                </svg>
-              </button>
-            </div>
-          )}
-        </motion.div>
+          {/* Linha 2: Move para a esquerda (left to right) */}
+          <div className="flex w-max animate-marquee-right gap-6 pr-6">
+            {row2Duplicated.map((parceiro, i) => {
+              const colors = getColors(parceiro.tipo);
+              return (
+                <div
+                  key={`r2-${i}`}
+                  className="bg-white rounded-[24px] border border-slate-200 p-6 flex flex-col justify-between shadow-sm h-[260px] w-[320px] shrink-0 cursor-default transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-lg"
+                >
+                  <div className="flex items-start justify-between">
+                    {parceiro.logoUrl ? (
+                      <div className="w-14 h-14 rounded-xl border border-slate-100 overflow-hidden bg-white flex items-center justify-center">
+                        <img src={parceiro.logoUrl} alt={parceiro.nome} className="max-w-full max-h-full object-contain p-1" />
+                      </div>
+                    ) : (
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center border ${colors.bg}`}>
+                        {getIcon(parceiro.tipo)}
+                      </div>
+                    )}
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${colors.badge}`}>
+                      {parceiro.tipo}
+                    </span>
+                  </div>
+
+                  <div className="my-auto pt-3">
+                    <h4 className="text-[19px] font-bold text-slate-900 leading-snug">{parceiro.nome}</h4>
+                    <p className="text-[22px] font-black mt-1 leading-none font-serif text-blue-600">
+                      {parceiro.desconto}
+                    </p>
+                  </div>
+
+                  <div className="border-t border-slate-100 pt-3 flex items-center justify-between text-xs text-slate-400">
+                    <span className="truncate max-w-[85%]">Disponível para clientes</span>
+                    <svg className="w-4 h-4 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <style jsx>{`
+            .mask-image-fade {
+              mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+              -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            }
+          `}</style>
+        </div>
 
         {/* CTA Button */}
         <motion.div
