@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import { useModal } from "@/contexts/ModalContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { Backlight } from "@/components/ui/backlight";
 
 interface Depoimento {
   id: string;
@@ -38,7 +41,10 @@ function ModalAudioPlayer({ src }: { src: string }) {
     } else {
       audio.play()
         .then(() => setPlaying(true))
-        .catch(() => setPlaying(true));
+        .catch((e) => {
+          console.warn("Falha playback, simulando:", e);
+          setPlaying(true);
+        });
     }
   };
 
@@ -84,26 +90,58 @@ function ModalAudioPlayer({ src }: { src: string }) {
   const progress = duration || 102 ? (currentTime / (duration || 102)) * 100 : 0;
 
   return (
-    <div className="mt-3 rounded-lg flex items-center gap-3 px-3 py-2 bg-slate-50 border border-slate-100">
+    <div className="rounded-xl flex items-center gap-3 px-4 py-2.5 bg-slate-50 border border-slate-200 shadow-sm relative overflow-hidden select-none">
       <audio ref={audioRef} src={src} preload="metadata" />
-      <button 
-        onClick={togglePlay}
-        className="w-8 h-8 rounded-full bg-[#ae2a5c] text-white flex items-center justify-center flex-shrink-0 hover:scale-105 active:scale-95 transition-transform"
-      >
-        {playing ? (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" />
-          </svg>
-        ) : (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8 5v14l11-7z" />
-          </svg>
+      
+      {/* Play/Pause Button with pulse */}
+      <div className="relative w-9 h-9 flex-shrink-0 flex items-center justify-center">
+        <AnimatePresence>
+          {!playing && (
+            <motion.div
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{ border: "2px solid var(--magenta, #ae2a5c)" }}
+              initial={{ scale: 1, opacity: 0.8 }}
+              animate={{ scale: [1, 1.3, 1.6], opacity: [0.8, 0.3, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeOut" }}
+            />
+          )}
+        </AnimatePresence>
+        
+        {playing && (
+          <motion.div
+            className="absolute inset-0 rounded-full pointer-events-none bg-[var(--magenta,#ae2a5c)]/10"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+          />
         )}
-      </button>
-      <div className="flex-1 h-1 bg-slate-200 rounded relative overflow-hidden">
-        <div className="absolute left-0 top-0 h-full bg-[#ae2a5c] rounded" style={{ width: `${progress}%` }} />
+
+        <button
+          onClick={togglePlay}
+          className="w-9 h-9 rounded-full bg-[var(--magenta,#ae2a5c)] text-white flex items-center justify-center relative z-10 transition-colors hover:bg-[var(--magenta,#ae2a5c)]/90 active:scale-95 animate-none"
+        >
+          {playing ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" />
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="ml-0.5">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          )}
+        </button>
       </div>
-      <span className="text-[10px] text-slate-400 font-mono">
+
+      {/* Progress track */}
+      <div className="flex-1 h-1.5 bg-slate-200 rounded-full relative overflow-hidden">
+        <div 
+          className="absolute left-0 top-0 h-full bg-[var(--magenta,#ae2a5c)] rounded-full" 
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      {/* Time indicator */}
+      <span className="text-[11px] text-slate-500 font-mono flex-shrink-0 min-w-[75px] text-right">
         {fmt(currentTime)} / {fmt(duration || 102)}
       </span>
     </div>
@@ -159,21 +197,25 @@ export default function ModalDepoimentos() {
         videoId = url.split("embed/")[1]?.split(/[?#]/)[0];
       }
       return (
-        <iframe
-          src={`https://www.youtube.com/embed/${videoId}`}
-          className="w-full aspect-video rounded-lg shadow border-0 bg-black max-h-[340px]"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
+        <Backlight blur={30} className="w-full flex justify-center">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}`}
+            className="w-full aspect-[9/16] rounded-lg shadow border-0 bg-black max-h-[70vh] relative z-10"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </Backlight>
       );
     }
     return (
-      <video
-        src={url}
-        controls
-        preload="metadata"
-        className="w-full aspect-video rounded-lg shadow bg-slate-900 object-contain max-h-[340px]"
-      />
+      <Backlight blur={30} className="w-full flex justify-center">
+        <video
+          src={url}
+          controls
+          preload="metadata"
+          className="w-full aspect-[9/16] rounded-lg shadow bg-slate-900 object-contain max-h-[70vh] relative z-10"
+        />
+      </Backlight>
     );
   };
 
@@ -235,6 +277,48 @@ export default function ModalDepoimentos() {
               : "RM";
             const isGoogle = t.relacao?.toLowerCase().includes("google");
 
+            if (t.tipo === "audio") {
+              return (
+                <div
+                  key={t.id}
+                  className="rounded-[14px] p-5 border border-[var(--line)] bg-gradient-to-br from-white to-slate-50/60 overflow-hidden relative shadow-sm"
+                >
+                  {/* Glows decorativos suaves de fundo */}
+                  <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-blue-500/5 rounded-full blur-3xl pointer-events-none z-0" />
+                  <div className="absolute -top-10 -left-10 w-36 h-36 bg-teal-500/5 rounded-full blur-3xl pointer-events-none z-0" />
+
+                  <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      {t.fotoUrl ? (
+                        <div className="w-11 h-11 rounded-full overflow-hidden border border-slate-100 flex-shrink-0 flex items-center justify-center">
+                          <img src={t.fotoUrl} alt={t.nome} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div
+                          className={`w-11 h-11 rounded-full bg-gradient-to-br ${AVATAR_COLORS[i % AVATAR_COLORS.length]} grid place-items-center font-medium flex-shrink-0`}
+                          style={{ fontFamily: "var(--serif)", fontSize: "17px" }}
+                        >
+                          {initials}
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-semibold text-[15px] text-[var(--ink)] leading-tight">{t.nome}</div>
+                        <div className="text-[13px] text-[var(--ink-mute)] mt-0.5">
+                          {t.cidade}{t.relacao ? ` · ${t.relacao}` : ""}
+                        </div>
+                      </div>
+                    </div>
+
+                    {t.mediaUrl && (
+                      <div className="w-full sm:max-w-md flex-1">
+                        <ModalAudioPlayer src={t.mediaUrl} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div
                 key={t.id}
@@ -258,7 +342,9 @@ export default function ModalDepoimentos() {
 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between gap-4 mb-3">
-                    <div className="text-yellow-400 text-base tracking-[-1px]">★★★★★</div>
+                    {t.tipo !== "video" && (
+                      <div className="text-yellow-400 text-base tracking-[-1px]">★★★★★</div>
+                    )}
                     {isGoogle && (
                       <div className="flex items-center gap-1 bg-slate-100/90 border border-slate-200/50 px-2.5 py-0.5 rounded-full text-[10px] text-slate-500 font-medium select-none">
                         <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none">
@@ -295,8 +381,8 @@ export default function ModalDepoimentos() {
                     </div>
                   )}
 
-                  {/* Texto simples ou Áudio com texto */}
-                  {(t.tipo === "texto" || t.tipo === "audio") && (
+                  {/* Texto simples */}
+                  {t.tipo === "texto" && (
                     <blockquote className="text-[18px] leading-relaxed mb-4 text-[var(--ink)] m-0" style={{ fontFamily: "var(--serif)" }}>
                       &ldquo;{t.texto}&rdquo;
                     </blockquote>
@@ -322,12 +408,6 @@ export default function ModalDepoimentos() {
                       </div>
                     </div>
                   </div>
-
-                  {t.tipo === "audio" && t.mediaUrl && (
-                    <div className="max-w-sm">
-                      <ModalAudioPlayer src={t.mediaUrl} />
-                    </div>
-                  )}
                 </div>
               </div>
             );

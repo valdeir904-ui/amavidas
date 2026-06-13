@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useModal } from "@/contexts/ModalContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { fadeUp, staggerContainer } from "@/lib/animations";
+import { Backlight } from "@/components/ui/backlight";
 
 interface Depoimento {
   id: string;
@@ -177,30 +178,35 @@ export default function Testimonials() {
       .catch((err) => console.error("Erro ao buscar depoimentos:", err));
   }, []);
 
+  const depoimentosTexto = depoimentos.filter(d => d.tipo === "texto" || d.tipo === "imagem");
+  const depoimentosMedia = depoimentos.filter(d => d.tipo === "video" || d.tipo === "audio");
+
   // Autoplay do carrossel (para se alguma mídia estiver rodando)
   useEffect(() => {
-    if (depoimentos.length <= 1 || isPlayingMedia) return;
+    if (depoimentosTexto.length <= 1 || isPlayingMedia) return;
 
     const timer = setInterval(() => {
       setDirection(1);
-      setIndex((prev) => (prev + 1) % depoimentos.length);
+      setIndex((prev) => (prev + 1) % depoimentosTexto.length);
     }, 9000);
 
     return () => clearInterval(timer);
-  }, [depoimentos, isPlayingMedia]);
+  }, [depoimentosTexto, isPlayingMedia]);
 
   if (depoimentos.length === 0) return null;
 
-  const activeDepo = depoimentos[index];
+  const activeDepo = depoimentosTexto.length > 0 ? (depoimentosTexto[index] || depoimentosTexto[0]) : null;
 
   const handleNext = () => {
+    if (depoimentosTexto.length === 0) return;
     setDirection(1);
-    setIndex((prev) => (prev + 1) % depoimentos.length);
+    setIndex((prev) => (prev + 1) % depoimentosTexto.length);
   };
 
   const handlePrev = () => {
+    if (depoimentosTexto.length === 0) return;
     setDirection(-1);
-    setIndex((prev) => (prev - 1 + depoimentos.length) % depoimentos.length);
+    setIndex((prev) => (prev - 1 + depoimentosTexto.length) % depoimentosTexto.length);
   };
 
   const renderVideo = (url: string) => {
@@ -215,25 +221,29 @@ export default function Testimonials() {
         videoId = url.split("embed/")[1]?.split(/[?#]/)[0];
       }
       return (
-        <iframe
-          src={`https://www.youtube.com/embed/${videoId}`}
-          className="w-full aspect-video rounded-xl shadow-md border-0 bg-black"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          onPlay={() => setIsPlayingMedia(true)}
-        />
+        <Backlight blur={20} className="w-full flex justify-center">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}`}
+            className="w-full aspect-[9/16] max-h-[480px] rounded-xl shadow-md border-0 bg-black relative z-10"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            onPlay={() => setIsPlayingMedia(true)}
+          />
+        </Backlight>
       );
     }
 
     return (
-      <video
-        src={url}
-        controls
-        preload="metadata"
-        className="w-full aspect-video rounded-xl shadow-md bg-slate-900 object-contain"
-        onPlay={() => setIsPlayingMedia(true)}
-        onPause={() => setIsPlayingMedia(false)}
-      />
+      <Backlight blur={20} className="w-full flex justify-center">
+        <video
+          src={url}
+          controls
+          preload="metadata"
+          className="w-full aspect-[9/16] max-h-[480px] rounded-xl shadow-md bg-slate-900 object-contain relative z-10"
+          onPlay={() => setIsPlayingMedia(true)}
+          onPause={() => setIsPlayingMedia(false)}
+        />
+      </Backlight>
     );
   };
 
@@ -252,10 +262,10 @@ export default function Testimonials() {
     }),
   };
 
-  const initials = activeDepo.nome
+  const initials = activeDepo?.nome
     ? activeDepo.nome.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
     : "RM";
-  const isGoogle = activeDepo.relacao?.toLowerCase().includes("google");
+  const isGoogle = activeDepo?.relacao?.toLowerCase().includes("google");
 
   return (
     <section id="depoimento" style={{ padding: "96px 0", background: "var(--bg)" }} className="max-[980px]:py-14 overflow-hidden relative">
@@ -291,16 +301,7 @@ export default function Testimonials() {
             </h2>
             
             {/* Bloco de Copywriting com foto da CEO Lívia */}
-            <div className="flex items-start gap-5 bg-white rounded-2xl border border-[var(--line)] p-6 max-[640px]:flex-col" style={{ boxShadow: "var(--shadow-sm)" }}>
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden flex-shrink-0 border-2 border-[var(--teal-soft)] shadow-md max-[640px]:mx-auto">
-                <Image
-                  src="/Ceo_Livia.png"
-                  alt="Lívia Antonieti - CEO AmaVidas"
-                  fill
-                  sizes="(max-width: 640px) 96px, 112px"
-                  className="object-cover"
-                />
-              </div>
+            <div className="flex items-center gap-6 bg-white rounded-2xl border border-[var(--line)] p-6 max-[640px]:flex-col" style={{ boxShadow: "var(--shadow-sm)" }}>
               <div className="flex-1">
                 <blockquote className="m-0 text-slate-700 italic text-[15px] sm:text-[16px] leading-relaxed">
                   "Não somos nós que falamos sobre o cuidado e a dedicação da AmaVidas, mas sim os depoimentos reais dos nossos clientes que contam, por si sós, a qualidade e o prestígio que colocamos em cada atendimento."
@@ -309,6 +310,15 @@ export default function Testimonials() {
                   <span className="text-xs font-bold text-[var(--teal)] uppercase tracking-wider block">Lívia Antonieti</span>
                   <span className="text-[11px] text-slate-400 block mt-0.5">CEO da AmaVidas</span>
                 </div>
+              </div>
+              <div className="relative w-32 h-44 sm:w-40 sm:h-56 rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 shadow-md max-[640px]:mx-auto">
+                <Image
+                  src="/Livia_Depoimento.png"
+                  alt="Lívia Antonieti - CEO AmaVidas"
+                  fill
+                  sizes="(max-width: 640px) 128px, 160px"
+                  className="object-cover"
+                />
               </div>
             </div>
 
@@ -334,21 +344,22 @@ export default function Testimonials() {
 
           {/* Lado Direito - Carrossel de Depoimentos */}
           <div className="relative flex flex-col gap-6 w-full max-w-[620px] max-[980px]:mx-auto">
-            <div className="h-[520px] max-[640px]:h-[480px] relative overflow-hidden w-full flex items-center">
-              <AnimatePresence initial={false} custom={direction} mode="wait">
-                <motion.div
-                  key={index}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{
-                    x: { type: "spring", stiffness: 350, damping: 32 },
-                    opacity: { duration: 0.2 },
-                  }}
-                  className="w-full h-full"
-                >
+            {activeDepo ? (
+              <div className="h-[520px] max-[640px]:h-[480px] relative overflow-hidden w-full flex items-center">
+                <AnimatePresence initial={false} custom={direction} mode="wait">
+                  <motion.div
+                    key={index}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 350, damping: 32 },
+                      opacity: { duration: 0.2 },
+                    }}
+                    className="w-full h-full"
+                  >
                   <div
                     className="relative bg-gradient-to-br from-white to-slate-50/60 rounded-[20px] border border-[var(--line)] p-8 max-[640px]:p-6 cursor-default w-full select-none flex flex-col justify-between h-full overflow-hidden"
                     style={{ boxShadow: "var(--shadow-md)" }}
@@ -491,13 +502,18 @@ export default function Testimonials() {
                 </motion.div>
               </AnimatePresence>
             </div>
+            ) : (
+              <div className="h-[520px] max-[640px]:h-[480px] flex items-center justify-center bg-slate-50 rounded-[20px] border border-dashed border-slate-200">
+                <p className="text-slate-400">Nenhum depoimento em texto cadastrado.</p>
+              </div>
+            )}
 
             {/* Controles de Navegação do Carrossel */}
-            {depoimentos.length > 1 && (
+            {depoimentosTexto.length > 1 && (
               <div className="flex items-center justify-between px-2">
                 {/* Indicadores de bolinhas */}
                 <div className="flex gap-1.5">
-                  {depoimentos.map((_, i) => (
+                  {depoimentosTexto.map((_, i) => (
                     <button
                       key={i}
                       onClick={() => {
@@ -536,6 +552,102 @@ export default function Testimonials() {
           </div>
         </motion.div>
       </div>
+
+      {/* --- NOVA SEÇÃO DE MÍDIA (ÁUDIOS E VÍDEOS) --- */}
+      {depoimentosMedia.length > 0 && (
+        <div className="max-w-[1400px] mx-auto px-5 min-[640px]:px-8 min-[1400px]:px-6 mt-32 max-[980px]:mt-20">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={fadeUp}
+            className="text-center mb-14"
+          >
+            <p className="text-[14px] font-semibold tracking-[0.14em] uppercase mb-2" style={{ color: "var(--magenta)" }}>
+              Mensagens Reais
+            </p>
+            <h3 className="text-[32px] sm:text-[40px] font-medium leading-tight text-slate-900" style={{ fontFamily: "var(--serif)" }}>
+              Assista e ouça quem confia na AmaVidas.
+            </h3>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={staggerContainer}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            {depoimentosMedia.map((t) => {
+              const tInitials = t.nome
+                ? t.nome.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+                : "RM";
+              const isG = t.relacao?.toLowerCase().includes("google");
+
+              return (
+                <motion.div
+                  key={t.id}
+                  variants={fadeUp}
+                  className="bg-white rounded-2xl border border-[var(--line)] p-6 flex flex-col justify-between shadow-sm relative overflow-hidden group"
+                >
+                  {/* Glow decorativo de fundo */}
+                  <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-blue-500/5 rounded-full blur-3xl pointer-events-none z-0" />
+                  
+                  {isG && (
+                    <div className="absolute -right-6 -bottom-6 opacity-[0.05] pointer-events-none select-none z-0">
+                      <svg viewBox="0 0 24 24" className="w-28 h-28" fill="none">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                      </svg>
+                    </div>
+                  )}
+
+                  <div className="relative z-10 w-full h-full flex flex-col">
+                    {/* Media */}
+                    <div className="mb-5 flex-shrink-0 relative z-10">
+                      {t.tipo === "video" && t.mediaUrl && (
+                        <div className="w-full rounded-xl flex items-center justify-center p-4">
+                          {renderVideo(t.mediaUrl)}
+                        </div>
+                      )}
+                      
+                      {t.tipo === "audio" && t.mediaUrl && (
+                        <AudioPlayer
+                          src={t.mediaUrl}
+                          onPlayChange={(playing) => setIsPlayingMedia(playing)}
+                        />
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-h-0 flex flex-col justify-end">
+                      <div className="flex items-center gap-3">
+                        {t.fotoUrl ? (
+                          <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-100 flex-shrink-0">
+                            <img src={t.fotoUrl} alt={t.nome} className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm flex-shrink-0">
+                            {tInitials}
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-semibold text-[15px] text-slate-900 leading-tight">{t.nome}</div>
+                          <div className="text-[12px] text-slate-400 mt-0.5">
+                            {t.cidade}{t.relacao ? ` · ${t.relacao}` : ""}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </div>
+      )}
     </section>
   );
 }
