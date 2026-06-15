@@ -83,14 +83,36 @@ function PreviewCard({ depoimento }: { depoimento: Depoimento }) {
         <div className="w-full h-full flex flex-col justify-between relative z-10">
           <div className="w-full h-[300px] rounded-xl bg-slate-900 flex items-center justify-center relative overflow-hidden">
             {depoimento.mediaUrl ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-950/20">
-                <svg className="w-12 h-12 text-white/90 drop-shadow" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-                <div className="absolute bottom-2 left-2 text-[11px] text-white/80 bg-black/40 px-2 py-0.5 rounded-md truncate max-w-[90%] font-mono">
-                  {depoimento.mediaUrl}
-                </div>
-              </div>
+              (() => {
+                const url = depoimento.mediaUrl;
+                const isYoutube = url.includes("youtube.com") || url.includes("youtu.be");
+                if (isYoutube) {
+                  let videoId = "";
+                  if (url.includes("youtu.be/")) {
+                    videoId = url.split("youtu.be/")[1]?.split(/[?#]/)[0];
+                  } else if (url.includes("v=")) {
+                    videoId = url.split("v=")[1]?.split(/[&?#]/)[0];
+                  } else if (url.includes("embed/")) {
+                    videoId = url.split("embed/")[1]?.split(/[?#]/)[0];
+                  }
+                  return (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${videoId}`}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  );
+                }
+                return (
+                  <video
+                    src={url}
+                    controls
+                    preload="metadata"
+                    className="w-full h-full object-contain"
+                  />
+                );
+              })()
             ) : (
               <div className="text-slate-400 text-xs flex flex-col items-center gap-2 px-4 text-center">
                 <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,27 +208,12 @@ function PreviewCard({ depoimento }: { depoimento: Depoimento }) {
 
             {/* Audio player if audio type */}
             {depoimento.tipo === "audio" && (
-              <div className="mt-5 rounded-xl flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-100">
-                <button 
-                  onClick={() => setPlaying(!playing)}
-                  className="w-8 h-8 rounded-full bg-[#ae2a5c] text-white flex items-center justify-center flex-shrink-0 hover:scale-105 active:scale-95 transition-transform"
-                >
-                  {playing ? (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                      <rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" />
-                    </svg>
-                  ) : (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  )}
-                </button>
-                <div className="flex-1 h-1 bg-slate-200 rounded relative overflow-hidden">
-                  <div className="absolute left-0 top-0 h-full bg-[#ae2a5c] rounded" style={{ width: `${progress}%` }} />
-                </div>
-                <span className="text-[10px] text-slate-400 font-mono">
-                  {fmt((progress / 100) * 102)} / 1:42
-                </span>
+              <div className="mt-5 w-full">
+                {depoimento.mediaUrl ? (
+                  <audio src={depoimento.mediaUrl} controls className="w-full h-10" />
+                ) : (
+                  <div className="text-[11px] text-slate-400 bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-center">Nenhum áudio carregado</div>
+                )}
               </div>
             )}
           </div>
