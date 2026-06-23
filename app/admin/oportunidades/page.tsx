@@ -205,21 +205,68 @@ export default function OportunidadesPage() {
   };
 
 
-  const fetchLeads = useCallback(async () => {
-    setLoading(true);
+  const playNotificationSound = useCallback(() => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+
+      // Arpejo rápido de 3 notas (Acorde Sucesso: Plim-Plom-Plam)
+      const playNote = (time: number, freq: number) => {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, time);
+        gainNode.gain.setValueAtTime(0, time);
+        gainNode.gain.linearRampToValueAtTime(0.2, time + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        osc.start(time);
+        osc.stop(time + 0.3);
+      };
+      
+      playNote(ctx.currentTime, 523.25); // C5
+      playNote(ctx.currentTime + 0.1, 659.25); // E5
+      playNote(ctx.currentTime + 0.2, 783.99); // G5
+
+    } catch (e) {
+      console.warn("Áudio bloqueado pelo navegador", e);
+    }
+  }, []);
+
+  const fetchLeads = useCallback(async (isPolling = false) => {
+    if (!isPolling) setLoading(true);
     try {
       const resp = await fetch("/api/leads");
       if (!resp.ok) throw new Error("Erro ao carregar");
       const data = await resp.json();
-      setLeads(data.leads);
+      
+      setLeads((prev) => {
+        if (isPolling && data.leads.length > 0) {
+          const newLatestId = data.leads[0].id;
+          const oldLatestId = prev.length > 0 ? prev[0].id : null;
+          
+          if (oldLatestId && newLatestId !== oldLatestId) {
+            playNotificationSound();
+          }
+        }
+        return data.leads;
+      });
     } catch {
-      setErro("Erro ao carregar os leads. Verifique a conexão com o banco de dados.");
+      if (!isPolling) setErro("Erro ao carregar os leads. Verifique a conexão com o banco de dados.");
     } finally {
-      setLoading(false);
+      if (!isPolling) setLoading(false);
     }
-  }, []);
+  }, [playNotificationSound]);
 
-  useEffect(() => { fetchLeads(); }, [fetchLeads]);
+  useEffect(() => { 
+    fetchLeads(false); 
+    const interval = setInterval(() => {
+      fetchLeads(true);
+    }, 15000); // Checa novos leads a cada 15 segundos
+    return () => clearInterval(interval);
+  }, [fetchLeads]);
 
   const updateLeadStatus = async (id: string, status: string, responsavelId?: string | null) => {
     // Atualização otimista no estado local
