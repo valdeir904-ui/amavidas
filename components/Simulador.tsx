@@ -402,6 +402,9 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
           const data = await resp.json();
           if (data.id) {
             setLeadId(data.id);
+            if (typeof window !== "undefined" && (window as any).fbq) {
+              (window as any).fbq("track", "Lead");
+            }
           }
         }
       } catch (e) {
@@ -518,7 +521,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
       setFase("calculando");
       timerRef.current = setTimeout(() => {
         setFase("resultado");
-      }, 2000);
+      }, 3000);
     } catch (err: any) {
       setErro(err.message || "Erro de conexão. Tente novamente.");
     } finally {
