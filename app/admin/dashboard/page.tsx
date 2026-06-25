@@ -150,6 +150,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  
+  const [periodo, setPeriodo] = useState("7dias");
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -162,7 +166,39 @@ export default function DashboardPage() {
     setLoading(true);
     setErro("");
     try {
-      const resp = await fetch("/api/dashboard");
+      let url = "/api/dashboard";
+      let from = "";
+      let to = "";
+      const now = new Date();
+      
+      if (periodo === "hoje") {
+        from = now.toISOString().slice(0, 10);
+        to = from;
+      } else if (periodo === "ontem") {
+        const ontem = new Date(now);
+        ontem.setDate(now.getDate() - 1);
+        from = ontem.toISOString().slice(0, 10);
+        to = from;
+      } else if (periodo === "7dias") {
+        const d = new Date(now);
+        d.setDate(now.getDate() - 6);
+        from = d.toISOString().slice(0, 10);
+        to = now.toISOString().slice(0, 10);
+      } else if (periodo === "30dias") {
+        const d = new Date(now);
+        d.setDate(now.getDate() - 29);
+        from = d.toISOString().slice(0, 10);
+        to = now.toISOString().slice(0, 10);
+      } else if (periodo === "personalizado" && dataInicio && dataFim) {
+        from = dataInicio;
+        to = dataFim;
+      }
+
+      if (from && to) {
+        url += `?from=${from}&to=${to}`;
+      }
+
+      const resp = await fetch(url);
       if (!resp.ok) throw new Error("Erro");
       setData(await resp.json());
     } catch {
@@ -170,7 +206,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [periodo, dataInicio, dataFim]);
 
   useEffect(() => {
     fetchData();
@@ -243,17 +279,92 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight">Overview</h1>
           <p className="text-zinc-500 text-sm mt-2 font-medium">Métricas financeiras e de conversão em tempo real.</p>
         </div>
-        <button
-          onClick={fetchData}
-          className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 hover:text-zinc-900 transition-all shadow-sm text-xs font-semibold"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          Sincronizar
-        </button>
+        
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start sm:self-auto">
+          <select 
+            value={periodo} 
+            onChange={(e) => setPeriodo(e.target.value)}
+            className="px-3 py-2.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/5 cursor-pointer"
+          >
+            <option value="hoje">Hoje</option>
+            <option value="ontem">Ontem</option>
+            <option value="7dias">Últimos 7 dias</option>
+            <option value="30dias">Últimos 30 dias</option>
+            <option value="personalizado">Personalizado</option>
+          </select>
+
+          {periodo === "personalizado" && (
+            <div className="flex items-center gap-2">
+              <input 
+                type="date" 
+                value={dataInicio} 
+                onChange={(e) => setDataInicio(e.target.value)}
+                className="px-3 py-2.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/5"
+              />
+              <span className="text-zinc-400 text-xs">até</span>
+              <input 
+                type="date" 
+                value={dataFim} 
+                onChange={(e) => setDataFim(e.target.value)}
+                className="px-3 py-2.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/5"
+              />
+            </div>
+          )}
+
+          <button
+            onClick={fetchData}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-900 hover:bg-zinc-800 text-white transition-all shadow-sm text-xs font-semibold"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            Sincronizar
+          </button>
+        </div>
       </div>
 
       <div className="space-y-12 max-w-[1600px] mx-auto">
         
+        {/* MARKETING ROW (NEW HERO METRICS) */}
+        <section>
+          <SectionTitle title="Captação e Engajamento" subtitle="Métricas principais de atração e geração de contatos." />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gradient-to-br from-[#00B4C8] to-[#008ba3] rounded-3xl p-8 text-white shadow-xl shadow-teal-900/10 relative overflow-hidden flex flex-col justify-between hover:scale-[1.01] transition-transform">
+              <div className="absolute top-0 right-0 p-6 opacity-20">
+                <Users className="w-24 h-24" />
+              </div>
+              <div className="relative z-10">
+                <p className="text-xs font-bold uppercase tracking-widest text-teal-100 mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-teal-300 animate-pulse" />
+                  Contatos via WhatsApp
+                </p>
+                <p className="text-6xl font-bold tracking-tighter mb-4">{whatsapp.toLocaleString()}</p>
+                <p className="text-sm font-medium text-teal-50">Total de cliques diretos para atendimento</p>
+              </div>
+            </div>
+            
+            <div className="bg-white border border-zinc-200/80 rounded-3xl p-8 shadow-[0px_8px_24px_rgba(0,0,0,0.03)] relative overflow-hidden flex flex-col justify-between hover:scale-[1.01] transition-transform">
+              <div className="absolute top-0 right-0 p-6 opacity-5">
+                <MousePointerClick className="w-24 h-24 text-zinc-900" />
+              </div>
+              <div className="relative z-10">
+                <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">Simulações Iniciadas</p>
+                <p className="text-6xl font-bold tracking-tighter text-zinc-900 mb-4">{sims.toLocaleString()}</p>
+                <p className="text-sm font-medium text-zinc-500">Pessoas que começaram a simulação</p>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-zinc-900 to-black rounded-3xl p-8 text-white shadow-xl shadow-black/10 relative overflow-hidden flex flex-col justify-between hover:scale-[1.01] transition-transform">
+              <div className="absolute top-0 right-0 p-6 opacity-20">
+                <CheckCircle2 className="w-24 h-24 text-white" />
+              </div>
+              <div className="relative z-10">
+                <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">Leads Gerados</p>
+                <p className="text-6xl font-bold tracking-tighter mb-4">{totalLeads.toLocaleString()}</p>
+                <p className="text-sm font-medium text-zinc-400">Simulações concluídas (oportunidades)</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* FINANCIAL ROW */}
         <section>
           <SectionTitle title="Receita e Conversão" />

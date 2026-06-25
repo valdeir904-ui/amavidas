@@ -18,19 +18,46 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const now = new Date();
-  const startOf30Days = new Date(now);
-  startOf30Days.setDate(startOf30Days.getDate() - 29);
-  startOf30Days.setHours(0, 0, 0, 0);
+  const { searchParams } = new URL(req.url);
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
 
-  const startOfWeek = new Date(now);
+  const now = new Date();
+  
+  let startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - 6);
+  startDate.setHours(0, 0, 0, 0);
+
+  let endDate = new Date(now);
+  endDate.setHours(23, 59, 59, 999);
+
+  if (fromParam) {
+    const [y, m, d] = fromParam.split("-").map(Number);
+    if (y && m && d) startDate = new Date(y, m - 1, d, 0, 0, 0, 0);
+  }
+
+  if (toParam) {
+    const [y, m, d] = toParam.split("-").map(Number);
+    if (y && m && d) endDate = new Date(y, m - 1, d, 23, 59, 59, 999);
+  }
+
+  if (startDate > endDate) {
+    const temp = startDate;
+    startDate = endDate;
+    endDate = temp;
+  }
+
+  const startOfWeek = new Date(endDate);
   startOfWeek.setDate(startOfWeek.getDate() - 6);
   startOfWeek.setHours(0, 0, 0, 0);
 
   const [leads, eventos, planos] = await Promise.all([
-    prisma.simulacao.findMany({ orderBy: { criadoEm: "asc" } }),
+    prisma.simulacao.findMany({
+      where: { criadoEm: { gte: startDate, lte: endDate } },
+      orderBy: { criadoEm: "asc" }
+    }),
     prisma.evento.findMany({
-      where: { criadoEm: { gte: startOf30Days } },
+      where: { criadoEm: { gte: startDate, lte: endDate } },
       orderBy: { criadoEm: "asc" },
     }),
     prisma.plano.findMany(),
@@ -70,12 +97,19 @@ export async function GET(req: NextRequest) {
   }
   const topPlano = Object.entries(planoCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
 
-  // Leads por dia (últimos 30 dias)
+  // Leads por dia (dinâmico)
+  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+  const diffDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  
   const leadsPorDia: Record<string, number> = {};
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(startOf30Days);
+  for (let i = 0; i < diffDays; i++) {
+    const d = new Date(startDate);
     d.setDate(d.getDate() + i);
-    const key = d.toISOString().slice(0, 10);
+    
+    const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const dia = String(d.getUTCDate()).padStart(2, '0');
+    const key = `${d.getUTCFullYear()}-${mes}-${dia}`;
+    
     leadsPorDia[key] = 0;
   }
   for (const l of leads) {
