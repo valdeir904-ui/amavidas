@@ -84,8 +84,8 @@ const PERGUNTAS: Pergunta[] = [
     opcoes: [
       { value: "so_eu", emoji: "🙋", label: "Só para mim" },
       { value: "conjuge", emoji: "👫", label: "Para mim e meu cônjuge" },
-      { value: "familia", emoji: "👨‍👩‍👧‍👦", label: "Para minha família (filhos incluídos)" },
-      { value: "pais", emoji: "👴", label: "Para meus pais ou idosos" },
+      { value: "familia", emoji: "👨‍👩‍👧‍👦", label: "Para minha família" },
+      { value: "pais", emoji: "👴", label: "Para meus pais" },
     ],
   },
   {
@@ -101,9 +101,9 @@ const PERGUNTAS: Pergunta[] = [
         { value: "1", emoji: "1️⃣", label: "1 pessoa" },
         { value: "2", emoji: "2️⃣", label: "2 pessoas" },
         { value: "3-4", emoji: "👨‍👩‍👧", label: "3 a 4 pessoas" },
-        { value: "5+", emoji: "👪", label: "5 ou mais pessoas" },
+        { value: "5+", emoji: "👪", label: "5 ou mais" },
       ];
-      if (r.paraQuem === "familia") {
+      if (r.paraQuem === "familia" || r.paraQuem === "conjuge") {
         return baseOpcoes.filter(o => o.value !== "1");
       }
       return baseOpcoes;
@@ -126,9 +126,9 @@ const PERGUNTAS: Pergunta[] = [
     texto: "Na hora de escolher, o que é mais importante para você?",
     mensagemEmpatica: "Perfeito. Já temos quase tudo que precisamos.",
     opcoes: [
-      { value: "menor_preco", emoji: "💰", label: "Menor valor possível" },
-      { value: "equilibrio", emoji: "⚖️", label: "Equilíbrio entre preço e proteção" },
-      { value: "melhor_cobertura", emoji: "🏆", label: "A melhor proteção" },
+      { value: "menor_preco", emoji: "💰", label: "Menor valor" },
+      { value: "equilibrio", emoji: "⚖️", label: "Custo x benefício" },
+      { value: "melhor_cobertura", emoji: "🏆", label: "Melhor cobertura" },
     ],
   },
   {
@@ -141,9 +141,9 @@ const PERGUNTAS: Pergunta[] = [
     },
     mensagemEmpatica: "Excelente! Definindo as opções ideais...",
     opcoes: [
-      { value: "ate-50", emoji: "🪙", label: "Até R$ 50,00 /mês" },
-      { value: "50-90", emoji: "💵", label: "Entre R$ 50,00 e R$ 90,00 /mês" },
-      { value: "90-120", emoji: "💶", label: "Entre R$ 90,00 e R$ 120,00 /mês" },
+      { value: "ate-50", emoji: "🪙", label: "Até R$ 50" },
+      { value: "50-90", emoji: "💵", label: "R$ 50 a R$ 90" },
+      { value: "90-120", emoji: "💶", label: "R$ 90 a R$ 120" },
       { value: "nao_sei", emoji: "🤔", label: "Ainda não sei" },
     ],
   },
@@ -168,9 +168,9 @@ const PERGUNTAS: Pergunta[] = [
       );
       const opts = [];
       if (isAguasLindas) {
-        opts.push({ value: "visita", emoji: "🏠", label: "Visita residencial" });
+        opts.push({ value: "visita", emoji: "🏠", label: "Visita presencial" });
       }
-      opts.push({ value: "ligacao", emoji: "📞", label: "Ligação telefônica" });
+      opts.push({ value: "ligacao", emoji: "📞", label: "Ligação" });
       opts.push({ value: "whatsapp", emoji: "💬", label: "WhatsApp" });
       return opts;
     },
@@ -479,7 +479,7 @@ export default function ChatSimulador() {
                 )}
 
                 {msg.tipo === "opcoes" && msg.opcoes && (
-                  <div className="flex flex-col gap-2 mt-1">
+                  <div className="flex flex-wrap gap-2 mt-1">
                     {msg.opcoes.map((opt) => (
                       <button
                         key={opt.value}
@@ -491,9 +491,9 @@ export default function ChatSimulador() {
                             handleRespostaUser(opt.value, `${opt.emoji} ${opt.label}`);
                           }
                         }}
-                        className="bg-white border border-[#00B4C8] text-[#008ba3] px-4 py-3 rounded-xl font-medium text-left shadow-sm active:scale-[0.98] transition-transform flex items-center gap-2 hover:bg-[#00B4C8]/5"
+                        className="bg-white border border-[#00B4C8] text-[#008ba3] px-3.5 py-2 rounded-full text-sm font-semibold shadow-sm active:scale-[0.95] transition-transform flex items-center gap-1.5 hover:bg-[#00B4C8]/10"
                       >
-                        {opt.emoji && <span>{opt.emoji}</span>}
+                        {opt.emoji && <span className="text-base">{opt.emoji}</span>}
                         <span>{opt.label}</span>
                       </button>
                     ))}
