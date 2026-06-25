@@ -108,6 +108,9 @@ export async function GET(req: NextRequest) {
   const totalVisitas = eventos.filter((e) => e.tipo === "visita").length;
   const totalSims = eventos.filter((e) => e.tipo === "simulacao_iniciada").length;
   const totalWhatsapp = eventos.filter((e) => e.tipo === "whatsapp_clicado").length;
+  const totalObito = eventos.filter((e) => e.tipo === "clique_obito").length;
+  const totalIniciouScroll = eventos.filter((e) => e.tipo === "iniciou_scroll").length;
+  const totalChegouFim = eventos.filter((e) => e.tipo === "chegou_ao_fim").length;
 
   // Perfil dos leads
   const faixaEtaria: Record<string, number> = {};
@@ -133,6 +136,9 @@ export async function GET(req: NextRequest) {
       totalVisitas,
       totalSims,
       totalWhatsapp,
+      totalObito,
+      totalIniciouScroll,
+      totalChegouFim,
       totalContratados,
       mrr,
       ticketMedio,

@@ -190,6 +190,15 @@ export default function Footer() {
               href={`https://wa.me/${configs.whatsapp || "5561985825621"}?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato.`}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => {
+                try {
+                  fetch("/api/eventos", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tipo: "clique_obito" }),
+                  }).catch(() => {});
+                } catch {}
+              }}
               className="flex items-center gap-2.5 mb-6 w-fit h-[44px] px-5 rounded-xl font-bold text-[14px] border whitespace-nowrap transition-all"
               style={{
                 color: "#fff",

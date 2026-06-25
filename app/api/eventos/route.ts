@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   const { tipo } = await req.json();
-  if (!["visita", "simulacao_iniciada", "whatsapp_clicado"].includes(tipo)) {
+  if (!["visita", "simulacao_iniciada", "whatsapp_clicado", "clique_obito", "clique_telefone", "iniciou_scroll", "chegou_ao_fim"].includes(tipo)) {
     return Response.json({ error: "Tipo inválido" }, { status: 400 });
   }
   await prisma.evento.create({ data: { tipo } });

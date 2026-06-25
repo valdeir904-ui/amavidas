@@ -44,6 +44,9 @@ interface DashData {
     totalVisitas: number;
     totalSims: number;
     totalWhatsapp: number;
+    totalObito: number;
+    totalIniciouScroll: number;
+    totalChegouFim: number;
     totalContratados: number;
     mrr: number;
     ticketMedio: number;
@@ -394,6 +397,21 @@ export default function DashboardPage() {
                     <div className="flex justify-between items-baseline mb-1">
                       <span className="text-sm font-semibold text-zinc-900">Plano Destaque</span>
                       <span className="text-sm font-semibold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded-md">{TOP_PLANO_LABEL[kpi.topPlano] ?? kpi.topPlano}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <span className="text-sm font-semibold text-zinc-900">Plantão / Óbito</span>
+                      <span className="text-sm font-semibold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded-md">{kpi.totalObito}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <span className="text-sm font-semibold text-zinc-900">Engajamento da Página</span>
+                      <span className="text-sm font-semibold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded-md text-right">
+                        {kpi.totalIniciouScroll} rolaram <br/> 
+                        <span className="text-xs text-zinc-500 font-medium">({kpi.totalIniciouScroll > 0 ? Math.round((kpi.totalChegouFim / kpi.totalIniciouScroll) * 100) : 0}% chegaram ao fim)</span>
+                      </span>
                     </div>
                   </div>
                 </div>
