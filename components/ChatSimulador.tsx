@@ -554,6 +554,7 @@ export default function ChatSimulador() {
         >
           <form onSubmit={handleInputSubmit} className="flex gap-2">
             <input
+              key={pAtual?.campo}
               type={pAtual?.campo === "telefone" ? "tel" : "text"}
               inputMode={pAtual?.campo === "telefone" ? "numeric" : "text"}
               placeholder={pAtual?.campo === "cidade" ? "Digite sua cidade..." : "Digite sua resposta..."}
