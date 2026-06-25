@@ -558,7 +558,7 @@ export default function OportunidadesPage() {
               />
             </div>
             <button
-              onClick={fetchLeads}
+              onClick={() => fetchLeads()}
               className="px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors bg-white shadow-sm cursor-pointer"
               title="Atualizar"
             >
