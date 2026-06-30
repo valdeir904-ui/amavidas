@@ -98,6 +98,16 @@ export default function OportunidadesPage() {
   const [motivoModal, setMotivoModal] = useState<{ id: string, responsavelId?: string | null } | null>(null);
   const [motivoTexto, setMotivoTexto] = useState("");
 
+  const [ganhoModal, setGanhoModal] = useState<{ id: string, responsavelId?: string | null } | null>(null);
+  const [ganhoDados, setGanhoDados] = useState({
+    nomeCompletoContrato: "",
+    numeroDependentes: "0",
+    planoContratado: "",
+    valorAdesao: "",
+    valorPlano: "",
+    contratoAssinado: false
+  });
+
   // Estados para Timeline de Notas
   const [notas, setNotas] = useState<{ id: string; conteudo: string; autor: string; criadoEm: string }[]>([]);
   const [loadingNotas, setLoadingNotas] = useState(false);
@@ -298,12 +308,23 @@ export default function OportunidadesPage() {
   const handleStatusChangeRequest = (id: string, status: string, responsavelId?: string | null) => {
     if (status === "perdido") {
       setMotivoModal({ id, responsavelId });
+    } else if (status === "ganho") {
+      const currentLead = leads.find(l => l.id === id);
+      setGanhoDados({
+        nomeCompletoContrato: currentLead?.nome || "",
+        numeroDependentes: currentLead?.quantidadePessoas || "0",
+        planoContratado: currentLead?.planoRecomendado || "",
+        valorAdesao: "",
+        valorPlano: "",
+        contratoAssinado: false
+      });
+      setGanhoModal({ id, responsavelId });
     } else {
       updateLeadStatus(id, status, responsavelId);
     }
   };
 
-  const updateLeadStatus = async (id: string, status: string, responsavelId?: string | null, motivoPerda?: string) => {
+  const updateLeadStatus = async (id: string, status: string, responsavelId?: string | null, motivoPerda?: string, extraGanhoDados?: any) => {
     // Atualização otimista no estado local
     setLeads((prev) => prev.map((l) => {
       if (l.id === id) {
@@ -320,6 +341,9 @@ export default function OportunidadesPage() {
       const payload: any = { id, status };
       if (responsavelId !== undefined) payload.responsavelId = responsavelId;
       if (motivoPerda !== undefined) payload.motivoPerda = motivoPerda;
+      if (extraGanhoDados) {
+        Object.assign(payload, extraGanhoDados);
+      }
 
       const r = await fetch("/api/leads", {
         method: "PATCH",
@@ -1644,6 +1668,122 @@ export default function OportunidadesPage() {
                   className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors"
                 >
                   Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal Fechamento (Ganho) */}
+      {ganhoModal && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fadeIn overflow-y-auto"
+          onClick={() => setGanhoModal(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden my-8 transform scale-100 transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-4 text-emerald-600 text-2xl">
+                🤝
+              </div>
+              <h3 className="text-lg font-extrabold text-slate-900 mb-2 text-center tracking-tight">Fechamento Concluído!</h3>
+              <p className="text-xs text-slate-500 mb-6 text-center">
+                Preencha os dados reais do contrato para finalizar.
+              </p>
+              
+              <div className="space-y-4 text-sm text-slate-700">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Nome Completo</label>
+                  <input
+                    type="text"
+                    value={ganhoDados.nomeCompletoContrato}
+                    onChange={(e) => setGanhoDados({...ganhoDados, nomeCompletoContrato: e.target.value})}
+                    placeholder="Nome completo do titular"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 shadow-sm"
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-1/3">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Qtd. Vidas</label>
+                    <input
+                      type="number"
+                      value={ganhoDados.numeroDependentes}
+                      onChange={(e) => setGanhoDados({...ganhoDados, numeroDependentes: e.target.value})}
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 shadow-sm"
+                    />
+                  </div>
+                  <div className="w-2/3">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Plano Contratado</label>
+                    <select
+                      value={ganhoDados.planoContratado}
+                      onChange={(e) => setGanhoDados({...ganhoDados, planoContratado: e.target.value})}
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 shadow-sm"
+                    >
+                      <option value="" disabled>Selecione um plano...</option>
+                      {availablePlans.map((p) => (
+                        <option key={p.slug} value={p.slug}>{p.nome}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Valor da Adesão</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: R$ 150,00"
+                      value={ganhoDados.valorAdesao}
+                      onChange={(e) => setGanhoDados({...ganhoDados, valorAdesao: e.target.value})}
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 shadow-sm"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Valor do Plano</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: R$ 300,00"
+                      value={ganhoDados.valorPlano}
+                      onChange={(e) => setGanhoDados({...ganhoDados, valorPlano: e.target.value})}
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 shadow-sm"
+                    />
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 mt-2 cursor-pointer p-2 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={ganhoDados.contratoAssinado}
+                    onChange={(e) => setGanhoDados({...ganhoDados, contratoAssinado: e.target.checked})}
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                  />
+                  <span className="text-sm font-bold text-slate-700">Contrato Assinado</span>
+                </label>
+              </div>
+
+              <div className="flex gap-2 w-full mt-6">
+                <button
+                  onClick={() => setGanhoModal(null)}
+                  className="px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 flex-1 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!ganhoDados.nomeCompletoContrato || !ganhoDados.planoContratado || !ganhoDados.valorAdesao || !ganhoDados.valorPlano) {
+                      alert("Preencha todos os campos.");
+                      return;
+                    }
+                    await updateLeadStatus(ganhoModal.id, "ganho", ganhoModal.responsavelId, undefined, ganhoDados);
+                    if (selectedLead?.id === ganhoModal.id) {
+                      setSelectedLead((prev) => prev ? { ...prev, status: "ganho", contatado: true } : null);
+                    }
+                    setGanhoModal(null);
+                  }}
+                  disabled={!ganhoDados.nomeCompletoContrato || !ganhoDados.planoContratado || !ganhoDados.valorAdesao || !ganhoDados.valorPlano}
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors"
+                >
+                  Confirmar Venda
                 </button>
               </div>
             </div>

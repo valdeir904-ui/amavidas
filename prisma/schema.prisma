@@ -71,10 +71,16 @@ model Simulacao {
   cidade            String          @default("")
   comoContatar      String          @default("")
   contatado         Boolean         @default(false)
-  status            String          @default("pendente")
-  motivoPerda       String?         @db.Text
-  responsavelId     String?
-  responsavel       Usuario?        @relation(fields: [responsavelId], references: [id])
+  status               String          @default("pendente")
+  motivoPerda          String?         @db.Text
+  nomeCompletoContrato String?
+  numeroDependentes    String?
+  planoContratado      String?
+  contratoAssinado     Boolean         @default(false)
+  valorAdesao          String?
+  valorPlano           String?
+  responsavelId        String?
+  responsavel          Usuario?        @relation(fields: [responsavelId], references: [id])
   criadoEm          DateTime        @default(now())
   atualizadoEm      DateTime        @updatedAt
   notas             SimulacaoNota[]

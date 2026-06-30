@@ -46,7 +46,21 @@ export async function PATCH(req: NextRequest) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const { id, contatado, status, responsavelId, motivoPerda } = await req.json();
+  const { 
+    id,
+    status, 
+    contatado, 
+    responsavelId, 
+    motivoPerda,
+    nomeCompletoContrato,
+    numeroDependentes,
+    planoContratado,
+    contratoAssinado,
+    valorAdesao,
+    valorPlano
+  } = await req.json();
+
+  if (!id) return Response.json({ error: "ID não fornecido" }, { status: 400 });
 
   const currentLead = await prisma.simulacao.findUnique({ where: { id } });
   if (!currentLead) return Response.json({ error: "Não encontrado" }, { status: 404 });
@@ -64,9 +78,13 @@ export async function PATCH(req: NextRequest) {
     }
   }
 
-  if (motivoPerda !== undefined) {
-    updateData.motivoPerda = motivoPerda;
-  }
+  if (motivoPerda !== undefined) updateData.motivoPerda = motivoPerda;
+  if (nomeCompletoContrato !== undefined) updateData.nomeCompletoContrato = nomeCompletoContrato;
+  if (numeroDependentes !== undefined) updateData.numeroDependentes = numeroDependentes;
+  if (planoContratado !== undefined) updateData.planoContratado = planoContratado;
+  if (contratoAssinado !== undefined) updateData.contratoAssinado = contratoAssinado;
+  if (valorAdesao !== undefined) updateData.valorAdesao = valorAdesao;
+  if (valorPlano !== undefined) updateData.valorPlano = valorPlano;
 
   // Lógica de atribuição
   if (responsavelId !== undefined) {
