@@ -53,8 +53,9 @@ interface Lead {
 }
 
 const COLUNAS = [
-  { id: "pendente", label: "Pendente", emoji: "⏳", corCol: "border-t-red-400 bg-red-50/5", textCor: "text-red-700" },
+  { id: "pendente", label: "Novo Lead", emoji: "⏳", corCol: "border-t-red-400 bg-red-50/5", textCor: "text-red-700" },
   { id: "contatado", label: "Em Contato", emoji: "📞", corCol: "border-t-blue-400 bg-blue-50/5", textCor: "text-blue-700" },
+  { id: "negociando", label: "Negociando", emoji: "💬", corCol: "border-t-purple-400 bg-purple-50/5", textCor: "text-purple-700" },
   { id: "ganho", label: "Ganho (Contratado)", emoji: "🤝", corCol: "border-t-emerald-400 bg-emerald-50/5", textCor: "text-emerald-700" },
   { id: "perdido", label: "Perdido", emoji: "❌", corCol: "border-t-slate-350 bg-slate-50/5", textCor: "text-slate-600" },
 ] as const;
@@ -65,11 +66,37 @@ export default function OportunidadesPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
-  const [filtro, setFiltro] = useState<"todos" | "pendentes" | "contatados" | "ganhos" | "perdidos">("todos");
+  const [filtro, setFiltro] = useState<"todos" | "pendentes" | "contatados" | "negociando" | "ganhos" | "perdidos">("todos");
   const [busca, setBusca] = useState("");
   const [viewMode, setViewMode] = useState<"kanban" | "tabela">("kanban");
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  
+  // Timer para calcular tempo do lead pendente
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000); // atualiza a cada 1 minuto
+    return () => clearInterval(timer);
+  }, []);
+
+  const getTimeAgo = useCallback((dateStr: string, currentDate: Date) => {
+    try {
+      const diff = currentDate.getTime() - new Date(dateStr).getTime();
+      const minutes = Math.floor(diff / 60000);
+      if (minutes < 1) return "Agora";
+      if (minutes < 60) return `${minutes} min`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ${minutes % 60}m`;
+      const days = Math.floor(hours / 24);
+      return `${days} d`;
+    } catch {
+      return "";
+    }
+  }, []);
+
+  const [motivoModal, setMotivoModal] = useState<{ id: string, responsavelId?: string | null } | null>(null);
+  const [motivoTexto, setMotivoTexto] = useState("");
 
   // Estados para Timeline de Notas
   const [notas, setNotas] = useState<{ id: string; conteudo: string; autor: string; criadoEm: string }[]>([]);
@@ -268,11 +295,19 @@ export default function OportunidadesPage() {
     return () => clearInterval(interval);
   }, [fetchLeads]);
 
-  const updateLeadStatus = async (id: string, status: string, responsavelId?: string | null) => {
+  const handleStatusChangeRequest = (id: string, status: string, responsavelId?: string | null) => {
+    if (status === "perdido") {
+      setMotivoModal({ id, responsavelId });
+    } else {
+      updateLeadStatus(id, status, responsavelId);
+    }
+  };
+
+  const updateLeadStatus = async (id: string, status: string, responsavelId?: string | null, motivoPerda?: string) => {
     // Atualização otimista no estado local
     setLeads((prev) => prev.map((l) => {
       if (l.id === id) {
-        const contatado = status === "ganho" || status === "perdido" || status === "contatado";
+        const contatado = status === "ganho" || status === "perdido" || status === "contatado" || status === "negociando";
         const novoResp = responsavelId !== undefined 
           ? (responsavelId === null ? null : atendentes.find(a => a.id === responsavelId) || l.responsavel)
           : l.responsavel;
@@ -284,6 +319,7 @@ export default function OportunidadesPage() {
     try {
       const payload: any = { id, status };
       if (responsavelId !== undefined) payload.responsavelId = responsavelId;
+      if (motivoPerda !== undefined) payload.motivoPerda = motivoPerda;
 
       const r = await fetch("/api/leads", {
         method: "PATCH",
@@ -415,7 +451,7 @@ export default function OportunidadesPage() {
       l.cidade || "",
       l.comoContatar || "",
       PLANO_LABEL[l.planoRecomendado]?.label || l.planoRecomendado,
-      l.status === "ganho" ? "Ganho" : l.status === "perdido" ? "Perdido" : l.status === "contatado" ? "Em Contato" : "Pendente",
+      l.status === "ganho" ? "Ganho" : l.status === "perdido" ? "Perdido" : l.status === "contatado" ? "Em Contato" : l.status === "negociando" ? "Negociando" : "Pendente",
       l.paraQuem === "familia" ? "Família" : "Individual",
       l.quantidadePessoas,
       l.faixaEtaria,
@@ -458,7 +494,7 @@ export default function OportunidadesPage() {
   const handleDrop = async (e: React.DragEvent, status: string) => {
     e.preventDefault();
     if (draggedLeadId) {
-      await updateLeadStatus(draggedLeadId, status);
+      handleStatusChangeRequest(draggedLeadId, status);
       setDraggedLeadId(null);
     }
   };
@@ -469,6 +505,7 @@ export default function OportunidadesPage() {
       if (viewMode === "tabela") {
         if (filtro === "pendentes") return currentStatus === "pendente";
         if (filtro === "contatados") return currentStatus === "contatado";
+        if (filtro === "negociando") return currentStatus === "negociando";
         if (filtro === "ganhos") return currentStatus === "ganho";
         if (filtro === "perdidos") return currentStatus === "perdido";
       }
@@ -486,6 +523,7 @@ export default function OportunidadesPage() {
     total: leads.length,
     pendentes: leads.filter((l) => getStatusSafe(l) === "pendente").length,
     contatados: leads.filter((l) => getStatusSafe(l) === "contatado").length,
+    negociando: leads.filter((l) => getStatusSafe(l) === "negociando").length,
     ganhos: leads.filter((l) => getStatusSafe(l) === "ganho").length,
     perdidos: leads.filter((l) => getStatusSafe(l) === "perdido").length,
   };
@@ -520,11 +558,12 @@ export default function OportunidadesPage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-7">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-7">
         {[
           { label: "Total de leads", value: stats.total, icon: "👥", color: "text-slate-900", bg: "bg-slate-50 border-slate-100" },
-          { label: "Pendentes", value: stats.pendentes, icon: "⏳", color: "text-red-650", bg: "bg-red-50/50 border-red-100" },
+          { label: "Novos Leads", value: stats.pendentes, icon: "⏳", color: "text-red-650", bg: "bg-red-50/50 border-red-100" },
           { label: "Em Contato", value: stats.contatados, icon: "📞", color: "text-blue-650", bg: "bg-blue-50/50 border-blue-100" },
+          { label: "Negociando", value: stats.negociando, icon: "💬", color: "text-purple-650", bg: "bg-purple-50/50 border-purple-100" },
           { label: "Ganhos (Contratados)", value: stats.ganhos, icon: "🤝", color: "text-emerald-650", bg: "bg-emerald-50/50 border-emerald-100" },
           { label: "Perdidos", value: stats.perdidos, icon: "❌", color: "text-slate-550", bg: "bg-slate-100 border-slate-200" },
         ].map((s) => (
@@ -592,7 +631,7 @@ export default function OportunidadesPage() {
         {/* Right Side: Filters or Info */}
         {viewMode === "tabela" ? (
           <div className="flex flex-wrap gap-1.5 xl:justify-end">
-            {(["todos", "pendentes", "contatados", "ganhos", "perdidos"] as const).map((f) => (
+            {(["todos", "pendentes", "contatados", "negociando", "ganhos", "perdidos"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFiltro(f)}
@@ -605,9 +644,11 @@ export default function OportunidadesPage() {
                 {f === "todos"
                   ? `Todos (${stats.total})`
                   : f === "pendentes"
-                  ? `⏳ Pendentes (${stats.pendentes})`
+                  ? `⏳ Novos Leads (${stats.pendentes})`
                   : f === "contatados"
                   ? `📞 Contatados (${stats.contatados})`
+                  : f === "negociando"
+                  ? `💬 Negociando (${stats.negociando})`
                   : f === "ganhos"
                   ? `🤝 Ganhos (${stats.ganhos})`
                   : `❌ Perdidos (${stats.perdidos})`}
@@ -651,9 +692,20 @@ export default function OportunidadesPage() {
                     </div>
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">{col.label}</span>
                   </div>
-                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${col.textCor} bg-white shadow-sm border border-slate-150`}>
-                    {colLeads.length}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {col.id === "pendente" && (
+                      <button 
+                        onClick={() => setIsAddingLead(true)}
+                        className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors shadow-sm"
+                        title="Adicionar Novo Lead"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4"/></svg>
+                      </button>
+                    )}
+                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${col.textCor} bg-white shadow-sm border border-slate-150`}>
+                      {colLeads.length}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Cards Container */}
@@ -672,20 +724,38 @@ export default function OportunidadesPage() {
                         onDragStart={(e) => handleDragStart(e, lead.id)}
                         onDragEnd={handleDragEnd}
                         onClick={() => setSelectedLead(lead)}
-                        className={`cursor-pointer bg-white/80 backdrop-blur-sm border rounded-2xl p-4 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:bg-white transition-all duration-300 flex flex-col gap-3 relative group ${
-                          isDragging ? "opacity-30 border-dashed border-blue-500 bg-blue-50/30" : "border-slate-200"
+                        className={`cursor-pointer backdrop-blur-sm border rounded-2xl p-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col gap-3 relative group ${
+                          isDragging 
+                            ? "opacity-30 border-dashed border-blue-500 bg-blue-50/30" 
+                            : col.id === "pendente" 
+                              ? "bg-red-50/50 border-red-200 hover:bg-red-50/80 ring-1 ring-red-100 shadow-red-100" 
+                              : "bg-white/80 border-slate-200 hover:bg-white"
                         }`}
                       >
                         {/* Header card info */}
                         <div className="flex justify-between items-start gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className="font-extrabold text-slate-900 text-sm leading-tight truncate" title={lead.nome}>
-                              {lead.nome}
+                            <p className="font-extrabold text-slate-900 text-sm leading-tight truncate flex items-center gap-2" title={lead.nome}>
+                              {col.id === "pendente" && (
+                                <span className="relative flex h-2 w-2 flex-shrink-0 mt-0.5">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                </span>
+                              )}
+                              <span className="truncate">{lead.nome}</span>
                             </p>
-                            <p className="text-[10px] text-slate-500 mt-0.5 truncate flex items-center gap-1">
-                              <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                              {lead.telefone}
-                            </p>
+                            <div className="flex items-center gap-3 mt-1">
+                              <p className="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                                <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                {lead.telefone}
+                              </p>
+                              {col.id === "pendente" && lead.criadoEm && (
+                                <p className="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded flex items-center gap-1" title="Tempo de espera">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                  {getTimeAgo(lead.criadoEm, now)}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           <span className={`inline-block px-2 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider border shadow-sm flex-shrink-0 leading-none ${planoInfo.cor}`}>
                             {planoInfo.label}
@@ -704,7 +774,7 @@ export default function OportunidadesPage() {
                                 <span className="text-[10px] font-medium text-slate-600 truncate max-w-[70px]">{lead.responsavel.nome.split(" ")[0]}</span>
                               </div>
                             ) : currentUser?.perfil === "ATENDENTE" ? (
-                              <button onClick={(e) => { e.stopPropagation(); updateLeadStatus(lead.id, lead.status, currentUser.id); }} className="text-[10px] bg-cyan-50 text-cyan-600 border border-cyan-200 hover:bg-cyan-100 px-2 py-1.5 rounded-lg font-bold transition-colors">
+                              <button onClick={(e) => { e.stopPropagation(); handleStatusChangeRequest(lead.id, lead.status, currentUser.id); }} className="text-[10px] bg-cyan-50 text-cyan-600 border border-cyan-200 hover:bg-cyan-100 px-2 py-1.5 rounded-lg font-bold transition-colors">
                                 👋 Assumir
                               </button>
                             ) : (
@@ -716,12 +786,14 @@ export default function OportunidadesPage() {
                             {/* Selector for mobile and quick change */}
                             <select
                               value={col.id}
-                              onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
+                              onChange={(e) => handleStatusChangeRequest(lead.id, e.target.value)}
                               className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border outline-none cursor-pointer transition-all ${
                                 col.id === "ganho"
                                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                   : col.id === "perdido"
                                   ? "bg-slate-50 text-slate-600 border-slate-200"
+                                  : col.id === "negociando"
+                                  ? "bg-purple-50 text-purple-700 border-purple-200"
                                   : col.id === "contatado"
                                   ? "bg-blue-50 text-blue-700 border-blue-200"
                                   : "bg-red-50 text-red-700 border-red-200"
@@ -729,6 +801,7 @@ export default function OportunidadesPage() {
                             >
                               <option value="pendente">⏳</option>
                               <option value="contatado">📞</option>
+                              <option value="negociando">💬</option>
                               <option value="ganho">🤝</option>
                               <option value="perdido">❌</option>
                             </select>
@@ -826,19 +899,22 @@ export default function OportunidadesPage() {
                           <div className="flex flex-col gap-2">
                             <select
                               value={currentStatus}
-                              onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
+                              onChange={(e) => handleStatusChangeRequest(lead.id, e.target.value)}
                               className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border outline-none cursor-pointer transition-all shadow-sm ${
                                 currentStatus === "ganho"
                                   ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
                                   : currentStatus === "perdido"
                                   ? "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                                  : currentStatus === "negociando"
+                                  ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
                                   : currentStatus === "contatado"
                                   ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
                                   : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
                               }`}
                             >
-                              <option value="pendente">⏳ Pendente</option>
+                              <option value="pendente">⏳ Novo Lead</option>
                               <option value="contatado">📞 Em Contato</option>
+                              <option value="negociando">💬 Negociando</option>
                               <option value="ganho">🤝 Ganho (Contratado)</option>
                               <option value="perdido">❌ Perdido</option>
                             </select>
@@ -846,7 +922,7 @@ export default function OportunidadesPage() {
                             {currentUser?.perfil === "MASTER" ? (
                               <select
                                 value={lead.responsavelId || ""}
-                                onChange={(e) => updateLeadStatus(lead.id, lead.status, e.target.value || null)}
+                                onChange={(e) => handleStatusChangeRequest(lead.id, lead.status, e.target.value || null)}
                                 className="text-[10px] px-2 py-1 rounded bg-slate-50 border border-slate-200 text-slate-600 outline-none w-full max-w-[140px]"
                               >
                                 <option value="">Sem responsável</option>
@@ -859,7 +935,7 @@ export default function OportunidadesPage() {
                                 👤 {lead.responsavel.nome.split(" ")[0]}
                               </span>
                             ) : (
-                              <button onClick={() => updateLeadStatus(lead.id, lead.status, currentUser?.id)} className="text-[10px] bg-[#00B4C8]/10 text-[#00B4C8] hover:bg-[#00B4C8]/20 px-2 py-1 rounded font-bold w-max transition-colors">
+                              <button onClick={() => handleStatusChangeRequest(lead.id, lead.status, currentUser?.id)} className="text-[10px] bg-[#00B4C8]/10 text-[#00B4C8] hover:bg-[#00B4C8]/20 px-2 py-1 rounded font-bold w-max transition-colors">
                                 Assumir Lead
                               </button>
                             )}
@@ -1010,14 +1086,16 @@ export default function OportunidadesPage() {
               </div>
 
               {/* Section 4: Gestão do Funil */}
-              <div className="space-y-3">
-                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Alterar Status Comercial
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 mb-6">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-white border border-slate-200 flex items-center justify-center text-sm shadow-sm">🎯</div>
+                  Atualizar Status
                 </h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-wrap gap-2">
                   {[
-                    { id: "pendente", label: "⏳ Pendente", color: "bg-red-50 text-red-700 border-red-200" },
+                    { id: "pendente", label: "⏳ Novo Lead", color: "bg-red-50 text-red-700 border-red-200" },
                     { id: "contatado", label: "📞 Em Contato", color: "bg-blue-50 text-blue-700 border-blue-200" },
+                    { id: "negociando", label: "💬 Negociando", color: "bg-purple-50 text-purple-700 border-purple-200" },
                     { id: "ganho", label: "🤝 Ganho", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
                     { id: "perdido", label: "❌ Perdido", color: "bg-slate-50 text-slate-600 border-slate-200" },
                   ].map((btn) => {
@@ -1027,8 +1105,12 @@ export default function OportunidadesPage() {
                       <button
                         key={btn.id}
                         onClick={async () => {
-                          await updateLeadStatus(selectedLead.id, btn.id);
-                          setSelectedLead((prev) => prev ? { ...prev, status: btn.id, contatado: btn.id !== "pendente" } : null);
+                          if (btn.id === "perdido") {
+                            setMotivoModal({ id: selectedLead.id, responsavelId: selectedLead.responsavelId });
+                          } else {
+                            await updateLeadStatus(selectedLead.id, btn.id);
+                            setSelectedLead((prev) => prev ? { ...prev, status: btn.id, contatado: btn.id !== "pendente" } : null);
+                          }
                         }}
                         className={`py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                           isActive ? `${btn.color} ring-2 ring-offset-2 ring-current/25 shadow-sm` : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
@@ -1484,43 +1566,86 @@ export default function OportunidadesPage() {
             className="bg-white rounded-3xl w-full max-w-sm shadow-2xl border border-slate-100 overflow-hidden transform scale-100 transition-all"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Body */}
             <div className="p-6 text-center">
               <div className="w-14 h-14 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mx-auto mb-4 text-red-600 text-2xl">
                 ⚠️
               </div>
-              <h3 className="text-base font-extrabold text-slate-900">Excluir Lead Permanentemente?</h3>
-              <p className="text-slate-500 text-xs mt-2 leading-relaxed px-2">
-                Tem certeza que deseja excluir o lead <strong className="text-slate-800">{deletingLead.nome}</strong>? 
-                Esta ação é definitiva e removerá todos os dados do banco de dados.
-              </p>
+              <h3 className="text-base font-extrabold text-slate-900 mb-2 tracking-tight">Excluir Lead?</h3>
+              <p className="text-sm text-slate-500 mb-6">Esta ação não pode ser desfeita e todos os dados serão perdidos.</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDeletingLead(null)}
+                  disabled={isDeleting}
+                  className="px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 flex-1 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmarExclusao}
+                  disabled={isDeleting}
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors"
+                >
+                  {isDeleting ? "Excluindo..." : "Sim, excluir"}
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3">
-              <button 
-                type="button"
-                onClick={() => setDeletingLead(null)}
-                disabled={isDeleting}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 flex-1 cursor-pointer disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={confirmarExclusao}
-                disabled={isDeleting}
-                className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-md flex-1 text-center cursor-pointer"
-              >
-                {isDeleting ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    Excluindo...
-                  </>
-                ) : (
-                  "Sim, excluir"
-                )}
-              </button>
+      {/* Modal Motivo Perda */}
+      {motivoModal && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => { setMotivoModal(null); setMotivoTexto(""); }}
+        >
+          <div 
+            className="bg-white rounded-3xl w-full max-w-sm shadow-2xl border border-slate-100 overflow-hidden transform scale-100 transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="w-14 h-14 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto mb-4 text-slate-600 text-2xl">
+                📝
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 mb-2 text-center tracking-tight">Motivo da Perda</h3>
+              <p className="text-xs text-slate-500 mb-4 text-center">
+                Por favor, informe o motivo pelo qual este lead foi perdido.
+              </p>
+              <textarea
+                value={motivoTexto}
+                onChange={(e) => setMotivoTexto(e.target.value)}
+                placeholder="Ex: Achou caro, fechou com concorrente..."
+                rows={3}
+                className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 placeholder:text-slate-400 shadow-sm resize-none"
+              />
+              <div className="flex justify-between items-center mb-4 mt-1 px-1">
+                <span className={`text-[10px] font-bold ${motivoTexto.trim().length < 10 ? "text-red-500" : "text-emerald-600"}`}>
+                  {motivoTexto.trim().length < 10 ? `Faltam ${10 - motivoTexto.trim().length} caracteres (mín. 10)` : "Tamanho ideal atingido"}
+                </span>
+              </div>
+              <div className="flex gap-2 w-full">
+                <button
+                  onClick={() => { setMotivoModal(null); setMotivoTexto(""); }}
+                  className="px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 flex-1 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    if (motivoTexto.trim().length < 10) return;
+                    await updateLeadStatus(motivoModal.id, "perdido", motivoModal.responsavelId, motivoTexto.trim());
+                    if (selectedLead?.id === motivoModal.id) {
+                      setSelectedLead((prev) => prev ? { ...prev, status: "perdido", contatado: true } : null);
+                    }
+                    setMotivoModal(null);
+                    setMotivoTexto("");
+                  }}
+                  disabled={motivoTexto.trim().length < 10}
+                  className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors"
+                >
+                  Confirmar
+                </button>
+              </div>
             </div>
           </div>
         </div>

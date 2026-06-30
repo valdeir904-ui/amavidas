@@ -83,6 +83,7 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ perfil: string; nome?: string; email?: string } | null>(null);
 
   useEffect(() => {
@@ -109,11 +110,11 @@ export default function AdminSidebar() {
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+  const SidebarContent = ({ collapsed = false }: { collapsed?: boolean }) => (
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-white/10">
-        <div className="relative h-14 w-14 mx-auto mb-1">
+      <div className={`px-4 py-4 border-b border-white/10 relative flex flex-col items-center justify-center transition-all ${collapsed ? "h-20" : "h-28"}`}>
+        <div className={`relative transition-all mx-auto ${collapsed ? "w-8 h-8 mb-0" : "w-14 h-14 mb-1"}`}>
           <Image
             src="/logo.png"
             alt="AmaVidas"
@@ -122,12 +123,12 @@ export default function AdminSidebar() {
             className="object-contain brightness-0 invert"
           />
         </div>
-        <p className="text-white/40 text-xs text-center">Painel Admin</p>
+        {!collapsed && <p className="text-white/40 text-xs text-center mt-1">Painel Admin</p>}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        <p className="text-white/30 text-xs font-semibold uppercase tracking-widest px-3 mb-3">Menu</p>
+      <nav className={`flex-1 ${collapsed ? "px-2" : "px-3"} py-4 space-y-0.5 overflow-y-auto overflow-x-hidden`}>
+        {!collapsed && <p className="text-white/30 text-xs font-semibold uppercase tracking-widest px-3 mb-3">Menu</p>}
         {!currentUser ? (
           <div className="px-3 py-2 space-y-3">
             <div className="h-8 bg-white/5 rounded-xl animate-pulse"></div>
@@ -141,7 +142,8 @@ export default function AdminSidebar() {
                 key={item.href}
                 href={item.soon ? "#" : item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative ${
+                title={collapsed ? item.label : undefined}
+                className={`flex items-center gap-3 ${collapsed ? "justify-center px-0 py-3" : "px-3 py-2.5"} rounded-xl text-sm font-medium transition-all group relative ${
                   active
                     ? "bg-white/10 text-white"
                     : item.soon
@@ -150,14 +152,18 @@ export default function AdminSidebar() {
                 }`}
               >
                 {active && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-gradient-to-b from-[#4f6ef7] to-[#06b6d4] rounded-full" />
+                  <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-gradient-to-b from-[#4f6ef7] to-[#06b6d4] rounded-full ${collapsed ? "ml-1" : ""}`} />
                 )}
                 <span className={active ? "text-white" : ""}>{item.icon}</span>
-                <span className="flex-1">{item.label}</span>
-                {item.soon && (
-                  <span className="text-[10px] font-semibold bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full">
-                    Em breve
-                  </span>
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 whitespace-nowrap">{item.label}</span>
+                    {item.soon && (
+                      <span className="text-[10px] font-semibold bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full">
+                        Em breve
+                      </span>
+                    )}
+                  </>
                 )}
               </Link>
             );
@@ -166,38 +172,44 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="px-3 py-4 border-t border-white/10 space-y-1">
+      <div className={`px-2 py-4 border-t border-white/10 space-y-1 ${collapsed ? "flex flex-col items-center" : ""}`}>
         <Link
           href="/"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/50 hover:bg-white/5 hover:text-white transition-all"
+          title={collapsed ? "Ver site" : undefined}
+          className={`flex items-center gap-3 ${collapsed ? "justify-center px-0 py-3 w-full" : "px-3 py-2.5"} rounded-xl text-sm text-white/50 hover:bg-white/5 hover:text-white transition-all`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
           </svg>
-          Ver site
+          {!collapsed && <span>Ver site</span>}
         </Link>
+        
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/50 hover:bg-red-500/10 hover:text-red-400 transition-all"
+          title={collapsed ? "Sair" : undefined}
+          className={`w-full flex items-center gap-3 ${collapsed ? "justify-center px-0 py-3" : "px-3 py-2.5"} rounded-xl text-sm text-white/50 hover:bg-red-500/10 hover:text-red-400 transition-all`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          Sair
+          {!collapsed && <span>Sair</span>}
         </button>
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#4f6ef7] to-[#06b6d4] flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold">A</span>
+
+        {!collapsed && (
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#4f6ef7] to-[#06b6d4] flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-xs font-bold">A</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white/70 text-xs font-medium truncate">
+                {currentUser?.email?.split("@")[0] || "Usuário"}
+              </p>
+              <p className="text-white/30 text-xs truncate">
+                {currentUser?.perfil === "MASTER" ? "Admin Master" : "Atendente"}
+              </p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white/70 text-xs font-medium truncate">
-              {currentUser?.email?.split("@")[0] || "Usuário"}
-            </p>
-            <p className="text-white/30 text-xs truncate">
-              {currentUser?.perfil === "MASTER" ? "Admin Master" : "Atendente"}
-            </p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -236,12 +248,22 @@ export default function AdminSidebar() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <SidebarContent />
+        <SidebarContent collapsed={false} />
       </div>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-60 min-h-screen bg-[#0f1729] flex-shrink-0 sticky top-0 h-screen">
-        <SidebarContent />
+      <aside className={`hidden lg:flex flex-col min-h-screen bg-[#0f1729] flex-shrink-0 sticky top-0 h-screen transition-all duration-300 relative z-20 ${isCollapsed ? "w-20" : "w-60"}`}>
+        <SidebarContent collapsed={isCollapsed} />
+        
+        {/* Toggle Collapse Button */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute -right-3.5 top-8 w-7 h-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 hover:scale-105 shadow-md transition-all z-50 cursor-pointer"
+        >
+          <svg className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
       </aside>
     </>
   );

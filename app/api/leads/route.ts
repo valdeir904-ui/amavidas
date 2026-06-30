@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const { id, contatado, status, responsavelId } = await req.json();
+  const { id, contatado, status, responsavelId, motivoPerda } = await req.json();
 
   const currentLead = await prisma.simulacao.findUnique({ where: { id } });
   if (!currentLead) return Response.json({ error: "Não encontrado" }, { status: 404 });
@@ -57,11 +57,15 @@ export async function PATCH(req: NextRequest) {
   }
   if (status !== undefined) {
     updateData.status = status;
-    if (status === "ganho" || status === "perdido" || status === "contatado") {
+    if (status === "ganho" || status === "perdido" || status === "contatado" || status === "negociando") {
       updateData.contatado = true;
     } else if (status === "pendente") {
       updateData.contatado = false;
     }
+  }
+
+  if (motivoPerda !== undefined) {
+    updateData.motivoPerda = motivoPerda;
   }
 
   // Lógica de atribuição
@@ -123,7 +127,7 @@ export async function POST(req: NextRequest) {
     }
 
     const initialStatus = status || "pendente";
-    const contatado = initialStatus === "ganho" || initialStatus === "perdido" || initialStatus === "contatado";
+    const contatado = initialStatus === "ganho" || initialStatus === "perdido" || initialStatus === "contatado" || initialStatus === "negociando";
 
     const lead = await prisma.simulacao.create({
       data: {
