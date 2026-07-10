@@ -2,16 +2,6 @@ import { verifySession } from "@/lib/session";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? "amavidas-admin-2024";
-
-function checkAuth(req: NextRequest): boolean {
-  const session = req.cookies.get("admin-session")?.value;
-  if (session === ADMIN_TOKEN) return true;
-
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${ADMIN_TOKEN}`;
-}
-
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -23,15 +13,26 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const notas = await prisma.simulacaoNota.findMany({
-      where: { simulacaoId: id },
-      orderBy: { criadoEm: "desc" },
-    });
+    const [notas, historico] = await Promise.all([
+      prisma.simulacaoNota.findMany({
+        where: { simulacaoId: id },
+        orderBy: { criadoEm: "desc" },
+      }),
+      prisma.leadHistorico.findMany({
+        where: { simulacaoId: id },
+        orderBy: { criadoEm: "desc" },
+        include: {
+          usuario: {
+            select: { nome: true }
+          }
+        }
+      })
+    ]);
 
-    return Response.json({ notas });
+    return Response.json({ notas, historico });
   } catch (err) {
-    console.error("Erro ao buscar notas do lead:", err);
-    return Response.json({ error: "Erro interno ao buscar notas" }, { status: 500 });
+    console.error("Erro ao buscar notas/histórico do lead:", err);
+    return Response.json({ error: "Erro interno ao buscar notas e histórico" }, { status: 500 });
   }
 }
 

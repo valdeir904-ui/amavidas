@@ -46,6 +46,7 @@ model Usuario {
   criadoEm     DateTime  @default(now())
   atualizadoEm DateTime  @updatedAt
   simulacoes   Simulacao[]
+  historicos   LeadHistorico[]
 
   @@map("usuarios")
 }
@@ -60,30 +61,44 @@ model Configuracao {
 model Simulacao {
   id                String          @id @default(cuid())
   nome              String
-  email             String
+  email             String?         // Opcional agora
   telefone          String
+  consentimento     Boolean         @default(false)
+  consentimentoEm   DateTime?
   paraQuem          String
   quantidadePessoas String
   faixaEtaria       String
+  cidade            String          @default("")
   prioridade        String
   orcamento         String
+  intencao          String?
   planoRecomendado  String
-  cidade            String          @default("")
   comoContatar      String          @default("")
   contatado         Boolean         @default(false)
-  status               String          @default("pendente")
-  motivoPerda          String?         @db.Text
+  
+  status            String          @default("novo_lead")
+  
+  motivoPerda       String?         @db.Text
+  motivoDescarte    String?
+  descarteObservacao String?
+  
+  primeiroContatoEm DateTime?
+  responsavelId     String?
+  responsavel       Usuario?        @relation(fields: [responsavelId], references: [id])
+  
+  origem            String          @default("simulador")
+
   nomeCompletoContrato String?
   numeroDependentes    String?
   planoContratado      String?
   contratoAssinado     Boolean         @default(false)
   valorAdesao          String?
   valorPlano           String?
-  responsavelId        String?
-  responsavel          Usuario?        @relation(fields: [responsavelId], references: [id])
+  
   criadoEm          DateTime        @default(now())
   atualizadoEm      DateTime        @updatedAt
   notas             SimulacaoNota[]
+  historico         LeadHistorico[]
 
   @@index([responsavelId], map: "simulacoes_responsavelId_fkey")
   @@map("simulacoes")
@@ -132,3 +147,38 @@ model Parceiro {
 
   @@map("parceiros")
 }
+
+model LeadHistorico {
+  id           String    @id @default(cuid())
+  simulacaoId  String
+  simulacao    Simulacao @relation(fields: [simulacaoId], references: [id], onDelete: Cascade)
+  usuarioId    String
+  usuario      Usuario   @relation(fields: [usuarioId], references: [id])
+  acao         String    // "mudou_status" | "atribuiu" | "descartou" | "contatou" | "comentou"
+  statusAntes  String?
+  statusDepois String?
+  observacao   String?
+  criadoEm     DateTime  @default(now())
+
+  @@index([simulacaoId])
+  @@index([usuarioId])
+  @@map("lead_historicos")
+}
+
+model SimulacaoIncompleta {
+  id                String   @id @default(cuid())
+  sessionId         String   @unique
+  ultimaEtapa       Int
+  paraQuem          String?
+  quantidadePessoas String?
+  faixaEtaria       String?
+  cidade            String?
+  prioridade        String?
+  orcamento         String?
+  intencao          String?
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+
+  @@map("simulacoes_incompletas")
+}
+

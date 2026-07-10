@@ -50,10 +50,32 @@ interface Lead {
   comoContatar?: string;
   responsavelId?: string | null;
   responsavel?: { id: string; nome: string } | null;
+  intencao?: string | null;
+  consentimento?: boolean;
+  consentimentoEm?: string | null;
+  motivoDescarte?: string | null;
+  motivoPerda?: string | null;
+  descarteObservacao?: string | null;
+  primeiroContatoEm?: string | null;
+  origem?: string;
+  historico?: { id: string; acao: string }[];
 }
 
+const MOTIVOS_LABELS: Record<string, string> = {
+  numero_errado: "Número errado / não existe",
+  nao_atende: "Não atende as ligações",
+  nao_respondeu: "Não respondeu as mensagens",
+  sem_interesse: "Sem interesse real",
+  achou_caro: "Achou caro",
+  vai_pensar: "Vai pensar / retornar depois",
+  ja_tem_plano: "Já tem plano funerário",
+  fora_area: "Fora da área de atendimento",
+  dado_invalido: "Dado inválido (nome/telefone falso)",
+  outro: "Outro",
+};
+
 const COLUNAS = [
-  { id: "pendente", label: "Novo Lead", emoji: "⏳", corCol: "border-t-red-400 bg-red-50/5", textCor: "text-red-700" },
+  { id: "novo_lead", label: "Novo Lead", emoji: "⏳", corCol: "border-t-red-400 bg-red-50/5", textCor: "text-red-700" },
   { id: "contatado", label: "Em Contato", emoji: "📞", corCol: "border-t-blue-400 bg-blue-50/5", textCor: "text-blue-700" },
   { id: "negociando", label: "Negociando", emoji: "💬", corCol: "border-t-purple-400 bg-purple-50/5", textCor: "text-purple-700" },
   { id: "ganho", label: "Ganho (Contratado)", emoji: "🤝", corCol: "border-t-emerald-400 bg-emerald-50/5", textCor: "text-emerald-700" },
@@ -95,8 +117,24 @@ export default function OportunidadesPage() {
     }
   }, []);
 
+  const formatResponseTime = useCallback((criadoEmStr: string, primeiroContatoEmStr: string) => {
+    try {
+      const diff = new Date(primeiroContatoEmStr).getTime() - new Date(criadoEmStr).getTime();
+      const minutes = Math.floor(diff / 60000);
+      if (minutes < 1) return "menos de 1 min";
+      if (minutes < 60) return `${minutes} min`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ${minutes % 60}m`;
+      const days = Math.floor(hours / 24);
+      return `${days}d ${hours % 24}h`;
+    } catch {
+      return "";
+    }
+  }, []);
+
   const [motivoModal, setMotivoModal] = useState<{ id: string, responsavelId?: string | null } | null>(null);
   const [motivoTexto, setMotivoTexto] = useState("");
+  const [motivoSelecionado, setMotivoSelecionado] = useState("");
 
   const [ganhoModal, setGanhoModal] = useState<{ id: string, responsavelId?: string | null } | null>(null);
   const [ganhoDados, setGanhoDados] = useState({
@@ -110,6 +148,7 @@ export default function OportunidadesPage() {
 
   // Estados para Timeline de Notas
   const [notas, setNotas] = useState<{ id: string; conteudo: string; autor: string; criadoEm: string }[]>([]);
+  const [timeline, setTimeline] = useState<any[]>([]);
   const [loadingNotas, setLoadingNotas] = useState(false);
   const [novaNota, setNovaNota] = useState("");
 
@@ -130,7 +169,7 @@ export default function OportunidadesPage() {
     email: "",
     telefone: "",
     planoRecomendado: "essencial",
-    status: "pendente",
+    status: "novo_lead",
     paraQuem: "individual",
     quantidadePessoas: "1",
     faixaEtaria: "",
@@ -138,6 +177,9 @@ export default function OportunidadesPage() {
     orcamento: "",
     cidade: "",
     comoContatar: "whatsapp",
+    origem: "whatsapp_direto",
+    intencao: "contratar_agora",
+    consentimento: true,
   });
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -224,7 +266,7 @@ export default function OportunidadesPage() {
         email: "",
         telefone: "",
         planoRecomendado: availablePlans[0]?.slug || "essencial",
-        status: "pendente",
+        status: "novo_lead",
         paraQuem: "individual",
         quantidadePessoas: "1",
         faixaEtaria: "",
@@ -232,6 +274,9 @@ export default function OportunidadesPage() {
         orcamento: "",
         cidade: "",
         comoContatar: "whatsapp",
+        origem: "whatsapp_direto",
+        intencao: "contratar_agora",
+        consentimento: true,
       });
       setShowExtraFields(false);
     } catch (err: any) {
@@ -324,7 +369,14 @@ export default function OportunidadesPage() {
     }
   };
 
-  const updateLeadStatus = async (id: string, status: string, responsavelId?: string | null, motivoPerda?: string, extraGanhoDados?: any) => {
+  const updateLeadStatus = async (
+    id: string,
+    status: string,
+    responsavelId?: string | null,
+    motivoDescarte?: string,
+    descarteObservacao?: string,
+    extraGanhoDados?: any
+  ) => {
     // Atualização otimista no estado local
     setLeads((prev) => prev.map((l) => {
       if (l.id === id) {
@@ -332,7 +384,15 @@ export default function OportunidadesPage() {
         const novoResp = responsavelId !== undefined 
           ? (responsavelId === null ? null : atendentes.find(a => a.id === responsavelId) || l.responsavel)
           : l.responsavel;
-        return { ...l, status, contatado, responsavelId: responsavelId !== undefined ? responsavelId : l.responsavelId, responsavel: novoResp };
+        return { 
+          ...l, 
+          status, 
+          contatado, 
+          responsavelId: responsavelId !== undefined ? responsavelId : l.responsavelId, 
+          responsavel: novoResp,
+          motivoDescarte: motivoDescarte !== undefined ? motivoDescarte : l.motivoDescarte,
+          descarteObservacao: descarteObservacao !== undefined ? descarteObservacao : l.descarteObservacao
+        };
       }
       return l;
     }));
@@ -340,7 +400,8 @@ export default function OportunidadesPage() {
     try {
       const payload: any = { id, status };
       if (responsavelId !== undefined) payload.responsavelId = responsavelId;
-      if (motivoPerda !== undefined) payload.motivoPerda = motivoPerda;
+      if (motivoDescarte !== undefined) payload.motivoDescarte = motivoDescarte;
+      if (descarteObservacao !== undefined) payload.descarteObservacao = descarteObservacao;
       if (extraGanhoDados) {
         Object.assign(payload, extraGanhoDados);
       }
@@ -397,10 +458,58 @@ export default function OportunidadesPage() {
       const r = await fetch(`/api/leads/${leadId}/notas`);
       if (r.ok) {
         const d = await r.json();
+        const apiNotas = (d.notas || []).map((n: any) => ({
+          id: n.id,
+          tipo: "nota",
+          conteudo: n.conteudo,
+          autor: n.autor,
+          criadoEm: n.criadoEm,
+        }));
+        
+        const apiHistorico = (d.historico || []).map((h: any) => {
+          let desc = "";
+          if (h.acao === "cadastro") desc = `Lead cadastrado via ${h.origem || "simulador"}.`;
+          else if (h.acao === "mudou_status") {
+            const statusLabels: Record<string, string> = {
+              novo_lead: "Novo Lead",
+              contatado: "Em Contato",
+              negociando: "Negociando",
+              ganho: "Ganho",
+              perdido: "Perdido"
+            };
+            const de = statusLabels[h.statusAntes || ""] || h.statusAntes || "início";
+            const para = statusLabels[h.statusDepois || ""] || h.statusDepois || "";
+            desc = `Alterou status de "${de}" para "${para}".`;
+          } else if (h.acao === "atribuiu") {
+            desc = `Lead atribuído a ${h.usuario?.nome || "outro atendente"}.`;
+          } else if (h.acao === "primeiro_contato") {
+            desc = `Primeiro contato comercial realizado.`;
+          } else if (h.acao === "contato_ligacao") {
+            desc = `Tentativa de contato via Ligação.`;
+          } else if (h.acao === "contato_whatsapp") {
+            desc = `Tentativa de contato via WhatsApp.`;
+          } else {
+            desc = h.observacao || h.acao;
+          }
+          
+          return {
+            id: h.id,
+            tipo: "historico",
+            conteudo: desc,
+            autor: h.usuario?.nome || "Sistema",
+            criadoEm: h.criadoEm,
+          };
+        });
+
+        const combinada = [...apiNotas, ...apiHistorico].sort(
+          (a, b) => new Date(b.criadoEm).getTime() - new Date(a.criadoEm).getTime()
+        );
+        
+        setTimeline(combinada);
         setNotas(d.notas || []);
       }
     } catch (err) {
-      console.error("Erro ao carregar notas:", err);
+      console.error("Erro ao carregar notas/histórico:", err);
     } finally {
       setLoadingNotas(false);
     }
@@ -411,6 +520,7 @@ export default function OportunidadesPage() {
       carregarNotas(selectedLead.id);
       setNovaNota("");
     } else {
+      setTimeline([]);
       setNotas([]);
     }
   }, [selectedLead, carregarNotas]);
@@ -427,6 +537,14 @@ export default function OportunidadesPage() {
       });
       if (r.ok) {
         const d = await r.json();
+        const novaNotaItem = {
+          id: d.nota.id,
+          tipo: "nota",
+          conteudo: d.nota.conteudo,
+          autor: d.nota.autor,
+          criadoEm: d.nota.criadoEm,
+        };
+        setTimeline((prev) => [novaNotaItem, ...prev]);
         setNotas((prev) => [d.nota, ...prev]);
         setNovaNota("");
       }
@@ -502,7 +620,7 @@ export default function OportunidadesPage() {
   };
 
   const getStatusSafe = (lead: Lead) => {
-    return lead.status || (lead.contatado ? "contatado" : "pendente");
+    return lead.status || (lead.contatado ? "contatado" : "novo_lead");
   };
 
   // Drag and drop handlers
@@ -527,7 +645,7 @@ export default function OportunidadesPage() {
     .filter((l) => {
       const currentStatus = getStatusSafe(l);
       if (viewMode === "tabela") {
-        if (filtro === "pendentes") return currentStatus === "pendente";
+        if (filtro === "pendentes") return currentStatus === "novo_lead";
         if (filtro === "contatados") return currentStatus === "contatado";
         if (filtro === "negociando") return currentStatus === "negociando";
         if (filtro === "ganhos") return currentStatus === "ganho";
@@ -545,7 +663,7 @@ export default function OportunidadesPage() {
 
   const stats = {
     total: leads.length,
-    pendentes: leads.filter((l) => getStatusSafe(l) === "pendente").length,
+    pendentes: leads.filter((l) => getStatusSafe(l) === "novo_lead").length,
     contatados: leads.filter((l) => getStatusSafe(l) === "contatado").length,
     negociando: leads.filter((l) => getStatusSafe(l) === "negociando").length,
     ganhos: leads.filter((l) => getStatusSafe(l) === "ganho").length,
@@ -698,7 +816,7 @@ export default function OportunidadesPage() {
         </div>
       ) : viewMode === "kanban" ? (
         /* KANBAN VIEW */
-        <div className="flex gap-4 overflow-x-auto pb-4 items-stretch select-none">
+        <div className="flex gap-4 overflow-x-auto pb-6 items-stretch select-none min-h-[650px] scrollbar-thin">
           {COLUNAS.map((col) => {
             const colLeads = leadsFiltrados.filter((l) => getStatusSafe(l) === col.id);
             return (
@@ -706,7 +824,7 @@ export default function OportunidadesPage() {
                 key={col.id}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => handleDrop(e, col.id)}
-                className={`flex-1 min-w-[280px] max-w-[340px] rounded-2xl border border-slate-200 border-t-4 p-4 ${col.corCol} flex flex-col min-h-[500px] shadow-sm`}
+                className={`w-[310px] shrink-0 rounded-2xl border border-slate-200 border-t-4 p-4 ${col.corCol} flex flex-col shadow-sm`}
               >
                 {/* Column header */}
                 <div className="flex justify-between items-center mb-4 border-b border-slate-200/60 pb-3">
@@ -717,7 +835,7 @@ export default function OportunidadesPage() {
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">{col.label}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {col.id === "pendente" && (
+                    {col.id === "novo_lead" && (
                       <button 
                         onClick={() => setIsAddingLead(true)}
                         className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors shadow-sm"
@@ -733,13 +851,14 @@ export default function OportunidadesPage() {
                 </div>
 
                 {/* Cards Container */}
-                <div className="flex-1 flex flex-col gap-3 overflow-y-auto max-h-[600px] pr-0.5">
+                <div className="flex-1 flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-270px)] pr-0.5 scrollbar-thin">
                   {colLeads.map((lead) => {
                     const planoInfo = PLANO_LABEL[lead.planoRecomendado] ?? {
                       label: lead.planoRecomendado,
                       cor: "bg-slate-100 text-slate-700 border-slate-200",
                     };
                     const isDragging = draggedLeadId === lead.id;
+                    const totalTentativas = lead.historico?.filter((h) => ["contato_ligacao", "contato_whatsapp"].includes(h.acao)).length || 0;
 
                     return (
                       <div
@@ -748,10 +867,10 @@ export default function OportunidadesPage() {
                         onDragStart={(e) => handleDragStart(e, lead.id)}
                         onDragEnd={handleDragEnd}
                         onClick={() => setSelectedLead(lead)}
-                        className={`cursor-pointer bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-3 relative group overflow-hidden ${
+                        className={`cursor-pointer bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-3 relative group overflow-hidden w-full shrink-0 ${
                           isDragging 
                             ? "opacity-40 border-dashed border-blue-400" 
-                            : col.id === "pendente" 
+                            : col.id === "novo_lead" 
                               ? "border-l-4 border-l-red-500 border-red-100 hover:border-red-200" 
                               : col.id === "contatado"
                               ? "border-l-4 border-l-blue-500 border-slate-200 hover:border-slate-300"
@@ -765,8 +884,21 @@ export default function OportunidadesPage() {
                         {/* Header card info */}
                         <div className="flex justify-between items-start gap-3">
                           <div className="flex-1 min-w-0">
+                            {/* Badges de Intenção */}
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {lead.intencao === "contratar_agora" && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-red-100 text-red-700 border border-red-200">🔴 Quer contratar</span>
+                              )}
+                              {lead.intencao === "entender_melhor" && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200">🟡 Quer entender</span>
+                              )}
+                              {lead.intencao === "pesquisando" && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200">⚪ Pesquisando</span>
+                              )}
+                            </div>
+
                             <h4 className="font-bold text-slate-800 text-[15px] leading-tight truncate flex items-center gap-2" title={lead.nome}>
-                              {col.id === "pendente" && (
+                              {col.id === "novo_lead" && (
                                 <span className="relative flex h-2 w-2 flex-shrink-0">
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
@@ -779,17 +911,59 @@ export default function OportunidadesPage() {
                                 <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                 {lead.telefone}
                               </p>
+                              {lead.cidade && (
+                                <p className="text-[11px] text-slate-500 truncate flex items-center gap-1.5 font-medium" title={lead.cidade}>
+                                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                  {lead.cidade}
+                                </p>
+                              )}
                               {lead.criadoEm && (
                                 <p className="text-[11px] text-slate-400 truncate flex items-center gap-1.5" title="Data/Hora de Criação">
                                   <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                   {new Date(lead.criadoEm).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às {new Date(lead.criadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                               )}
-                              {col.id === "pendente" && lead.criadoEm && (
-                                <p className="text-[11px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-md flex items-center gap-1.5 w-max mt-0.5" title="Tempo de espera">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                  Esperando há {getTimeAgo(lead.criadoEm, now)}
-                                </p>
+                              
+                              {lead.primeiroContatoEm ? (
+                                <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                  <p className="text-[11px] font-bold text-green-700 bg-green-50 border border-green-150 px-2 py-0.5 rounded-md flex items-center gap-1.5 w-max" title="Tempo de Resposta comercial (SLA)">
+                                    <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    SLA: {formatResponseTime(lead.criadoEm, lead.primeiroContatoEm)}
+                                  </p>
+                                  {totalTentativas > 0 && (
+                                    <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-md flex items-center gap-1" title={`${totalTentativas} tentativas de contato`}>
+                                      💬 {totalTentativas}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                lead.status !== "ganho" && lead.status !== "perdido" && (
+                                  <div className="flex flex-col gap-1.5 mt-0.5">
+                                    <div className="flex items-center gap-1.5">
+                                      <p className="text-[11px] font-bold text-red-650 bg-red-50 border border-red-100 px-2 py-0.5 rounded-md flex items-center gap-1.5 w-max animate-pulse" title="Aguardando primeiro contato">
+                                        <svg className="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                                        Espera: {getTimeAgo(lead.criadoEm, now)}
+                                      </p>
+                                      {totalTentativas > 0 && (
+                                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-md flex items-center gap-1" title={`${totalTentativas} tentativas de contato`}>
+                                          💬 {totalTentativas}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (confirm("Marcar primeiro contato comercial para este lead agora?")) {
+                                          await updateLeadStatus(lead.id, lead.status, lead.responsavelId, undefined, undefined, { primeiroContatoEm: new Date().toISOString() });
+                                          fetchLeads(false);
+                                        }
+                                      }}
+                                      className="text-[9px] bg-slate-900 text-white font-bold px-2 py-1 rounded-md hover:bg-slate-800 transition-all cursor-pointer flex items-center justify-center gap-1 mt-0.5 w-max"
+                                    >
+                                      📞 Marcar contato
+                                    </button>
+                                  </div>
+                                )
                               )}
                             </div>
                           </div>
@@ -799,27 +973,27 @@ export default function OportunidadesPage() {
                         </div>
 
                         {/* Bottom Actions card */}
-                        <div className="flex items-center justify-between mt-2 border-t border-slate-100 pt-3 gap-2">
+                        <div className="flex items-center justify-between mt-2 border-t border-slate-100 pt-3 gap-2" onClick={(e) => e.stopPropagation()}>
                           
-                          <div className="flex flex-col gap-1">
+                          <div>
                             {lead.responsavel ? (
-                              <div className="flex items-center gap-1.5 mt-0.5 bg-slate-50 border border-slate-150 px-1.5 py-1 rounded-lg" title={lead.responsavel.nome}>
-                                <div className="w-5 h-5 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-[9px] font-bold text-blue-700">
+                              <div className="flex items-center gap-1 bg-slate-50 border border-slate-150 px-1.5 py-0.5 rounded-lg" title={lead.responsavel.nome}>
+                                <div className="w-4 h-4 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-[9px] font-bold text-blue-700">
                                   {lead.responsavel.nome.charAt(0)}
                                 </div>
-                                <span className="text-[10px] font-medium text-slate-600 truncate max-w-[70px]">{lead.responsavel.nome.split(" ")[0]}</span>
+                                <span className="text-[10px] font-semibold text-slate-655 truncate max-w-[65px]">{lead.responsavel.nome.split(" ")[0]}</span>
                               </div>
                             ) : currentUser?.perfil === "ATENDENTE" ? (
-                              <button onClick={(e) => { e.stopPropagation(); handleStatusChangeRequest(lead.id, lead.status, currentUser.id); }} className="text-[10px] bg-cyan-50 text-cyan-600 border border-cyan-200 hover:bg-cyan-100 px-2 py-1.5 rounded-lg font-bold transition-colors">
+                              <button onClick={() => handleStatusChangeRequest(lead.id, lead.status, currentUser.id)} className="text-[10px] bg-cyan-50 text-cyan-600 border border-cyan-200 hover:bg-cyan-100 px-2 py-1 rounded-lg font-bold transition-colors cursor-pointer">
                                 👋 Assumir
                               </button>
                             ) : (
-                              <span className="text-[10px] bg-slate-50 border border-slate-200 text-slate-400 px-2 py-1 rounded-lg italic">Sem dono</span>
+                              <span className="text-[9px] bg-slate-50 border border-slate-200 text-slate-400 px-1.5 py-0.5 rounded-md italic">Sem dono</span>
                             )}
                           </div>
 
-                          <div className="flex flex-col items-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                            {/* Selector for mobile and quick change */}
+                          <div className="flex items-center gap-1.5">
+                            {/* Selector for quick change */}
                             <select
                               value={col.id}
                               onChange={(e) => handleStatusChangeRequest(lead.id, e.target.value)}
@@ -827,7 +1001,7 @@ export default function OportunidadesPage() {
                                 col.id === "ganho"
                                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                   : col.id === "perdido"
-                                  ? "bg-slate-50 text-slate-600 border-slate-200"
+                                  ? "bg-slate-50 text-slate-650 border-slate-200"
                                   : col.id === "negociando"
                                   ? "bg-purple-50 text-purple-700 border-purple-200"
                                   : col.id === "contatado"
@@ -835,7 +1009,7 @@ export default function OportunidadesPage() {
                                   : "bg-red-50 text-red-700 border-red-200"
                               }`}
                             >
-                              <option value="pendente">⏳</option>
+                              <option value="novo_lead">⏳</option>
                               <option value="contatado">📞</option>
                               <option value="negociando">💬</option>
                               <option value="ganho">🤝</option>
@@ -844,28 +1018,22 @@ export default function OportunidadesPage() {
 
                             {/* WhatsApp Shortcut */}
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                abrirWhatsAppModal(lead);
-                              }}
+                              onClick={() => abrirWhatsAppModal(lead)}
                               className="bg-green-500 hover:bg-green-600 text-white p-1 rounded transition-colors flex items-center justify-center shadow-sm cursor-pointer"
                               title="Conversar no WhatsApp"
                             >
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                               </svg>
                             </button>
 
                             {/* Deletar Shortcut */}
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDeletingLead(lead);
-                              }}
-                              className="bg-red-50 hover:bg-red-100 text-red-600 p-1 rounded border border-red-200 transition-colors flex items-center justify-center shadow-sm cursor-pointer"
+                              onClick={() => setDeletingLead(lead)}
+                              className="bg-red-50 hover:bg-red-100 text-red-650 p-1.5 rounded-lg border border-red-200 transition-colors flex items-center justify-center shadow-sm cursor-pointer"
                               title="Excluir Lead"
                             >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                             </button>
@@ -948,7 +1116,7 @@ export default function OportunidadesPage() {
                                   : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
                               }`}
                             >
-                              <option value="pendente">⏳ Novo Lead</option>
+                              <option value="novo_lead">⏳ Novo Lead</option>
                               <option value="contatado">📞 Em Contato</option>
                               <option value="negociando">💬 Negociando</option>
                               <option value="ganho">🤝 Ganho (Contratado)</option>
@@ -1016,7 +1184,7 @@ export default function OportunidadesPage() {
           onClick={() => setSelectedLead(null)}
         >
           <div 
-            className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all duration-300 scale-100 opacity-100"
+            className="bg-white rounded-3xl w-full max-w-5xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all duration-300 scale-100 opacity-100 mx-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -1049,12 +1217,12 @@ export default function OportunidadesPage() {
             </div>
 
             {/* Body */}
-            <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto bg-slate-50/30">
-              {/* Grid 2 Columns for better layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="p-8 space-y-8 max-h-[80vh] overflow-y-auto bg-slate-50/30">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
                 
-                {/* Left Column */}
-                <div className="space-y-6">
+                {/* Left Column (Main Details & Status) - Span 3/5 */}
+                <div className="lg:col-span-3 space-y-6">
+                  
                   {/* Section 1: Contato */}
                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -1071,29 +1239,17 @@ export default function OportunidadesPage() {
                           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
                         </button>
                       </div>
-                      <div className="pt-3 border-t border-slate-100">
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">E-mail</p>
-                        <p className="text-sm font-semibold text-slate-800 break-all">{selectedLead.email || "Não informado"}</p>
+                      <div className="pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">E-mail</p>
+                          <p className="text-sm font-semibold text-slate-800 break-all">{selectedLead.email || "Não informado"}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Section 3: Indicação */}
-                  <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 p-5 rounded-2xl shadow-sm">
-                    <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-amber-100 text-amber-600 flex items-center justify-center text-sm">🏆</div>
-                      Plano Recomendado
-                    </h4>
-                    <p className="text-2xl font-black text-amber-900">
-                      Plano {PLANO_LABEL[selectedLead.planoRecomendado]?.label ?? selectedLead.planoRecomendado}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className="space-y-6">
                   {/* Section 2: Respostas do Simulador */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-full">
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
                       <div className="w-6 h-6 rounded-md bg-cyan-50 text-cyan-600 flex items-center justify-center text-sm">📋</div>
                       Perfil da Simulação
@@ -1125,109 +1281,228 @@ export default function OportunidadesPage() {
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Section 4: Gestão do Funil */}
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 mb-6">
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-md bg-white border border-slate-200 flex items-center justify-center text-sm shadow-sm">🎯</div>
-                  Atualizar Status
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { id: "pendente", label: "⏳ Novo Lead", color: "bg-red-50 text-red-700 border-red-200" },
-                    { id: "contatado", label: "📞 Em Contato", color: "bg-blue-50 text-blue-700 border-blue-200" },
-                    { id: "negociando", label: "💬 Negociando", color: "bg-purple-50 text-purple-700 border-purple-200" },
-                    { id: "ganho", label: "🤝 Ganho", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-                    { id: "perdido", label: "❌ Perdido", color: "bg-slate-50 text-slate-600 border-slate-200" },
-                  ].map((btn) => {
-                    const currentStatus = getStatusSafe(selectedLead);
-                    const isActive = currentStatus === btn.id;
-                    return (
-                      <button
-                        key={btn.id}
-                        onClick={async () => {
-                          if (btn.id === "perdido") {
-                            setMotivoModal({ id: selectedLead.id, responsavelId: selectedLead.responsavelId });
-                          } else {
-                            await updateLeadStatus(selectedLead.id, btn.id);
-                            setSelectedLead((prev) => prev ? { ...prev, status: btn.id, contatado: btn.id !== "pendente" } : null);
-                          }
-                        }}
-                        className={`py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                          isActive ? `${btn.color} ring-2 ring-offset-2 ring-current/25 shadow-sm` : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                        }`}
-                      >
-                        {btn.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Section 5: Histórico de Notas & Interações */}
-              <div className="space-y-4 pt-2 border-t border-slate-100">
-                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-500" /> Notas & Histórico
-                </h4>
-
-                {/* Form para Adicionar Nota */}
-                <form onSubmit={adicionarNota} className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <textarea
-                      placeholder="Adicione uma anotação de acompanhamento..."
-                      value={novaNota}
-                      onChange={(e) => setNovaNota(e.target.value)}
-                      rows={2}
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 placeholder:text-slate-400 shadow-sm resize-none"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={!novaNota.trim()}
-                    className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-md cursor-pointer h-[38px] mb-1"
-                  >
-                    Salvar
-                  </button>
-                </form>
-
-                {/* Lista de Notas (Timeline) */}
-                <div className="space-y-4 max-h-[220px] overflow-y-auto pr-1 mt-2">
-                  {loadingNotas ? (
-                    <div className="flex items-center justify-center py-4 gap-2 text-slate-400 text-xs">
-                      <div className="w-3.5 h-3.5 border-2 border-slate-300 border-t-[#2B3DA8] rounded-full animate-spin" />
-                      Carregando histórico...
-                    </div>
-                  ) : notas.length === 0 ? (
-                    <p className="text-center text-xs text-slate-400 py-6 italic">
-                      Nenhuma anotação registrada para este lead.
+                  {/* Section 3: Indicação */}
+                  <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 p-5 rounded-2xl shadow-sm">
+                    <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-amber-100 text-amber-600 flex items-center justify-center text-sm">🏆</div>
+                      Plano Recomendado
+                    </h4>
+                    <p className="text-2xl font-black text-amber-900">
+                      Plano {PLANO_LABEL[selectedLead.planoRecomendado]?.label ?? selectedLead.planoRecomendado}
                     </p>
-                  ) : (
-                    <div className="relative pl-4 border-l border-slate-150 space-y-4 ml-1.5">
-                      {notas.map((nota) => (
-                        <div key={nota.id} className="relative group">
-                          {/* Marcador circular na linha */}
-                          <span className="absolute -left-[20.5px] top-1 w-2.5 h-2.5 rounded-full border border-white bg-slate-400 group-hover:bg-[#2B3DA8] transition-colors" />
-                          
-                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col gap-1 shadow-sm">
-                            <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-bold text-slate-600">{nota.autor}</span>
-                              <span className="text-[9px] text-slate-400">
-                                {new Date(nota.criadoEm).toLocaleDateString("pt-BR", {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  hour: "2-digit",
-                                  minute: "2-digit"
-                                })}
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-700 leading-normal whitespace-pre-wrap">{nota.conteudo}</p>
-                          </div>
+                  </div>
+
+                  {/* Section 4: Gestão do Funil */}
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-white border border-slate-200 flex items-center justify-center text-sm shadow-sm">🎯</div>
+                      Atualizar Status
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { id: "novo_lead", label: "⏳ Novo Lead", color: "bg-red-50 text-red-700 border-red-200" },
+                        { id: "contatado", label: "📞 Em Contato", color: "bg-blue-50 text-blue-700 border-blue-200" },
+                        { id: "negociando", label: "💬 Negociando", color: "bg-purple-50 text-purple-700 border-purple-200" },
+                        { id: "ganho", label: "🤝 Ganho", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+                        { id: "perdido", label: "❌ Perdido", color: "bg-slate-50 text-slate-650 border-slate-200" },
+                      ].map((btn) => {
+                        const currentStatus = getStatusSafe(selectedLead);
+                        const isActive = currentStatus === btn.id;
+                        return (
+                          <button
+                            key={btn.id}
+                            type="button"
+                            onClick={async () => {
+                              if (btn.id === "perdido") {
+                                setMotivoModal({ id: selectedLead.id, responsavelId: selectedLead.responsavelId });
+                              } else {
+                                await updateLeadStatus(selectedLead.id, btn.id);
+                                setSelectedLead((prev) => prev ? { ...prev, status: btn.id, contatado: btn.id !== "novo_lead" } : null);
+                              }
+                            }}
+                            className={`py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                              isActive ? `${btn.color} ring-2 ring-offset-2 ring-current/25 shadow-sm` : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+                            }`}
+                          >
+                            {btn.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Section 4.5: Lead Descartado / Perdido */}
+                  {selectedLead.status === "perdido" && (
+                    <div className="bg-red-50/50 border border-red-200 p-5 rounded-2xl shadow-sm">
+                      <h4 className="text-xs font-bold text-red-800 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-md bg-red-100 text-red-650 flex items-center justify-center text-sm">❌</div>
+                        Informações do Descarte (Perda)
+                      </h4>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Motivo da Perda</p>
+                          <p className="text-sm font-bold text-slate-800 mt-0.5">
+                            {MOTIVOS_LABELS[selectedLead.motivoDescarte || selectedLead.motivoPerda || ""] ?? selectedLead.motivoDescarte ?? selectedLead.motivoPerda ?? "Não informado"}
+                          </p>
                         </div>
-                      ))}
+                        {selectedLead.descarteObservacao && (
+                          <div>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Observações / Detalhes</p>
+                            <p className="text-xs text-slate-600 font-medium bg-white p-3 border border-red-150 rounded-xl leading-relaxed whitespace-pre-wrap mt-1">
+                              {selectedLead.descarteObservacao}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
+                </div>
+
+                {/* Right Column (Notes & History logs & Attempts) - Span 2/5 */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Contact Attempts Summary */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">📊</div>
+                      Contador de Contatos
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-blue-50/50 border border-blue-100 p-3 rounded-xl flex flex-col justify-between">
+                        <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Ligações</p>
+                        <p className="text-2xl font-black text-blue-700 mt-1">
+                          {selectedLead.historico?.filter(h => h.acao === "contato_ligacao").length || 0}
+                        </p>
+                      </div>
+                      <div className="bg-green-50/50 border border-green-100 p-3 rounded-xl flex flex-col justify-between">
+                        <p className="text-[10px] text-green-700 font-bold uppercase tracking-wider">WhatsApp</p>
+                        <p className="text-2xl font-black text-green-700 mt-1">
+                          {selectedLead.historico?.filter(h => h.acao === "contato_whatsapp").length || 0}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Botões de Registrar Contato */}
+                    <div className="flex gap-2 mt-4 pt-3 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (confirm("Registrar tentativa de contato por Ligação para este lead?")) {
+                            await updateLeadStatus(selectedLead.id, selectedLead.status, selectedLead.responsavelId, undefined, undefined, { registrarContato: "ligacao" });
+                            setSelectedLead(prev => prev ? {
+                              ...prev,
+                              historico: [...(prev.historico || []), { id: Math.random().toString(), acao: "contato_ligacao" }]
+                            } : null);
+                            carregarNotas(selectedLead.id);
+                            fetchLeads(false);
+                          }
+                        }}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-2 rounded-xl text-xs font-bold transition-all border border-blue-200 cursor-pointer shadow-sm"
+                      >
+                        📞 Registrar Ligação
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (confirm("Registrar tentativa de contato por WhatsApp para este lead?")) {
+                            await updateLeadStatus(selectedLead.id, selectedLead.status, selectedLead.responsavelId, undefined, undefined, { registrarContato: "whatsapp" });
+                            setSelectedLead(prev => prev ? {
+                              ...prev,
+                              historico: [...(prev.historico || []), { id: Math.random().toString(), acao: "contato_whatsapp" }]
+                            } : null);
+                            carregarNotas(selectedLead.id);
+                            fetchLeads(false);
+                          }
+                        }}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-green-50 text-green-700 hover:bg-green-100 px-3 py-2 rounded-xl text-xs font-bold transition-all border border-green-200 cursor-pointer shadow-sm"
+                      >
+                        💬 Registrar WhatsApp
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Section 5: Histórico de Notas & Interações */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100">
+                      <div className="w-6 h-6 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-center text-sm">📝</div>
+                      Anotações & Histórico
+                    </h4>
+
+                    {/* Form para Adicionar Nota */}
+                    <form onSubmit={adicionarNota} className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <textarea
+                          placeholder="Adicione uma anotação de acompanhamento..."
+                          value={novaNota}
+                          onChange={(e) => setNovaNota(e.target.value)}
+                          rows={2}
+                          className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 placeholder:text-slate-400 shadow-sm resize-none"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={!novaNota.trim()}
+                        className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-md cursor-pointer h-[38px] mb-1"
+                      >
+                        Salvar
+                      </button>
+                    </form>
+
+                    {/* Lista de Notas (Timeline) */}
+                    <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1 mt-2 scrollbar-thin">
+                      {loadingNotas ? (
+                        <div className="flex items-center justify-center py-4 gap-2 text-slate-400 text-xs">
+                          <div className="w-3.5 h-3.5 border-2 border-slate-300 border-t-[#2B3DA8] rounded-full animate-spin" />
+                          Carregando histórico...
+                        </div>
+                      ) : timeline.length === 0 ? (
+                        <p className="text-center text-xs text-slate-400 py-6 italic">
+                          Nenhuma anotação ou ação de histórico registrada para este lead.
+                        </p>
+                      ) : (
+                        <div className="relative pl-4 border-l border-slate-150 space-y-4 ml-1.5">
+                          {timeline.map((item) => {
+                            const isNota = item.tipo === "nota";
+                            return (
+                              <div key={item.id} className="relative group">
+                                {/* Marcador circular na linha */}
+                                <span className={`absolute -left-[20.5px] top-1.5 w-2.5 h-2.5 rounded-full border border-white transition-colors ${
+                                  isNota 
+                                    ? "bg-slate-400 group-hover:bg-blue-600" 
+                                    : "bg-emerald-500 group-hover:bg-emerald-600"
+                                }`} />
+                                
+                                <div className={`p-3 rounded-xl border flex flex-col gap-1 shadow-sm ${
+                                  isNota 
+                                    ? "bg-slate-50 border-slate-100" 
+                                    : "bg-emerald-50/20 border-emerald-100/50 border-dashed"
+                                }`}>
+                                  <div className="flex justify-between items-center">
+                                    <span className={`text-[10px] font-bold ${isNota ? "text-slate-600" : "text-emerald-700"}`}>
+                                      {isNota ? item.autor : `🛠️ Histórico`}
+                                    </span>
+                                    <span className="text-[9px] text-slate-400 font-semibold">
+                                      {new Date(item.criadoEm).toLocaleDateString("pt-BR", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        hour: "2-digit",
+                                        minute: "2-digit"
+                                      })}
+                                    </span>
+                                  </div>
+                                  <p className={`text-xs leading-normal whitespace-pre-wrap ${
+                                    isNota ? "text-slate-700 font-medium" : "text-slate-655 italic font-semibold"
+                                  }`}>{item.conteudo}</p>
+                                  {!isNota && (
+                                    <span className="text-[9px] text-slate-400 mt-0.5">Por: {item.autor}</span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1341,7 +1616,7 @@ export default function OportunidadesPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Plano Recomendado *</label>
                       <select
@@ -1370,10 +1645,24 @@ export default function OportunidadesPage() {
                         onChange={(e) => setNewLead(prev => ({ ...prev, status: e.target.value }))}
                         className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 shadow-sm cursor-pointer"
                       >
-                        <option value="pendente">⏳ Pendente</option>
+                        <option value="novo_lead">⏳ Novo Lead</option>
                         <option value="contatado">📞 Em Contato</option>
+                        <option value="negociando">💬 Negociando</option>
                         <option value="ganho">🤝 Ganho (Contratado)</option>
                         <option value="perdido">❌ Perdido</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Origem do Lead *</label>
+                      <select
+                        value={newLead.origem}
+                        onChange={(e) => setNewLead(prev => ({ ...prev, origem: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 shadow-sm cursor-pointer"
+                      >
+                        <option value="whatsapp_direto">📲 WhatsApp Direto</option>
+                        <option value="manual">✍️ Cadastro Manual</option>
+                        <option value="simulador">🎯 Simulador</option>
                       </select>
                     </div>
                   </div>
@@ -1640,7 +1929,7 @@ export default function OportunidadesPage() {
       {motivoModal && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fadeIn"
-          onClick={() => { setMotivoModal(null); setMotivoTexto(""); }}
+          onClick={() => { setMotivoModal(null); setMotivoTexto(""); setMotivoSelecionado(""); }}
         >
           <div 
             className="bg-white rounded-3xl w-full max-w-sm shadow-2xl border border-slate-100 overflow-hidden transform scale-100 transition-all"
@@ -1652,38 +1941,79 @@ export default function OportunidadesPage() {
               </div>
               <h3 className="text-base font-extrabold text-slate-900 mb-2 text-center tracking-tight">Motivo da Perda</h3>
               <p className="text-xs text-slate-500 mb-4 text-center">
-                Por favor, informe o motivo pelo qual este lead foi perdido.
+                Por favor, informe o motivo do descarte do lead.
               </p>
-              <textarea
-                value={motivoTexto}
-                onChange={(e) => setMotivoTexto(e.target.value)}
-                placeholder="Ex: Achou caro, fechou com concorrente..."
-                rows={3}
-                className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 placeholder:text-slate-400 shadow-sm resize-none"
-              />
-              <div className="flex justify-between items-center mb-4 mt-1 px-1">
-                <span className={`text-[10px] font-bold ${motivoTexto.trim().length < 10 ? "text-red-500" : "text-emerald-600"}`}>
-                  {motivoTexto.trim().length < 10 ? `Faltam ${10 - motivoTexto.trim().length} caracteres (mín. 10)` : "Tamanho ideal atingido"}
-                </span>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Selecione o Motivo *</label>
+                  <select
+                    value={motivoSelecionado}
+                    onChange={(e) => setMotivoSelecionado(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 shadow-sm cursor-pointer"
+                  >
+                    <option value="">-- Selecione --</option>
+                    <option value="numero_errado">Número errado / não existe</option>
+                    <option value="nao_atende">Não atende as ligações</option>
+                    <option value="nao_respondeu">Não respondeu as mensagens</option>
+                    <option value="sem_interesse">Sem interesse real</option>
+                    <option value="achou_caro">Achou caro</option>
+                    <option value="vai_pensar">Vai pensar / retornar depois</option>
+                    <option value="ja_tem_plano">Já tem plano funerário</option>
+                    <option value="fora_area">Fora da área de atendimento</option>
+                    <option value="dado_invalido">Dado inválido (nome/telefone falso)</option>
+                    <option value="outro">Outro (especificar)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
+                    Observações {motivoSelecionado === "outro" ? "*" : "(Opcional)"}
+                  </label>
+                  <textarea
+                    value={motivoTexto}
+                    onChange={(e) => setMotivoTexto(e.target.value)}
+                    placeholder="Adicione detalhes ou observações..."
+                    rows={3}
+                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 placeholder:text-slate-400 shadow-sm resize-none"
+                  />
+                  {motivoSelecionado === "outro" && (
+                    <div className="flex justify-between items-center mt-1 px-1">
+                      <span className={`text-[10px] font-bold ${motivoTexto.trim().length < 5 ? "text-red-500" : "text-emerald-600"}`}>
+                        {motivoTexto.trim().length < 5 ? `Escreva pelo menos mais ${5 - motivoTexto.trim().length} caracteres` : "Observação preenchida"}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="flex gap-2 w-full">
+
+              <div className="flex gap-2 w-full mt-6">
                 <button
-                  onClick={() => { setMotivoModal(null); setMotivoTexto(""); }}
+                  onClick={() => { setMotivoModal(null); setMotivoTexto(""); setMotivoSelecionado(""); }}
                   className="px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 flex-1 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={async () => {
-                    if (motivoTexto.trim().length < 10) return;
-                    await updateLeadStatus(motivoModal.id, "perdido", motivoModal.responsavelId, motivoTexto.trim());
+                    if (!motivoSelecionado) return;
+                    if (motivoSelecionado === "outro" && motivoTexto.trim().length < 5) return;
+                    
+                    await updateLeadStatus(motivoModal.id, "perdido", motivoModal.responsavelId, motivoSelecionado, motivoTexto.trim());
                     if (selectedLead?.id === motivoModal.id) {
-                      setSelectedLead((prev) => prev ? { ...prev, status: "perdido", contatado: true } : null);
+                      setSelectedLead((prev) => prev ? { 
+                        ...prev, 
+                        status: "perdido", 
+                        contatado: true,
+                        motivoDescarte: motivoSelecionado,
+                        descarteObservacao: motivoTexto.trim()
+                      } : null);
                     }
                     setMotivoModal(null);
                     setMotivoTexto("");
+                    setMotivoSelecionado("");
                   }}
-                  disabled={motivoTexto.trim().length < 10}
+                  disabled={!motivoSelecionado || (motivoSelecionado === "outro" && motivoTexto.trim().length < 5)}
                   className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors"
                 >
                   Confirmar
@@ -1793,7 +2123,7 @@ export default function OportunidadesPage() {
                       alert("Preencha todos os campos.");
                       return;
                     }
-                    await updateLeadStatus(ganhoModal.id, "ganho", ganhoModal.responsavelId, undefined, ganhoDados);
+                    await updateLeadStatus(ganhoModal.id, "ganho", ganhoModal.responsavelId, undefined, undefined, ganhoDados);
                     if (selectedLead?.id === ganhoModal.id) {
                       setSelectedLead((prev) => prev ? { ...prev, status: "ganho", contatado: true } : null);
                     }
