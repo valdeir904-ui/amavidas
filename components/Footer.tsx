@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useConfig } from "@/contexts/ConfigContext";
+import { abrirWhatsApp } from "@/lib/whatsapp";
 
 function exibirWpp(num: string) {
   const d = num.replace(/\D/g, "");
@@ -187,10 +188,9 @@ export default function Footer() {
             
             {/* Informar Óbito Button */}
             <a
-              href={`https://wa.me/${configs.whatsapp || "5561985825621"}?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato.`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => {
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
                 try {
                   fetch("/api/eventos", {
                     method: "POST",
@@ -198,6 +198,7 @@ export default function Footer() {
                     body: JSON.stringify({ tipo: "clique_obito" }),
                   }).catch(() => {});
                 } catch {}
+                abrirWhatsApp(configs.whatsapp || "5561985825621", "Olá, preciso informar um óbito e solicitar atendimento de plantão imediato.", "obito-footer");
               }}
               className="flex items-center gap-2.5 mb-6 w-fit h-[44px] px-5 rounded-xl font-bold text-[14px] border whitespace-nowrap transition-all"
               style={{
@@ -226,7 +227,14 @@ export default function Footer() {
                   <path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.4-2.4-1.5-.9-.8-1.5-1.8-1.6-2.1-.2-.3 0-.4.1-.6.1-.1.3-.4.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5 0-.1-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.3 3.1c.2.2 2.2 3.3 5.3 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1-.2-.3-.2-.5-.3z" />
                 </svg>
                 <span>
-                  <a href={`https://wa.me/${configs.whatsapp || "5561985825621"}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      abrirWhatsApp(configs.whatsapp || "5561985825621", "Olá! Tenho interesse em um plano funerário da AmaVidas. Pode me ajudar?", "atendimento-footer");
+                    }}
+                    className="hover:underline text-left block"
+                  >
                     <strong className="block text-white">{exibirWpp(configs.whatsapp || "5561985825621")}</strong>
                   </a>
                   WhatsApp 24 horas

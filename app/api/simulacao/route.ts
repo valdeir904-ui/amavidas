@@ -52,6 +52,17 @@ export async function POST(req: NextRequest) {
       intencao,
       consentimento,
       sessionId,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmTerm,
+      utmContent,
+      gclid,
+      fbclid,
+      referrer,
+      landingPage,
+      dispositivo,
+      origem,
     } = body;
 
     if (!nome || !telefone || !planoRecomendado) {
@@ -88,7 +99,17 @@ export async function POST(req: NextRequest) {
         consentimento: true,
         consentimentoEm: new Date(),
         intencao: intencao ?? "pesquisando",
-        origem: "simulador",
+        origem: origem ?? "simulador",
+        utmSource: utmSource ?? null,
+        utmMedium: utmMedium ?? null,
+        utmCampaign: utmCampaign ?? null,
+        utmTerm: utmTerm ?? null,
+        utmContent: utmContent ?? null,
+        gclid: gclid ?? null,
+        fbclid: fbclid ?? null,
+        referrer: referrer ?? null,
+        landingPage: landingPage ?? null,
+        dispositivo: dispositivo ?? null,
       },
     });
 

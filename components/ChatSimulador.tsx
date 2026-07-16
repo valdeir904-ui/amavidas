@@ -267,6 +267,8 @@ export default function ChatSimulador() {
 
   const trackAbandono = async (etapaIndex: number, respostasParciais: Partial<Respostas>) => {
     if (!sessionId) return;
+    const origemSalva = typeof window !== "undefined" ? sessionStorage.getItem("amavidas_origem") : null;
+    const origem = origemSalva ? JSON.parse(origemSalva) : {};
     try {
       await fetch("/api/simulacao-incompleta", {
         method: "POST",
@@ -281,6 +283,7 @@ export default function ChatSimulador() {
           prioridade: respostasParciais.prioridade,
           orcamento: respostasParciais.orcamento,
           intencao: respostasParciais.intencao,
+          ...origem,
         }),
       });
     } catch (err) {
@@ -430,6 +433,9 @@ export default function ChatSimulador() {
     const slugRecomendado = recomendarSlug(respostas);
 
     try {
+      const origemSalva = typeof window !== "undefined" ? sessionStorage.getItem("amavidas_origem") : null;
+      const origem = origemSalva ? JSON.parse(origemSalva) : {};
+
       const payload = {
         ...respostas,
         nome: nomeTrim,
@@ -439,6 +445,8 @@ export default function ChatSimulador() {
         planoRecomendado: slugRecomendado,
         cidade: respostas.cidade || "Não informada",
         sessionId,
+        ...origem,
+        origem: "simulador",
       };
 
       const resp = await fetch("/api/simulacao", {

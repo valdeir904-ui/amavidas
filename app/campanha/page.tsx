@@ -61,6 +61,9 @@ function CampanhaContent() {
     }
     setLoadingWpp(true);
     try {
+      const origemSalva = typeof window !== "undefined" ? sessionStorage.getItem("amavidas_origem") : null;
+      const origem = origemSalva ? JSON.parse(origemSalva) : {};
+
       await fetch("/api/simulacao", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,10 +78,12 @@ function CampanhaContent() {
           prioridade: "",
           orcamento: "",
           cidade: "",
+          ...origem,
+          origem: "simulador",
         }),
       });
     } catch (err) {}
-    
+
     if (typeof window !== "undefined" && (window as any).fbq) {
       (window as any).fbq("track", "Lead");
     }

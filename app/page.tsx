@@ -2,7 +2,6 @@ import { ModalProvider } from "@/contexts/ModalContext";
 import ModalFormulario from "@/components/ModalFormulario";
 import ModalDepoimentos from "@/components/ModalDepoimentos";
 import ModalSimulador from "@/components/ModalSimulador";
-import TrackVisita from "@/components/TrackVisita";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ImpactoFinanceiro from "@/components/ImpactoFinanceiro";
@@ -22,7 +21,6 @@ import SocialProofToast from "@/components/SocialProofToast";
 export default function HomePage() {
   return (
     <ModalProvider>
-      <TrackVisita />
       <Navbar />
       <main>
         <Hero />

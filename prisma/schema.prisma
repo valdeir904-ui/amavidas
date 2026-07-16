@@ -8,10 +8,24 @@ datasource db {
 }
 
 model Evento {
-  id       String   @id @default(cuid())
-  tipo     String
-  criadoEm DateTime @default(now())
+  id          String   @id @default(cuid())
+  tipo        String
 
+  // ── ORIGEM DO LEAD ────────────────────────────────
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+  gclid       String?
+  fbclid      String?
+  referrer    String?
+  landingPage String?
+  dispositivo String?
+
+  criadoEm    DateTime @default(now())
+
+  @@index([utmSource])
   @@map("eventos")
 }
 
@@ -88,6 +102,18 @@ model Simulacao {
   
   origem            String          @default("simulador")
 
+  // ── ORIGEM DO LEAD ────────────────────────────────
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  utmTerm        String?
+  utmContent     String?
+  gclid          String?
+  fbclid         String?
+  referrer       String?
+  landingPage    String?
+  dispositivo    String?
+
   nomeCompletoContrato String?
   numeroDependentes    String?
   planoContratado      String?
@@ -101,6 +127,8 @@ model Simulacao {
   historico         LeadHistorico[]
 
   @@index([responsavelId], map: "simulacoes_responsavelId_fkey")
+  @@index([utmSource])
+  @@index([origem])
   @@map("simulacoes")
 }
 
@@ -176,9 +204,23 @@ model SimulacaoIncompleta {
   prioridade        String?
   orcamento         String?
   intencao          String?
+
+  // ── ORIGEM DO LEAD ────────────────────────────────
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  utmTerm        String?
+  utmContent     String?
+  gclid          String?
+  fbclid         String?
+  referrer       String?
+  landingPage    String?
+  dispositivo    String?
+
   criadoEm          DateTime @default(now())
   atualizadoEm      DateTime @updatedAt
 
+  @@index([utmSource])
   @@map("simulacoes_incompletas")
 }
 

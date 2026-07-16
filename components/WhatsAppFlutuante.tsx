@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 
 import { useConfig } from "@/contexts/ConfigContext";
+import { abrirWhatsApp } from "@/lib/whatsapp";
 
 // Variável em escopo do módulo para persistência em memória durante a navegação.
 // Diferente do sessionStorage, ela se reseta completamente ao recarregar a página,
@@ -44,16 +45,8 @@ export default function WhatsAppFlutuante() {
   };
 
   const handleStartChat = () => {
-    try {
-      fetch("/api/eventos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo: "whatsapp_clicado" }),
-      }).catch(() => {/* silencioso */});
-    } catch {/* silencioso */}
-
-    const msg = encodeURIComponent("Olá! Vim pelo site da AmaVidas e gostaria de mais informações sobre os planos.");
-    window.open(`https://wa.me/${num}?text=${msg}`, "_blank", "noopener,noreferrer");
+    const msg = "Olá! Vim pelo site da AmaVidas e gostaria de mais informações sobre os planos.";
+    abrirWhatsApp(num, msg, "flutuante");
     setIsOpen(false);
   };
 

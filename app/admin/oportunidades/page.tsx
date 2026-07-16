@@ -59,6 +59,16 @@ interface Lead {
   primeiroContatoEm?: string | null;
   origem?: string;
   historico?: { id: string; acao: string }[];
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmTerm?: string | null;
+  utmContent?: string | null;
+  gclid?: string | null;
+  fbclid?: string | null;
+  referrer?: string | null;
+  landingPage?: string | null;
+  dispositivo?: string | null;
 }
 
 const MOTIVOS_LABELS: Record<string, string> = {
@@ -89,6 +99,8 @@ export default function OportunidadesPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [filtro, setFiltro] = useState<"todos" | "pendentes" | "contatados" | "negociando" | "ganhos" | "perdidos">("todos");
+  const [filtroCanal, setFiltroCanal] = useState<string>("todos");
+  const [filtroCampanha, setFiltroCampanha] = useState<string>("todos");
   const [busca, setBusca] = useState("");
   const [viewMode, setViewMode] = useState<"kanban" | "tabela">("kanban");
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
@@ -641,6 +653,10 @@ export default function OportunidadesPage() {
     }
   };
 
+  const campanhasDisponiveis = Array.from(
+    new Set(leads.map((l) => l.utmCampaign).filter(Boolean))
+  ) as string[];
+
   const leadsFiltrados = leads
     .filter((l) => {
       const currentStatus = getStatusSafe(l);
@@ -653,10 +669,23 @@ export default function OportunidadesPage() {
       }
       return true;
     })
+    .filter((l) => {
+      if (filtroCanal === "todos") return true;
+      if (filtroCanal === "whatsapp") return l.origem === "whatsapp_direto";
+      if (filtroCanal === "google") return l.utmSource?.toLowerCase() === "google";
+      if (filtroCanal === "meta") return l.utmSource?.toLowerCase() === "meta";
+      if (filtroCanal === "organico") return !l.utmSource && l.origem !== "whatsapp_direto" && l.origem !== "manual";
+      if (filtroCanal === "manual") return l.origem === "manual";
+      return true;
+    })
+    .filter((l) => {
+      if (filtroCampanha === "todos") return true;
+      return l.utmCampaign === filtroCampanha;
+    })
     .filter((l) =>
       busca
         ? l.nome.toLowerCase().includes(busca.toLowerCase()) ||
-          l.email.toLowerCase().includes(busca.toLowerCase()) ||
+          (l.email && l.email.toLowerCase().includes(busca.toLowerCase())) ||
           l.telefone.includes(busca)
         : true
     );
@@ -722,10 +751,10 @@ export default function OportunidadesPage() {
       {/* Search and context tips */}
       <div className="mb-6 flex flex-col xl:flex-row gap-4 justify-between items-stretch xl:items-center">
         
-        {/* Left Side: Search Bar and View Toggle */}
-        <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-2xl items-stretch sm:items-center">
+        {/* Left Side: Search Bar, Filters and View Toggle */}
+        <div className="flex flex-col xl:flex-row gap-3 flex-1 items-stretch xl:items-center">
           {/* Search Bar */}
-          <div className="flex gap-2 flex-1">
+          <div className="flex gap-2 flex-1 max-w-md">
             <div className="relative flex-1">
               <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -747,6 +776,33 @@ export default function OportunidadesPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
+          </div>
+
+          {/* Filtros de Canal e Campanha */}
+          <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
+            <select
+              value={filtroCanal}
+              onChange={(e) => setFiltroCanal(e.target.value)}
+              className="px-3 py-2 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-bold focus:outline-none shadow-sm cursor-pointer h-[38px] min-w-[130px]"
+            >
+              <option value="todos">Todos os Canais</option>
+              <option value="google">Google Ads</option>
+              <option value="meta">Meta Ads</option>
+              <option value="whatsapp">WhatsApp Direto</option>
+              <option value="organico">Orgânico/Direto</option>
+              <option value="manual">Cadastro Manual</option>
+            </select>
+
+            <select
+              value={filtroCampanha}
+              onChange={(e) => setFiltroCampanha(e.target.value)}
+              className="px-3 py-2 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-bold focus:outline-none shadow-sm cursor-pointer h-[38px] max-w-[180px]"
+            >
+              <option value="todos">Campanhas (Todas)</option>
+              {campanhasDisponiveis.map(camp => (
+                <option key={camp} value={camp}>{camp}</option>
+              ))}
+            </select>
           </div>
 
           {/* View Toggle (Kanban vs Lista) */}
@@ -884,7 +940,7 @@ export default function OportunidadesPage() {
                         {/* Header card info */}
                         <div className="flex justify-between items-start gap-3">
                           <div className="flex-1 min-w-0">
-                            {/* Badges de Intenção */}
+                            {/* Badges de Intenção & Origem */}
                             <div className="flex flex-wrap gap-1 mb-2">
                               {lead.intencao === "contratar_agora" && (
                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-red-100 text-red-700 border border-red-200">🔴 Quer contratar</span>
@@ -894,6 +950,18 @@ export default function OportunidadesPage() {
                               )}
                               {lead.intencao === "pesquisando" && (
                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200">⚪ Pesquisando</span>
+                              )}
+
+                              {lead.origem === "whatsapp_direto" ? (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-250">🟢 WhatsApp Direto</span>
+                              ) : lead.utmSource?.toLowerCase() === "google" ? (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">🔵 Google Ads</span>
+                              ) : lead.utmSource?.toLowerCase() === "meta" ? (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">🟣 Meta Ads</span>
+                              ) : lead.origem === "manual" ? (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200">👤 Manual</span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-50 text-slate-500 border border-slate-200">⚪ Orgânico/Direto</span>
                               )}
                             </div>
 
@@ -1084,8 +1152,23 @@ export default function OportunidadesPage() {
                         className="hover:bg-slate-50/50 transition-colors cursor-pointer"
                       >
                         <td className="px-5 py-4 w-[20%] max-w-[200px]">
-                          <p className="font-bold text-slate-800 truncate">{lead.nome}</p>
-                          <p className="text-slate-400 text-xs md:hidden mt-0.5 truncate">{lead.telefone}</p>
+                          <div className="flex flex-col gap-1">
+                            <p className="font-bold text-slate-800 truncate">{lead.nome}</p>
+                            <div className="flex flex-wrap gap-1">
+                              {lead.origem === "whatsapp_direto" ? (
+                                <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-250 w-max leading-none">WhatsApp Direto</span>
+                              ) : lead.utmSource?.toLowerCase() === "google" ? (
+                                <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200 w-max leading-none">Google Ads</span>
+                              ) : lead.utmSource?.toLowerCase() === "meta" ? (
+                                <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200 w-max leading-none">Meta Ads</span>
+                              ) : lead.origem === "manual" ? (
+                                <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200 w-max leading-none">Manual</span>
+                              ) : (
+                                <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-slate-50 text-slate-500 border border-slate-200 w-max leading-none">Orgânico/Direto</span>
+                              )}
+                            </div>
+                            <p className="text-slate-400 text-xs md:hidden mt-0.5 truncate">{lead.telefone}</p>
+                          </div>
                         </td>
                         <td className="px-5 py-4 hidden md:table-cell w-[20%] max-w-[200px]">
                           <p className="text-slate-700 font-medium truncate">{lead.telefone}</p>
@@ -1245,6 +1328,100 @@ export default function OportunidadesPage() {
                           <p className="text-sm font-semibold text-slate-800 break-all">{selectedLead.email || "Não informado"}</p>
                         </div>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Section 1.5: Origem do Lead */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">🌐</div>
+                      Origem do Lead
+                    </h4>
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-3 text-xs">
+                      <div>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Canal/Origem</p>
+                        <p className="font-bold text-slate-800 mt-0.5">
+                          {selectedLead.origem === "whatsapp_direto" ? (
+                            <span className="text-emerald-755">🟢 WhatsApp Direto</span>
+                          ) : selectedLead.utmSource?.toLowerCase() === "google" ? (
+                            <span className="text-blue-755">🔵 Google Ads (CPC)</span>
+                          ) : selectedLead.utmSource?.toLowerCase() === "meta" ? (
+                            <span className="text-purple-755">🟣 Meta Ads (CPC)</span>
+                          ) : selectedLead.origem === "manual" ? (
+                            <span className="text-slate-755">👤 Cadastro Manual</span>
+                          ) : (
+                            <span className="text-slate-500">⚪ Orgânico / Direto</span>
+                          )}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Campanha</p>
+                        <p className="font-semibold text-slate-800 mt-0.5 truncate" title={selectedLead.utmCampaign || "Sem campanha"}>
+                          {selectedLead.utmCampaign || <span className="text-slate-400 italic">Sem campanha</span>}
+                        </p>
+                      </div>
+
+                      {selectedLead.utmSource?.toLowerCase() === "google" && selectedLead.utmTerm && (
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Palavra-chave (Google)</p>
+                          <p className="font-semibold text-slate-800 mt-0.5 truncate" title={selectedLead.utmTerm}>{selectedLead.utmTerm}</p>
+                        </div>
+                      )}
+
+                      {selectedLead.utmSource?.toLowerCase() === "meta" && selectedLead.utmContent && (
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Criativo (Meta)</p>
+                          <p className="font-semibold text-slate-800 mt-0.5 truncate" title={selectedLead.utmContent}>{selectedLead.utmContent}</p>
+                        </div>
+                      )}
+
+                      {selectedLead.utmSource?.toLowerCase() === "meta" && selectedLead.utmTerm && (
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Conjunto (Meta)</p>
+                          <p className="font-semibold text-slate-800 mt-0.5 truncate" title={selectedLead.utmTerm}>{selectedLead.utmTerm}</p>
+                        </div>
+                      )}
+
+                      {selectedLead.dispositivo && (
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Dispositivo</p>
+                          <p className="font-semibold text-slate-800 mt-0.5 uppercase">
+                            {selectedLead.dispositivo === "mobile" ? "📱 Mobile" : selectedLead.dispositivo === "tablet" ? "📟 Tablet" : "💻 Desktop"}
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedLead.landingPage && (
+                        <div className="col-span-2 pt-2 border-t border-slate-100">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Página de Entrada</p>
+                          <p className="font-mono text-slate-700 truncate mt-0.5" title={selectedLead.landingPage}>{selectedLead.landingPage}</p>
+                        </div>
+                      )}
+
+                      {selectedLead.referrer && (
+                        <div className="col-span-2 pt-2 border-t border-slate-100">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Origem de Referência (Referrer)</p>
+                          <p className="font-semibold text-slate-655 truncate mt-0.5" title={selectedLead.referrer}>{selectedLead.referrer}</p>
+                        </div>
+                      )}
+
+                      {(selectedLead.gclid || selectedLead.fbclid) && (
+                        <div className="col-span-2 pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
+                          {selectedLead.gclid && (
+                            <div>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Google Click ID (GCLID)</p>
+                              <p className="font-mono text-[10px] text-slate-600 truncate mt-0.5" title={selectedLead.gclid}>{selectedLead.gclid}</p>
+                            </div>
+                          )}
+                          {selectedLead.fbclid && (
+                            <div>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Facebook Click ID (FBCLID)</p>
+                              <p className="font-mono text-[10px] text-slate-600 truncate mt-0.5" title={selectedLead.fbclid}>{selectedLead.fbclid}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 

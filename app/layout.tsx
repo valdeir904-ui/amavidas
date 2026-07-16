@@ -42,6 +42,7 @@ export const metadata: Metadata = {
 };
 
 import { ConfigProvider } from "@/contexts/ConfigContext";
+import TrackVisita from "@/components/TrackVisita";
 
 export default function RootLayout({
   children,
@@ -90,6 +91,7 @@ export default function RootLayout({
           />
         </noscript>
         <ConfigProvider>
+          <TrackVisita />
           {children}
         </ConfigProvider>
       </body>

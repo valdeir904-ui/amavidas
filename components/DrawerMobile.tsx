@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useModal } from "@/contexts/ModalContext";
+import { abrirWhatsApp } from "@/lib/whatsapp";
 
 const NAV_LINKS = [
   { label: "Planos", href: "#planos" },
@@ -86,9 +87,12 @@ export default function DrawerMobile({ open, onClose }: Props) {
         <div className="mt-auto flex flex-col gap-3">
           {/* Informar Óbito (Emergência) */}
           <a
-            href={`https://wa.me/${configs.whatsapp || "5561985825621"}?text=Ol%C3%A1%2C%20preciso%20informar%20um%20%C3%B3bito%20e%20solicitar%20atendimento%20de%20plant%C3%A3o%20imediato.`}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onClose();
+              abrirWhatsApp(configs.whatsapp || "5561985825621", "Olá, preciso informar um óbito e solicitar atendimento de plantão imediato.", "obito-drawer");
+            }}
             className="h-14 flex items-center justify-center gap-2.5 rounded-xl font-bold text-[17px] border transition-all duration-200 active:scale-[0.98]"
             style={{
               color: "#991B1B",
@@ -126,10 +130,12 @@ export default function DrawerMobile({ open, onClose }: Props) {
             Simular plano
           </button>
           <a
-            href={`https://wa.me/${configs.whatsapp || "5561985825621"}?text=Ol%C3%A1%2C%20gostaria%20de%20saber%20mais%20sobre%20os%20planos%20da%20AmaVidas.`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onClose}
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onClose();
+              abrirWhatsApp(configs.whatsapp || "5561985825621", "Olá! Gostaria de saber mais sobre os planos da AmaVidas.", "atendimento-drawer");
+            }}
             className="h-16 flex items-center justify-center gap-2.5 rounded-xl font-semibold text-[18px] text-white transition-all duration-200 active:scale-[0.98]"
             style={{ background: "#25D366", boxShadow: "0 8px 22px rgba(37,211,102,.28)" }}
           >

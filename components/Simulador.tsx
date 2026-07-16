@@ -315,6 +315,8 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
 
   const trackAbandono = async (etapaIndex: number, respostasParciais: Partial<Respostas>) => {
     if (!sessionId) return;
+    const origemSalva = typeof window !== "undefined" ? sessionStorage.getItem("amavidas_origem") : null;
+    const origem = origemSalva ? JSON.parse(origemSalva) : {};
     try {
       await fetch("/api/simulacao-incompleta", {
         method: "POST",
@@ -329,6 +331,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
           prioridade: respostasParciais.prioridade,
           orcamento: respostasParciais.orcamento,
           intencao: respostasParciais.intencao,
+          ...origem,
         }),
       });
     } catch (err) {
@@ -449,6 +452,9 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     setEnviando(true);
 
     try {
+      const origemSalva = typeof window !== "undefined" ? sessionStorage.getItem("amavidas_origem") : null;
+      const origem = origemSalva ? JSON.parse(origemSalva) : {};
+
       const payload = {
         ...respostas,
         nome: nome.trim(),
@@ -458,6 +464,8 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
         planoRecomendado: planoSlug,
         cidade: respostas.cidade || "Não informada",
         sessionId,
+        ...origem,
+        origem: "simulador",
       };
 
       const resp = await fetch("/api/simulacao", {
