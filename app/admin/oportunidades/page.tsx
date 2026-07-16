@@ -1837,7 +1837,8 @@ export default function OportunidadesPage() {
                         onChange={(e) => setNewLead(prev => ({ ...prev, origem: e.target.value }))}
                         className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 shadow-sm cursor-pointer"
                       >
-                        <option value="whatsapp_direto">📲 WhatsApp Direto</option>
+                        <option value="whatsapp_direto">📲 WhatsApp Direto (Orgânico)</option>
+                        <option value="whatsapp_meta_ads">📣 Meta Ads (WhatsApp Direto)</option>
                         <option value="manual">✍️ Cadastro Manual</option>
                         <option value="simulador">🎯 Simulador</option>
                       </select>

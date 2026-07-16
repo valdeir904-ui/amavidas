@@ -266,6 +266,11 @@ export async function POST(req: NextRequest) {
       origem,
       intencao,
       consentimento,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmTerm,
+      utmContent,
     } = body;
 
     if (!nome || !telefone || !planoRecomendado) {
@@ -285,7 +290,18 @@ export async function POST(req: NextRequest) {
 
     const initialStatus = status || "novo_lead";
     const contatado = initialStatus === "ganho" || initialStatus === "perdido" || initialStatus === "contatado" || initialStatus === "negociando";
-    const finalOrigem = origem || "manual";
+    
+    let finalOrigem = origem || "manual";
+    let finalUtmSource = utmSource ?? null;
+    let finalUtmMedium = utmMedium ?? null;
+    let finalUtmCampaign = utmCampaign ?? null;
+
+    if (origem === "whatsapp_meta_ads") {
+      finalOrigem = "whatsapp_direto";
+      finalUtmSource = "meta";
+      finalUtmMedium = "cpc";
+      finalUtmCampaign = "WhatsApp Direto (Anúncio)";
+    }
 
     const lead = await prisma.simulacao.create({
       data: {
@@ -307,6 +323,11 @@ export async function POST(req: NextRequest) {
         consentimento: consentimento ?? false,
         consentimentoEm: consentimento ? new Date() : null,
         intencao: intencao ?? null,
+        utmSource: finalUtmSource,
+        utmMedium: finalUtmMedium,
+        utmCampaign: finalUtmCampaign,
+        utmTerm: utmTerm ?? null,
+        utmContent: utmContent ?? null,
       },
       include: {
         responsavel: {
