@@ -22,6 +22,9 @@ export async function GET(req: NextRequest) {
         id: true,
         origem: true,
         utmSource: true,
+        gclid: true,
+        fbclid: true,
+        referrer: true,
         status: true,
       },
     });
@@ -37,6 +40,9 @@ export async function GET(req: NextRequest) {
       },
       select: {
         utmSource: true,
+        gclid: true,
+        fbclid: true,
+        referrer: true,
       },
     });
 
@@ -57,17 +63,28 @@ export async function GET(req: NextRequest) {
       manual: { visitas: 0, leads: 0, leadsQualificados: 0, investimento: 0 },
     };
 
+    function categorizarCanal(utmSource?: string | null, gclid?: string | null, fbclid?: string | null, referrer?: string | null) {
+      const src = (utmSource || "").toLowerCase();
+      const ref = (referrer || "").toLowerCase();
+      if (gclid || src.includes("google") || src.includes("gads") || src.includes("cpc") || ref.includes("google")) {
+        return "google";
+      }
+      if (fbclid || src.includes("meta") || src.includes("facebook") || src.includes("instagram") || src.includes("fb") || src.includes("ig") || ref.includes("facebook") || ref.includes("instagram")) {
+        return "meta";
+      }
+      return "organico";
+    }
+
     // Agregar visitas
     visitas.forEach((v) => {
-      const src = v.utmSource?.toLowerCase();
-      if (src === "google") canais.google.visitas++;
-      else if (src === "meta") canais.meta.visitas++;
+      const canal = categorizarCanal(v.utmSource, v.gclid, v.fbclid, v.referrer);
+      if (canal === "google") canais.google.visitas++;
+      else if (canal === "meta") canais.meta.visitas++;
       else canais.organico.visitas++;
     });
 
     // Agregar leads
     leads.forEach((l) => {
-      const src = l.utmSource?.toLowerCase();
       const qualificado = l.status !== "perdido";
 
       if (l.origem === "whatsapp_direto") {
@@ -76,15 +93,18 @@ export async function GET(req: NextRequest) {
       } else if (l.origem === "manual") {
         canais.manual.leads++;
         if (qualificado) canais.manual.leadsQualificados++;
-      } else if (src === "google") {
-        canais.google.leads++;
-        if (qualificado) canais.google.leadsQualificados++;
-      } else if (src === "meta") {
-        canais.meta.leads++;
-        if (qualificado) canais.meta.leadsQualificados++;
       } else {
-        canais.organico.leads++;
-        if (qualificado) canais.organico.leadsQualificados++;
+        const canal = categorizarCanal(l.utmSource, l.gclid, l.fbclid, l.referrer);
+        if (canal === "google") {
+          canais.google.leads++;
+          if (qualificado) canais.google.leadsQualificados++;
+        } else if (canal === "meta") {
+          canais.meta.leads++;
+          if (qualificado) canais.meta.leadsQualificados++;
+        } else {
+          canais.organico.leads++;
+          if (qualificado) canais.organico.leadsQualificados++;
+        }
       }
     });
 

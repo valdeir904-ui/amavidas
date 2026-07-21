@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useConfig } from "@/contexts/ConfigContext";
+import { trackLeadConversion, trackWhatsAppClick } from "@/lib/analytics";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 type Fase = "introducao" | "quiz" | "contato" | "calculando" | "resultado" | "confirmado";
@@ -479,9 +480,13 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
         throw new Error(errorData.error || "Erro de rede.");
       }
 
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq("track", "Lead");
-      }
+      // Disparar conversão Google Ads e Meta Ads
+      trackLeadConversion({
+        plano: planoSlug,
+        valor: planoAtual?.preco || 0,
+        googleAdsId: configs.google_ads_id,
+        googleAdsConversionLabel: configs.google_ads_conversion_label,
+      });
 
       setFase("calculando");
       timerRef.current = setTimeout(() => {
@@ -520,6 +525,12 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     );
     window.open(`https://wa.me/${whatsapp}?text=${msg}`, "_blank");
     
+    trackWhatsAppClick({
+      origem: "simulador_resultado",
+      googleAdsId: configs.google_ads_id,
+      googleAdsWaLabel: configs.google_ads_wa_label,
+    });
+
     // Dispara evento comercial no banco
     fetch("/api/eventos", {
       method: "POST",

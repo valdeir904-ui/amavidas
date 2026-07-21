@@ -13,6 +13,7 @@ function maskPhone(v: string) {
 }
 
 import { useConfig } from "@/contexts/ConfigContext";
+import { trackLeadConversion } from "@/lib/analytics";
 
 export default function ModalFormulario() {
   const { configs } = useConfig();
@@ -70,6 +71,12 @@ export default function ModalFormulario() {
         comoContatar: "whatsapp",
       }),
     }).catch(() => {});
+
+    trackLeadConversion({
+      plano: form.plan || "Indefinido",
+      googleAdsId: configs.google_ads_id,
+      googleAdsConversionLabel: configs.google_ads_conversion_label,
+    });
 
     setStep("success");
   };

@@ -1,3 +1,5 @@
+import { trackWhatsAppClick } from "@/lib/analytics";
+
 /**
  * Utilitário para abrir WhatsApp com rastreamento de evento.
  * Usa o número configurado no banco (fallback para o número padrão).
@@ -28,6 +30,9 @@ export function abrirWhatsApp(numero: string, mensagem: string, contexto?: strin
       const ref = `${canal}-${contexto}`;
       msgFinal = `${mensagem} [${ref}]`;
     }
+
+    // Disparar evento de pixel e Google Ads
+    trackWhatsAppClick({ origem: contexto || "whatsapp_geral" });
   }
 
   // Rastrear evento

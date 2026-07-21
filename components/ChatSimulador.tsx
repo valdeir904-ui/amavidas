@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useConfig } from "@/contexts/ConfigContext";
+import { trackLeadConversion } from "@/lib/analytics";
 import { Send, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 
@@ -460,10 +461,12 @@ export default function ChatSimulador() {
         throw new Error(errorData.error || "Erro de rede.");
       }
 
-      // Pixel lead event
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq("track", "Lead");
-      }
+      // Conversão Google Ads e Meta Ads
+      trackLeadConversion({
+        plano: slugRecomendado,
+        googleAdsId: configs.google_ads_id,
+        googleAdsConversionLabel: configs.google_ads_conversion_label,
+      });
 
       // Disparar simulacao iniciada eventos
       fetch("/api/eventos", { method: "POST", body: JSON.stringify({ tipo: "simulacao_iniciada" }) }).catch(() => {});

@@ -355,6 +355,56 @@ export default function ConfiguracoesPage() {
           />
         </Secao>
 
+        {/* ── Seção Rastreamento de Anúncios (Google Ads & Meta Ads) ── */}
+        <Secao
+          titulo="Rastreamento de Anúncios (Google Ads & Meta Ads)"
+          descricao="IDs e rótulos de conversão para contabilizar leads e cliques nas campanhas."
+          icone={
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          }
+          onSalvar={() => salvar(["google_ads_id", "google_ads_conversion_label", "google_ads_wa_label", "meta_pixel_id", "gtm_id"], "marketing_tags")}
+          salvando={salvandoSecao === "marketing_tags"}
+          alterado={alteradoIn(["google_ads_id", "google_ads_conversion_label", "google_ads_wa_label", "meta_pixel_id", "gtm_id"])}
+        >
+          <Campo
+            label="ID da Conta Google Ads"
+            hint="Identificador da conta de anúncios. Ex: AW-123456789 ou G-XXXXXXXX"
+            value={configs.google_ads_id ?? ""}
+            onChange={(v) => set("google_ads_id", v)}
+            placeholder="AW-123456789"
+          />
+          <Campo
+            label="Rótulo de Conversão de Leads (Google Ads)"
+            hint="Rótulo da ação de conversão para Envio de Formulário/Simulador. Ex: AbCdEfGhIjKl"
+            value={configs.google_ads_conversion_label ?? ""}
+            onChange={(v) => set("google_ads_conversion_label", v)}
+            placeholder="AbCdEfGhIjKl"
+          />
+          <Campo
+            label="Rótulo de Conversão do WhatsApp (Google Ads - Opcional)"
+            hint="Rótulo para a ação de conversão ao clicar no WhatsApp. Ex: XyZ123AbC"
+            value={configs.google_ads_wa_label ?? ""}
+            onChange={(v) => set("google_ads_wa_label", v)}
+            placeholder="XyZ123AbC"
+          />
+          <Campo
+            label="ID do Pixel do Meta Ads (Facebook / Instagram)"
+            hint="ID do Pixel da sua conta do Gerenciador de Negócios do Meta."
+            value={configs.meta_pixel_id ?? ""}
+            onChange={(v) => set("meta_pixel_id", v)}
+            placeholder="1352669203457671"
+          />
+          <Campo
+            label="ID do Google Tag Manager (GTM - Opcional)"
+            hint="Preencha apenas se preferir usar o GTM para gerenciar suas tags. Ex: GTM-XXXXXXX"
+            value={configs.gtm_id ?? ""}
+            onChange={(v) => set("gtm_id", v)}
+            placeholder="GTM-XXXXXXX"
+          />
+        </Secao>
+
         {/* ── Seção Funcionalidades ── */}
         <Secao
           titulo="Funcionalidades da Landing Page"
