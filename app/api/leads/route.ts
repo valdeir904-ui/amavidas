@@ -203,6 +203,18 @@ export async function PATCH(req: NextRequest) {
     finalResponsavelId = session.userId;
   }
 
+  // SLA automático: ao sair de novo_lead, registra o primeiro contato
+  if (finalStatus !== "novo_lead" && currentLead.status === "novo_lead" && !currentLead.primeiroContatoEm) {
+    updateData.primeiroContatoEm = new Date();
+    if (!historyLogs.some(log => log.acao === "contatou")) {
+      historyLogs.push({
+        usuarioId: session.userId,
+        acao: "contatou",
+        observacao: "Lead assumido ou movimentado para fora da coluna de Novos Leads. SLA registrado automaticamente."
+      });
+    }
+  }
+
   if (finalResponsavelId !== currentLead.responsavelId) {
     historyLogs.push({
       usuarioId: session.userId,
