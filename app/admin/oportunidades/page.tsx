@@ -1032,8 +1032,9 @@ export default function OportunidadesPage() {
                     };
                     const isDragging = draggedLeadId === lead.id;
                     const totalTentativas = lead.historico?.filter((h) => ["contato_ligacao", "contato_whatsapp"].includes(h.acao)).length || 0;
+                    const isMaster = currentUser?.perfil === "MASTER";
 
-                    if (lead.status === "novo_lead") {
+                    if (lead.status === "novo_lead" && !isMaster) {
                       return (
                         <div
                           key={lead.id}
@@ -1064,6 +1065,25 @@ export default function OportunidadesPage() {
                               </span>
                               <span className="truncate">{lead.nome}</span>
                             </h4>
+
+                            {/* Tarja de Nível de Interesse */}
+                            {lead.intencao && (
+                              <div className="mt-2.5">
+                                {lead.intencao === "contratar_agora" ? (
+                                  <div className="px-2.5 py-1 rounded-lg text-[9px] font-black text-center bg-red-500 text-white animate-pulse border border-red-600 shadow-sm uppercase tracking-wider">
+                                    🔥 Quer contratar
+                                  </div>
+                                ) : lead.intencao === "entender_melhor" ? (
+                                  <div className="px-2.5 py-1 rounded-lg text-[9px] font-black text-center bg-amber-50 text-amber-700 border border-amber-250 uppercase tracking-wider">
+                                    💡 Quer entender
+                                  </div>
+                                ) : (
+                                  <div className="px-2.5 py-1 rounded-lg text-[9px] font-black text-center bg-slate-100 text-slate-650 border border-slate-200 uppercase tracking-wider">
+                                    🔍 Pesquisando
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
 
                           <div className="mt-2 pt-2 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
@@ -1141,6 +1161,30 @@ export default function OportunidadesPage() {
                               )}
                               <span className="truncate">{lead.nome}</span>
                             </h4>
+
+                            {/* Tarja de Nível de Interesse */}
+                            {lead.intencao && (
+                              <div className="mt-2">
+                                {lead.intencao === "contratar_agora" ? (
+                                  <div className={`px-2.5 py-1 rounded-lg text-[10px] font-black text-center uppercase tracking-wider ${
+                                    lead.status === "novo_lead"
+                                      ? "bg-red-500 text-white animate-pulse border border-red-650 shadow-sm"
+                                      : "bg-red-50 text-red-700 border border-red-200"
+                                  }`}>
+                                    🔥 Quer contratar
+                                  </div>
+                                ) : lead.intencao === "entender_melhor" ? (
+                                  <div className="px-2.5 py-1 rounded-lg text-[10px] font-black text-center bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
+                                    💡 Quer entender
+                                  </div>
+                                ) : (
+                                  <div className="px-2.5 py-1 rounded-lg text-[10px] font-black text-center bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">
+                                    🔍 Pesquisando
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
                             <div className="flex flex-col gap-1.5 mt-2">
                               <p className="text-[11px] text-slate-500 truncate flex items-center gap-1.5 font-medium">
                                 <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
@@ -1334,7 +1378,7 @@ export default function OportunidadesPage() {
                                 <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-slate-50 text-slate-500 border border-slate-200 w-max leading-none">Orgânico/Direto</span>
                               )}
                             </div>
-                            {lead.status !== "novo_lead" ? (
+                            {lead.status !== "novo_lead" || currentUser?.perfil === "MASTER" ? (
                               <p className="text-slate-400 text-xs md:hidden mt-0.5 truncate">{lead.telefone}</p>
                             ) : (
                               <p className="text-slate-400 text-[10px] md:hidden mt-0.5 truncate italic font-semibold">🔒 Bloqueado</p>
@@ -1342,7 +1386,7 @@ export default function OportunidadesPage() {
                           </div>
                         </td>
                         <td className="px-5 py-4 hidden md:table-cell w-[20%] max-w-[200px]">
-                          {lead.status !== "novo_lead" ? (
+                          {lead.status !== "novo_lead" || currentUser?.perfil === "MASTER" ? (
                             <>
                               <p className="text-slate-700 font-medium truncate">{lead.telefone}</p>
                               <p className="text-slate-400 text-xs mt-0.5 truncate">{lead.email}</p>
@@ -1363,14 +1407,14 @@ export default function OportunidadesPage() {
                         </td>
                         <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex flex-col gap-2">
-                            {lead.status !== "novo_lead" ? (
+                            {lead.status !== "novo_lead" || currentUser?.perfil === "MASTER" ? (
                               <>
                                 <select
                                   value={currentStatus}
                                   onChange={(e) => handleStatusChangeRequest(lead.id, e.target.value)}
                                   className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border outline-none cursor-pointer transition-all shadow-sm ${
                                     currentStatus === "ganho"
-                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-250 hover:bg-emerald-100"
                                       : currentStatus === "perdido"
                                       ? "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
                                       : currentStatus === "negociando"
@@ -1424,8 +1468,8 @@ export default function OportunidadesPage() {
                           </div>
                         </td>
                         <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            {lead.status !== "novo_lead" && (
+                          <div className="flex-wrap items-center gap-2 flex">
+                            {(lead.status !== "novo_lead" || currentUser?.perfil === "MASTER") && (
                               <button
                                 onClick={() => abrirWhatsAppModal(lead)}
                                 className="inline-flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm cursor-pointer"
@@ -1512,7 +1556,7 @@ export default function OportunidadesPage() {
                       Contato
                     </h4>
                     <div className="flex flex-col gap-4">
-                      {selectedLead.status !== "novo_lead" ? (
+                      {selectedLead.status !== "novo_lead" || currentUser?.perfil === "MASTER" ? (
                         <>
                           <div className="flex items-center justify-between">
                             <div>
@@ -1922,7 +1966,7 @@ export default function OportunidadesPage() {
               >
                 Fechar
               </button>
-              {selectedLead.status !== "novo_lead" && (
+              {(selectedLead.status !== "novo_lead" || currentUser?.perfil === "MASTER") && (
                 <button
                   type="button"
                   onClick={() => abrirWhatsAppModal(selectedLead)}
