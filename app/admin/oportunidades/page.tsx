@@ -1034,7 +1034,7 @@ export default function OportunidadesPage() {
                     const totalTentativas = lead.historico?.filter((h) => ["contato_ligacao", "contato_whatsapp"].includes(h.acao)).length || 0;
                     const isMaster = currentUser?.perfil === "MASTER";
 
-                    if (lead.status === "novo_lead" && !isMaster) {
+                    if (lead.status === "novo_lead") {
                       return (
                         <div
                           key={lead.id}
@@ -1532,6 +1532,25 @@ export default function OportunidadesPage() {
                     )}
                   </div>
                   <h3 className="text-2xl font-extrabold text-slate-900 mt-1.5 tracking-tight">{selectedLead.nome}</h3>
+                  {selectedLead.intencao && (
+                    <div className="mt-2 flex">
+                      {selectedLead.intencao === "contratar_agora" ? (
+                        <div className={`px-2.5 py-1 rounded-lg text-[10px] font-black bg-red-500 text-white border border-red-600 shadow-sm uppercase tracking-wider flex items-center gap-1.5 ${
+                          selectedLead.status === "novo_lead" ? "animate-pulse" : ""
+                        }`}>
+                          🔥 Quer contratar
+                        </div>
+                      ) : selectedLead.intencao === "entender_melhor" ? (
+                        <div className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
+                          💡 Quer entender
+                        </div>
+                      ) : (
+                        <div className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">
+                          🔍 Pesquisando
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <button 
