@@ -99,10 +99,37 @@ export default function OportunidadesPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [filtro, setFiltro] = useState<"todos" | "pendentes" | "contatados" | "negociando" | "ganhos" | "perdidos">("todos");
-  const [filtroCanal, setFiltroCanal] = useState<string>("todos");
-  const [filtroCampanha, setFiltroCampanha] = useState<string>("todos");
-  const [filtroInteresse, setFiltroInteresse] = useState<string>("todos");
+  const [showFiltersMenu, setShowFiltersMenu] = useState(false);
+  const [filtrosCanais, setFiltrosCanais] = useState<string[]>([]);
+  const [filtrosCampanhas, setFiltrosCampanhas] = useState<string[]>([]);
+  const [filtrosInteresses, setFiltrosInteresses] = useState<string[]>([]);
   const [busca, setBusca] = useState("");
+
+  const toggleFiltroCanal = (val: string) => {
+    setFiltrosCanais(prev =>
+      prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]
+    );
+  };
+
+  const toggleFiltroCampanha = (val: string) => {
+    setFiltrosCampanhas(prev =>
+      prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]
+    );
+  };
+
+  const toggleFiltroInteresse = (val: string) => {
+    setFiltrosInteresses(prev =>
+      prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]
+    );
+  };
+
+  const limparFiltros = () => {
+    setFiltrosCanais([]);
+    setFiltrosCampanhas([]);
+    setFiltrosInteresses([]);
+  };
+
+  const totalFiltrosAtivos = filtrosCanais.length + filtrosCampanhas.length + filtrosInteresses.length;
   const [viewMode, setViewMode] = useState<"kanban" | "tabela">("kanban");
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -671,21 +698,22 @@ export default function OportunidadesPage() {
       return true;
     })
     .filter((l) => {
-      if (filtroCanal === "todos") return true;
-      if (filtroCanal === "whatsapp") return l.origem === "whatsapp_direto";
-      if (filtroCanal === "google") return l.utmSource?.toLowerCase() === "google";
-      if (filtroCanal === "meta") return l.utmSource?.toLowerCase() === "meta";
-      if (filtroCanal === "organico") return !l.utmSource && l.origem !== "whatsapp_direto" && l.origem !== "manual";
-      if (filtroCanal === "manual") return l.origem === "manual";
-      return true;
+      if (filtrosCanais.length === 0) return true;
+      let match = false;
+      if (filtrosCanais.includes("whatsapp") && l.origem === "whatsapp_direto") match = true;
+      if (filtrosCanais.includes("google") && l.utmSource?.toLowerCase() === "google") match = true;
+      if (filtrosCanais.includes("meta") && l.utmSource?.toLowerCase() === "meta") match = true;
+      if (filtrosCanais.includes("organico") && !l.utmSource && l.origem !== "whatsapp_direto" && l.origem !== "manual") match = true;
+      if (filtrosCanais.includes("manual") && l.origem === "manual") match = true;
+      return match;
     })
     .filter((l) => {
-      if (filtroCampanha === "todos") return true;
-      return l.utmCampaign === filtroCampanha;
+      if (filtrosCampanhas.length === 0) return true;
+      return l.utmCampaign && filtrosCampanhas.includes(l.utmCampaign);
     })
     .filter((l) => {
-      if (filtroInteresse === "todos") return true;
-      return l.intencao === filtroInteresse;
+      if (filtrosInteresses.length === 0) return true;
+      return l.intencao && filtrosInteresses.includes(l.intencao);
     })
     .filter((l) =>
       busca
@@ -759,7 +787,7 @@ export default function OportunidadesPage() {
         {/* Left Side: Search Bar, Filters and View Toggle */}
         <div className="flex flex-col xl:flex-row gap-3 flex-1 items-stretch xl:items-center">
           {/* Search Bar */}
-          <div className="flex gap-2 flex-1 max-w-md">
+          <div className="flex gap-2 flex-1 max-w-lg items-center relative">
             <div className="relative flex-1">
               <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -774,51 +802,124 @@ export default function OportunidadesPage() {
             </div>
             <button
               onClick={() => fetchLeads()}
-              className="px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors bg-white shadow-sm cursor-pointer"
+              className="px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors bg-white shadow-sm cursor-pointer h-[38px] w-[38px] flex items-center justify-center flex-shrink-0"
               title="Atualizar"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
-          </div>
 
-          {/* Filtros de Canal e Campanha */}
-          <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
-            <select
-              value={filtroCanal}
-              onChange={(e) => setFiltroCanal(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-bold focus:outline-none shadow-sm cursor-pointer h-[38px] min-w-[130px]"
-            >
-              <option value="todos">Todos os Canais</option>
-              <option value="google">Google Ads</option>
-              <option value="meta">Meta Ads</option>
-              <option value="whatsapp">WhatsApp Direto</option>
-              <option value="organico">Orgânico/Direto</option>
-              <option value="manual">Cadastro Manual</option>
-            </select>
+            {/* Float Menu Filtros */}
+            <div className="relative flex-shrink-0">
+              <button
+                onClick={() => setShowFiltersMenu(!showFiltersMenu)}
+                className={`px-3 py-2 rounded-xl border transition-all shadow-sm cursor-pointer h-[38px] text-xs font-bold flex items-center gap-1.5 whitespace-nowrap ${
+                  totalFiltrosAtivos > 0
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                <span>🔍</span>
+                <span>Filtros</span>
+                {totalFiltrosAtivos > 0 && (
+                  <span className="bg-red-500 text-white rounded-full text-[9px] font-black w-4.5 h-4.5 flex items-center justify-center leading-none">
+                    {totalFiltrosAtivos}
+                  </span>
+                )}
+              </button>
 
-            <select
-              value={filtroCampanha}
-              onChange={(e) => setFiltroCampanha(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-bold focus:outline-none shadow-sm cursor-pointer h-[38px] max-w-[180px]"
-            >
-              <option value="todos">Campanhas (Todas)</option>
-              {campanhasDisponiveis.map(camp => (
-                <option key={camp} value={camp}>{camp}</option>
-              ))}
-            </select>
+              {showFiltersMenu && (
+                <>
+                  <div className="fixed inset-0 z-45" onClick={() => setShowFiltersMenu(false)} />
+                  <div className="absolute left-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-5 z-50 flex flex-col gap-5 text-slate-800 animate-fadeIn overflow-y-auto max-h-[450px] scrollbar-thin">
+                    <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                      <h4 className="font-extrabold text-sm text-slate-900">Filtros Avançados</h4>
+                      {totalFiltrosAtivos > 0 && (
+                        <button onClick={limparFiltros} className="text-[10px] text-red-550 hover:underline font-bold">
+                          Limpar tudo
+                        </button>
+                      )}
+                    </div>
 
-            <select
-              value={filtroInteresse}
-              onChange={(e) => setFiltroInteresse(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-bold focus:outline-none shadow-sm cursor-pointer h-[38px] min-w-[140px]"
-            >
-              <option value="todos">Interesses (Todos)</option>
-              <option value="entender_melhor">Buscando entender</option>
-              <option value="contratar_agora">Querendo contratar</option>
-              <option value="pesquisando">Apenas pesquisando</option>
-            </select>
+                    {/* Category: Canais */}
+                    <div className="space-y-2">
+                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Canais</p>
+                      <div className="grid grid-cols-1 gap-2">
+                        {[
+                          { id: "google", label: "🔵 Google Ads" },
+                          { id: "meta", label: "🟣 Meta Ads" },
+                          { id: "whatsapp", label: "🟢 WhatsApp Direto" },
+                          { id: "organico", label: "⚪ Orgânico/Direto" },
+                          { id: "manual", label: "👤 Cadastro Manual" },
+                        ].map((c) => {
+                          const isSelected = filtrosCanais.includes(c.id);
+                          return (
+                            <label key={c.id} className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 hover:text-slate-900 select-none">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleFiltroCanal(c.id)}
+                                className="w-4 h-4 text-slate-950 focus:ring-slate-500 border-slate-350 rounded cursor-pointer"
+                              />
+                              <span>{c.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Category: Nível de Interesse */}
+                    <div className="space-y-2">
+                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Nível de Interesse</p>
+                      <div className="grid grid-cols-1 gap-2">
+                        {[
+                          { id: "entender_melhor", label: "🟡 Quer entender" },
+                          { id: "contratar_agora", label: "🔴 Quer contratar" },
+                          { id: "pesquisando", label: "⚪ Pesquisando" },
+                        ].map((i) => {
+                          const isSelected = filtrosInteresses.includes(i.id);
+                          return (
+                            <label key={i.id} className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 hover:text-slate-900 select-none">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleFiltroInteresse(i.id)}
+                                className="w-4 h-4 text-slate-950 focus:ring-slate-500 border-slate-350 rounded cursor-pointer"
+                              />
+                              <span>{i.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Category: Campanhas */}
+                    {campanhasDisponiveis.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Campanhas</p>
+                        <div className="grid grid-cols-1 gap-2 max-h-[140px] overflow-y-auto pr-1 scrollbar-thin">
+                          {campanhasDisponiveis.map((camp) => {
+                            const isSelected = filtrosCampanhas.includes(camp);
+                            return (
+                              <label key={camp} className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 hover:text-slate-900 truncate select-none" title={camp}>
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleFiltroCampanha(camp)}
+                                  className="w-4 h-4 text-slate-950 focus:ring-slate-500 border-slate-350 rounded cursor-pointer"
+                                />
+                                <span className="truncate">{camp}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* View Toggle (Kanban vs Lista) */}
