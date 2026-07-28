@@ -107,7 +107,7 @@ function PetPageContent() {
       <main className="flex-1 -mt-[66px] max-[980px]:-mt-[56px] relative">
         
         {/* ── HERO SECTION ── */}
-        <section className="pt-[110px] min-[768px]:pt-[130px] pb-16 min-[768px]:pb-24 bg-gradient-to-b from-purple-950 via-[#F3E8FF]/60 to-[#F8FAFC] relative overflow-hidden">
+        <section className="pt-[110px] min-[768px]:pt-[130px] pb-16 min-[768px]:pb-24 bg-gradient-to-b from-purple-950/70 via-purple-100/40 to-[#F8FAFC] relative overflow-hidden">
           
           <WalkingPaws />
 
