@@ -31,6 +31,10 @@ function PetPageContent() {
 
   const faqs = [
     {
+      pergunta: "Qual a região de cobertura do Plano Pet?",
+      resposta: "O Plano Pet é 100% direcionado para tutores em Águas Lindas de Goiás, Brasília (DF) e cidades do Entorno do Distrito Federal, garantindo remoção e atendimento rápido 24 horas."
+    },
+    {
       pergunta: "Quais animais podem ser incluídos no Plano Pet?",
       resposta: "O plano cobre 1 animal de estimação (cães ou gatos), sem restrição de raça, peso ou porte do animal."
     },
@@ -44,7 +48,7 @@ function PetPageContent() {
     },
     {
       pergunta: "Como acionar a assistência em caso de emergência?",
-      resposta: "Basta entrar em contato com nossa central de atendimento 24 horas por telefone ou WhatsApp. Nossa equipe cuida de toda a logística e remoção para que você não precise se preocupar com nada."
+      resposta: "Basta entrar em contato com nossa central de atendimento 24 horas por telefone ou WhatsApp. Nossa equipe cuida de toda a logística e remoção em Águas Lindas e DF."
     }
   ];
 
@@ -67,7 +71,7 @@ function PetPageContent() {
                 variants={fadeUp}
               >
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 border border-purple-200 text-purple-900 text-xs font-bold uppercase tracking-wider mb-5 shadow-sm">
-                  <span>🐾</span> Plano Pet AmaVidas · Apenas R$ 25/mês
+                  <span>📍</span> Exclusivo Águas Lindas & DF · R$ 25/mês
                 </div>
 
                 <h1 
@@ -78,7 +82,7 @@ function PetPageContent() {
                 </h1>
 
                 <p className="text-slate-600 text-base min-[768px]:text-xl leading-relaxed mb-7 max-w-2xl">
-                  Seu companheiro de quatro patas merece um adeus com toda a dignidade, respeito e carinho. Atendimento 24h, sepultamento, velório e lápide por um valor que cabe no seu bolso.
+                  Seu companheiro de quatro patas merece um adeus com toda a dignidade, respeito e carinho. Atendimento 24h com cobertura 100% direcionada para <strong>Águas Lindas de Goiás, Brasília e Entorno do DF</strong>.
                 </p>
 
                 {/* Bullet List */}
@@ -86,6 +90,10 @@ function PetPageContent() {
                   <div className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">✓</div>
                     <span>Cobre 1 cão ou gato (<strong>sem limite de peso ou porte</strong>)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">📍</div>
+                    <span>Atendimento rápido 24h em <strong>Águas Lindas de Goiás e DF</strong></span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">✓</div>

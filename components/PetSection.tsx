@@ -43,7 +43,7 @@ export default function PetSection() {
               
               {/* Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100/80 border border-purple-200 text-purple-900 text-xs font-bold uppercase tracking-wider mb-6 shadow-sm">
-                <span className="text-sm">🐾</span> Novo · Proteção Completa Pet
+                <span className="text-sm">📍</span> Águas Lindas & DF · Proteção Pet
               </div>
 
               <h2 
@@ -54,7 +54,7 @@ export default function PetSection() {
               </h2>
 
               <p className="text-slate-600 text-base min-[768px]:text-lg leading-relaxed mb-8">
-                Eles nos dão amor incondicional todos os dias. O <strong>Plano Pet da AmaVidas</strong> garante uma despedida com todo o respeito, carinho e dignidade que seu companheiro merece por apenas <strong>R$ 25,00/mês</strong>.
+                Eles nos dão amor incondicional todos os dias. O <strong>Plano Pet da AmaVidas</strong> é 100% direcionado para tutores em <strong>Águas Lindas de Goiás, Brasília e Entorno do DF</strong> por apenas <strong>R$ 25,00/mês</strong>.
               </p>
 
               {/* Highlights Grid */}
