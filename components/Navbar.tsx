@@ -36,10 +36,10 @@ export default function Navbar({ variant = "default" }: NavbarProps) {
         style={
           isPurple
             ? {
-                background: "rgba(46, 16, 101, 0.72)",
+                background: "rgba(46, 16, 101, 0.45)",
                 backdropFilter: "saturate(140%) blur(12px)",
                 WebkitBackdropFilter: "saturate(140%) blur(12px)",
-                borderColor: "rgba(168, 85, 247, 0.22)",
+                borderColor: "rgba(168, 85, 247, 0.18)",
               }
             : {
                 background: "rgba(226, 247, 250, 0.85)",
