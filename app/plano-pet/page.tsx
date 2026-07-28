@@ -13,6 +13,54 @@ import { fadeUp, staggerContainer } from "@/lib/animations";
 import { useConfig } from "@/contexts/ConfigContext";
 import { trackWhatsAppClick } from "@/lib/analytics";
 
+function WalkingPaws() {
+  const paws = [
+    { top: "12%", left: "3%", delay: 0, rotate: -15 },
+    { top: "20%", left: "6%", delay: 0.6, rotate: 10 },
+    { top: "28%", left: "4%", delay: 1.2, rotate: -10 },
+    { top: "36%", left: "7%", delay: 1.8, rotate: 15 },
+    { top: "44%", left: "5%", delay: 2.4, rotate: -5 },
+    { top: "52%", left: "8%", delay: 3.0, rotate: 12 },
+
+    { top: "16%", right: "7%", delay: 0.3, rotate: 15 },
+    { top: "24%", right: "4%", delay: 0.9, rotate: -10 },
+    { top: "32%", right: "8%", delay: 1.5, rotate: 20 },
+    { top: "40%", right: "5%", delay: 2.1, rotate: -15 },
+    { top: "48%", right: "9%", delay: 2.7, rotate: 10 },
+  ];
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {paws.map((paw, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{
+            opacity: [0, 0.22, 0.22, 0],
+            scale: [0.75, 1, 1, 0.85],
+          }}
+          transition={{
+            duration: 3.5,
+            repeat: Infinity,
+            delay: paw.delay,
+            ease: "easeInOut",
+          }}
+          style={{
+            position: "absolute",
+            top: paw.top,
+            left: paw.left,
+            right: paw.right,
+            transform: `rotate(${paw.rotate}deg)`,
+          }}
+          className="text-3xl text-purple-900/30 select-none"
+        >
+          🐾
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 function PetPageContent() {
   const { openForm } = useModal();
   const { configs } = useConfig();
@@ -56,16 +104,12 @@ function PetPageContent() {
     <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
       <Navbar />
       
-      <main className="flex-1 pt-20">
+      <main className="flex-1 -mt-[66px] max-[980px]:-mt-[56px] relative">
         
         {/* ── HERO SECTION ── */}
-        <section className="pt-8 pb-16 min-[768px]:pt-12 min-[768px]:pb-20 bg-gradient-to-b from-[#E2F7FA] via-[#EFF6FF] to-[#F8FAFC] relative overflow-hidden">
+        <section className="pt-[110px] min-[768px]:pt-[130px] pb-16 min-[768px]:pb-24 bg-gradient-to-b from-[#E2F7FA] via-[#EFF6FF] to-[#F8FAFC] relative overflow-hidden">
           
-          {/* Subtle Decorative Paw Prints in Background */}
-          <div className="absolute top-8 left-8 text-6xl text-purple-900/10 pointer-events-none -rotate-12 select-none">🐾</div>
-          <div className="absolute top-1/3 right-10 text-7xl text-purple-900/10 pointer-events-none rotate-12 select-none">🐾</div>
-          <div className="absolute bottom-12 left-1/4 text-5xl text-purple-900/10 pointer-events-none -rotate-45 select-none">🐾</div>
-          <div className="absolute bottom-6 right-1/3 text-6xl text-purple-900/10 pointer-events-none rotate-12 select-none">🐾</div>
+          <WalkingPaws />
 
           <div className="max-w-[1280px] mx-auto px-5 min-[640px]:px-8 relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
@@ -77,23 +121,23 @@ function PetPageContent() {
                 animate="visible"
                 variants={fadeUp}
               >
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100/90 border border-purple-200 text-purple-900 text-xs font-bold uppercase tracking-wider mb-6 shadow-sm">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100/90 border border-purple-200 text-purple-900 text-xs font-bold uppercase tracking-wider mb-8 shadow-sm">
                   <span>📍</span> Exclusivo Águas Lindas & DF · R$ 25/mês
                 </div>
 
                 <h1 
-                  className="text-4xl min-[768px]:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.08] mb-8"
+                  className="text-4xl min-[768px]:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.08] mb-10"
                   style={{ fontFamily: "var(--serif)" }}
                 >
                   O amor por quem te dá tanto afeto <span className="text-purple-700 underline decoration-amber-400 decoration-wavy decoration-2">não termina.</span>
                 </h1>
 
-                <p className="text-slate-600 text-base min-[768px]:text-xl leading-relaxed mb-10 max-w-2xl">
+                <p className="text-slate-600 text-base min-[768px]:text-xl leading-relaxed mb-12 max-w-2xl font-normal">
                   Seu companheiro de quatro patas merece um adeus com toda a dignidade, respeito e carinho. Atendimento 24h com cobertura 100% direcionada para <strong>Águas Lindas de Goiás, Brasília e Entorno do DF</strong>.
                 </p>
 
                 {/* Animated Deliverables Checklist */}
-                <div className="space-y-4 mb-10 min-[768px]:mb-12">
+                <div className="space-y-4.5 mb-12 min-[768px]:mb-14">
                   {[
                     { icon: "✓", text: <>Cobre 1 cão ou gato (<strong>sem limite de peso ou porte</strong>)</> },
                     { icon: "📍", text: <>Atendimento rápido 24h em <strong>Águas Lindas de Goiás e DF</strong></> },
@@ -122,8 +166,7 @@ function PetPageContent() {
                 </div>
 
                 {/* CTAs */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4.5 pt-2">
-                  {/* Botão de Contratação Roxo com efeito Shimmer */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-5 pt-3">
                   <button
                     type="button"
                     onClick={() => openForm("Plano Pet")}
@@ -134,7 +177,6 @@ function PetPageContent() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
                   </button>
 
-                  {/* Botão do WhatsApp Verde Oficial com Shimmer */}
                   <button
                     type="button"
                     onClick={() => handleWhatsApp("plano_pet_hero")}
@@ -230,7 +272,6 @@ function PetPageContent() {
               ))}
             </motion.div>
 
-            {/* Disclaimer Asterisco */}
             <div className="mt-12 text-center text-xs text-slate-500 max-w-xl mx-auto">
               <p>* O jazigo do Plano Pet é de uso temporário/não perpétuo (consulte o regulamento do contrato para maiores esclarecimentos).</p>
             </div>
@@ -255,16 +296,16 @@ function PetPageContent() {
               </div>
 
               <div className="lg:col-span-6 text-left flex flex-col items-start justify-center">
-                <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-purple-300 mb-4">
+                <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-purple-300 mb-6">
                   Prevenção É Amor
                 </p>
                 <h2 
-                  className="text-3xl min-[768px]:text-4xl lg:text-5xl font-semibold tracking-tight leading-[1.2] mb-6" 
+                  className="text-3xl min-[768px]:text-4xl lg:text-5xl font-semibold tracking-tight leading-[1.28] mb-8" 
                   style={{ fontFamily: "var(--serif)" }}
                 >
                   Evite despesas inesperadas de última hora.
                 </h2>
-                <p className="text-purple-100/90 text-base min-[768px]:text-lg leading-[1.75] mb-8 max-w-xl">
+                <p className="text-purple-100/90 text-base min-[768px]:text-xl leading-[1.85] mb-12 max-w-xl font-normal">
                   Serviços particulares de funeral e sepultamento pet podem custar mais de R$ 1.500 de surpresa. Com o <strong>Plano Pet AmaVidas</strong>, você se previne pagando apenas <strong>R$ 25/mês</strong> e garante assistência completa sem sustos financeiros.
                 </p>
                 <button
