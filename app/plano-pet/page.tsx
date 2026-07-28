@@ -71,18 +71,18 @@ function PetPageContent() {
                 </div>
 
                 <h1 
-                  className="text-4xl min-[768px]:text-5xl lg:text-6xl font-medium tracking-tight text-slate-900 leading-[1.12] mb-5"
+                  className="text-4xl min-[768px]:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.08] mb-6"
                   style={{ fontFamily: "var(--serif)" }}
                 >
                   O amor por quem te dá tanto afeto <span className="text-purple-700 underline decoration-amber-400 decoration-wavy decoration-2">não termina.</span>
                 </h1>
 
-                <p className="text-slate-600 text-base min-[768px]:text-lg leading-relaxed mb-6 max-w-2xl">
+                <p className="text-slate-600 text-base min-[768px]:text-xl leading-relaxed mb-7 max-w-2xl">
                   Seu companheiro de quatro patas merece um adeus com toda a dignidade, respeito e carinho. Atendimento 24h, sepultamento, velório e lápide por um valor que cabe no seu bolso.
                 </p>
 
                 {/* Bullet List */}
-                <div className="space-y-2.5 mb-7 text-slate-700 text-sm min-[768px]:text-base font-medium">
+                <div className="space-y-3 mb-8 text-slate-700 text-sm min-[768px]:text-base font-medium">
                   <div className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">✓</div>
                     <span>Cobre 1 cão ou gato (<strong>sem limite de peso ou porte</strong>)</span>
@@ -97,7 +97,7 @@ function PetPageContent() {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">✓</div>
-                    <span>Jazigo não perpétuo* (uso temporário com dignidade)</span>
+                    <span>Jazigo não perpétuo*</span>
                   </div>
                 </div>
 
@@ -215,12 +215,12 @@ function PetPageContent() {
         </section>
 
         {/* ── DESTAQUE EMOCIONAL & FOTO ── */}
-        <section className="py-20 bg-gradient-to-br from-purple-900 to-slate-900 text-white relative overflow-hidden">
-          <div className="max-w-[1280px] mx-auto px-5 min-[640px]:px-8 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <section className="py-24 lg:py-28 bg-gradient-to-br from-purple-900 to-slate-900 text-white relative overflow-hidden">
+          <div className="max-w-[1280px] mx-auto px-6 min-[640px]:px-10 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
               
               <div className="lg:col-span-6 relative">
-                <div className="relative w-full aspect-video rounded-3xl overflow-hidden shadow-2xl border-2 border-purple-400/30">
+                <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border-2 border-purple-400/30">
                   <Image
                     src="/pet_memorial_care.png"
                     alt="Carinho e respeito pet"
@@ -230,18 +230,23 @@ function PetPageContent() {
                 </div>
               </div>
 
-              <div className="lg:col-span-6 text-left">
-                <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-purple-300 mb-3">Prevenção É Amor</p>
-                <h2 className="text-3xl min-[768px]:text-4xl font-medium tracking-tight leading-snug mb-6" style={{ fontFamily: "var(--serif)" }}>
+              <div className="lg:col-span-6 text-left flex flex-col items-start justify-center">
+                <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-purple-300 mb-4">
+                  Prevenção É Amor
+                </p>
+                <h2 
+                  className="text-3xl min-[768px]:text-4xl lg:text-5xl font-semibold tracking-tight leading-[1.2] mb-6" 
+                  style={{ fontFamily: "var(--serif)" }}
+                >
                   Evite despesas inesperadas de última hora.
                 </h2>
-                <p className="text-purple-100 text-base leading-relaxed mb-6">
+                <p className="text-purple-100/90 text-base min-[768px]:text-lg leading-[1.75] mb-8 max-w-xl">
                   Serviços particulares de funeral e sepultamento pet podem custar mais de R$ 1.500 de surpresa. Com o <strong>Plano Pet AmaVidas</strong>, você se previne pagando apenas <strong>R$ 25/mês</strong> e garante assistência completa sem sustos financeiros.
                 </p>
                 <button
                   type="button"
                   onClick={() => openForm("Plano Pet")}
-                  className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-8 py-4 rounded-2xl text-base transition-all shadow-xl cursor-pointer"
+                  className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-9 py-4.5 rounded-2xl text-base transition-all shadow-xl hover:shadow-amber-400/20 hover:-translate-y-0.5 cursor-pointer mt-2"
                 >
                   Garantir Proteção Pet Agora
                 </button>

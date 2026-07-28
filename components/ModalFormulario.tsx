@@ -109,31 +109,51 @@ export default function ModalFormulario() {
 
         {step === "form" ? (
           <>
-            <p className="text-[var(--magenta)] text-[13px] font-semibold tracking-[0.14em] uppercase mb-2.5">
-              Estamos aqui para apoiar você
-            </p>
-            <h3
-              id="formModalTitle"
-              className="font-[var(--serif)] text-[30px] font-medium leading-tight tracking-[-0.015em] mb-2"
-              style={{ fontFamily: "var(--serif)" }}
-            >
-              Solicite o contato de um consultor
-            </h3>
-            <p className="text-[var(--ink-soft)] text-base mb-7">
-              Deixe seus dados e em até <strong>15 minutos</strong> um especialista entra em contato pelo WhatsApp. Sem compromisso.
-            </p>
+            {form.plan.toLowerCase().includes("pet") || (preselectedPlan?.toLowerCase().includes("pet") ?? false) ? (
+              <>
+                <p className="text-purple-700 text-[13px] font-bold tracking-[0.14em] uppercase mb-2 flex items-center gap-1.5">
+                  <span>🐾</span> Proteção & Dignidade Pet
+                </p>
+                <h3
+                  id="formModalTitle"
+                  className="font-[var(--serif)] text-[30px] font-medium leading-tight tracking-[-0.015em] mb-2 text-slate-900"
+                  style={{ fontFamily: "var(--serif)" }}
+                >
+                  Solicite o Plano Pet para seu companheiro
+                </h3>
+                <p className="text-[var(--ink-soft)] text-base mb-7">
+                  Deixe seus dados e em até <strong>15 minutos</strong> um especialista entra em contato pelo WhatsApp para te orientar sobre o Plano Pet por apenas R$ 25/mês.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-[var(--magenta)] text-[13px] font-semibold tracking-[0.14em] uppercase mb-2.5">
+                  Estamos aqui para apoiar você
+                </p>
+                <h3
+                  id="formModalTitle"
+                  className="font-[var(--serif)] text-[30px] font-medium leading-tight tracking-[-0.015em] mb-2"
+                  style={{ fontFamily: "var(--serif)" }}
+                >
+                  Solicite o contato de um consultor
+                </h3>
+                <p className="text-[var(--ink-soft)] text-base mb-7">
+                  Deixe seus dados e em até <strong>15 minutos</strong> um especialista entra em contato pelo WhatsApp. Sem compromisso.
+                </p>
+              </>
+            )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
               {/* Nome */}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="f-name" className="text-sm font-semibold text-[var(--ink)]">
-                  Nome completo <span className="text-[var(--magenta)]">*</span>
+                  Nome do tutor <span className="text-[var(--magenta)]">*</span>
                 </label>
                 <input
                   ref={nameRef}
                   id="f-name"
                   type="text"
-                  placeholder="Como podemos te chamar"
+                  placeholder="Seu nome completo"
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   required
@@ -181,42 +201,59 @@ export default function ModalFormulario() {
                   className="h-[52px] px-4 pr-11 border border-[var(--line-strong)] rounded-[10px] font-[var(--sans)] text-base text-[var(--ink)] bg-white focus:outline-none focus:border-[var(--royal)] focus:shadow-[0_0_0_4px_rgba(43,61,168,.12)] transition-all w-full appearance-none"
                   style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231A1F36' stroke-width='2.4' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}
                 >
-                  <option value="">Ainda não decidi — preciso de ajuda</option>
-                  <option value="Amar Plus">Amar Plus — R$ 43/mês (mais escolhido)</option>
-                  <option value="Vida Plus">Vida Plus — R$ 90/mês</option>
+                  <option value="Plano Pet">Plano Pet — R$ 25/mês (Cão ou Gato)</option>
+                  <option value="Amar Plus">Amar Plus — R$ 43/mês (família)</option>
+                  <option value="Vida Plus">Vida Plus — R$ 90/mês (família completa)</option>
                 </select>
               </div>
 
-              {/* Pessoas */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="f-people" className="text-sm font-semibold text-[var(--ink)]">Quantas pessoas você quer proteger?</label>
-                <select
-                  id="f-people"
-                  value={form.people}
-                  onChange={(e) => setForm((f) => ({ ...f, people: e.target.value }))}
-                  className="h-[52px] px-4 pr-11 border border-[var(--line-strong)] rounded-[10px] font-[var(--sans)] text-base text-[var(--ink)] bg-white focus:outline-none focus:border-[var(--royal)] focus:shadow-[0_0_0_4px_rgba(43,61,168,.12)] transition-all w-full appearance-none"
-                  style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231A1F36' stroke-width='2.4' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}
-                >
-                  <option value="1">Só eu</option>
-                  <option value="2-4">2 a 4 pessoas (minha família)</option>
-                  <option value="5+">5 ou mais pessoas</option>
-                </select>
-              </div>
+              {/* Pessoas vs Dados do Pet */}
+              {form.plan.toLowerCase().includes("pet") || (preselectedPlan?.toLowerCase().includes("pet") ?? false) ? (
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="f-msg" className="text-sm font-semibold text-[var(--ink)]">
+                    Nome e tipo do seu pet <span className="font-normal text-[var(--ink-mute)]">(opcional)</span>
+                  </label>
+                  <input
+                    id="f-msg"
+                    type="text"
+                    placeholder="Ex: Thor (Cão - Labrador) ou Nina (Gata)"
+                    value={form.message}
+                    onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                    className="h-[52px] px-4 border border-[var(--line-strong)] rounded-[10px] font-[var(--sans)] text-base text-[var(--ink)] bg-white focus:outline-none focus:border-purple-600 transition-all w-full"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="f-people" className="text-sm font-semibold text-[var(--ink)]">Quantas pessoas você quer proteger?</label>
+                    <select
+                      id="f-people"
+                      value={form.people}
+                      onChange={(e) => setForm((f) => ({ ...f, people: e.target.value }))}
+                      className="h-[52px] px-4 pr-11 border border-[var(--line-strong)] rounded-[10px] font-[var(--sans)] text-base text-[var(--ink)] bg-white focus:outline-none focus:border-[var(--royal)] focus:shadow-[0_0_0_4px_rgba(43,61,168,.12)] transition-all w-full appearance-none"
+                      style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231A1F36' stroke-width='2.4' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}
+                    >
+                      <option value="1">Só eu</option>
+                      <option value="2-4">2 a 4 pessoas (minha família)</option>
+                      <option value="5+">5 ou mais pessoas</option>
+                    </select>
+                  </div>
 
-              {/* Mensagem */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="f-msg" className="text-sm font-semibold text-[var(--ink)]">
-                  Alguma observação? <span className="font-normal text-[var(--ink-mute)]">(opcional)</span>
-                </label>
-                <textarea
-                  id="f-msg"
-                  rows={4}
-                  placeholder="Conte um pouco sobre o que você precisa..."
-                  value={form.message}
-                  onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                  className="px-4 py-3.5 border border-[var(--line-strong)] rounded-[10px] font-[var(--sans)] text-base text-[var(--ink)] bg-white focus:outline-none focus:border-[var(--royal)] focus:shadow-[0_0_0_4px_rgba(43,61,168,.12)] transition-all w-full resize-y leading-relaxed"
-                />
-              </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="f-msg" className="text-sm font-semibold text-[var(--ink)]">
+                      Alguma observação? <span className="font-normal text-[var(--ink-mute)]">(opcional)</span>
+                    </label>
+                    <textarea
+                      id="f-msg"
+                      rows={3}
+                      placeholder="Conte um pouco sobre o que você precisa..."
+                      value={form.message}
+                      onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                      className="px-4 py-3 border border-[var(--line-strong)] rounded-[10px] font-[var(--sans)] text-base text-[var(--ink)] bg-white focus:outline-none focus:border-[var(--royal)] focus:shadow-[0_0_0_4px_rgba(43,61,168,.12)] transition-all w-full resize-y leading-relaxed"
+                    />
+                  </div>
+                </>
+              )}
 
               {/* LGPD */}
               <label className="flex gap-2.5 items-start text-sm text-[var(--ink-soft)] leading-relaxed cursor-pointer">
@@ -235,9 +272,12 @@ export default function ModalFormulario() {
               <button
                 type="submit"
                 className="h-16 flex items-center justify-center gap-2.5 rounded-xl font-semibold text-[18px] text-white transition-all hover:-translate-y-0.5"
-                style={{ background: "var(--royal)", boxShadow: "0 8px 22px rgba(43,61,168,.28)" }}
+                style={{
+                  background: (form.plan.toLowerCase().includes("pet") || (preselectedPlan?.toLowerCase().includes("pet") ?? false)) ? "#7E22CE" : "var(--royal)",
+                  boxShadow: (form.plan.toLowerCase().includes("pet") || (preselectedPlan?.toLowerCase().includes("pet") ?? false)) ? "0 8px 22px rgba(126,34,206,.28)" : "0 8px 22px rgba(43,61,168,.28)"
+                }}
               >
-                Quero receber contato
+                {(form.plan.toLowerCase().includes("pet") || (preselectedPlan?.toLowerCase().includes("pet") ?? false)) ? "Quero Proteger meu Pet 🐾" : "Quero receber contato"}
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
