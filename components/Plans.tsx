@@ -132,7 +132,9 @@ export default function Plans() {
               name: p.nome,
               sub: p.tagline,
               price: p.preco,
-              meta: `Protege você + ${p.slug === "amar-plus" ? 6 : 8} familiares`,
+              meta: p.slug === "plano-pet" || p.slug === "pet"
+                ? "Cobre 1 animal de estimação"
+                : `Protege você + ${p.slug === "amar-plus" ? 6 : 8} familiares`,
               features: mainFeatures,
               expandedFeatures: extraFeatures,
               featured: p.destaque,
@@ -406,6 +408,11 @@ export default function Plans() {
             );
           })}
         </motion.div>
+        
+        {/* Footnote / Disclaimer */}
+        <div className="mt-8 text-center text-xs text-slate-500 max-w-[600px] mx-auto leading-relaxed">
+          <p>* O jazigo do Plano Pet é de uso temporário/não perpétuo (consulte regulamento e condições).</p>
+        </div>
       </div>
     </section>
   );

@@ -57,9 +57,23 @@ const FALLBACK: Record<string, PlanoInfo> = {
       "Necromaquiagem",
     ],
   },
+  "plano-pet": {
+    slug: "plano-pet",
+    nome: "Plano Pet",
+    preco: 25,
+    cobertura: 1500,
+    tagline: "Proteção e dignidade para o seu companheiro de estimação nos momentos difíceis",
+    beneficios: [
+      "Cobertura para 1 animal de estimação",
+      "Deslocamento até o memorial",
+      "Sala de velório para despedida",
+      "Embalagem protetora ecológica",
+    ],
+  },
 };
 
 function recomendarSlug(r: Partial<Respostas>): string {
+  if (r.paraQuem === "pet") return "plano-pet";
   if (r.quantidadePessoas === "5+") return "vida-plus";
   if (r.prioridade === "melhor_cobertura") return "vida-plus";
   if (r.orcamento === "acima-70") return "vida-plus";
@@ -89,6 +103,7 @@ const PERGUNTAS: Pergunta[] = [
       { value: "conjuge", emoji: "👫", label: "Para mim e meu cônjuge" },
       { value: "familia", emoji: "👨‍👩‍👧‍👦", label: "Para minha família (filhos incluídos)" },
       { value: "pais", emoji: "👴", label: "Para meus pais ou familiares idosos" },
+      { value: "pet", emoji: "🐾", label: "Para o meu pet (cão ou gato)" },
     ],
   },
   {
@@ -303,7 +318,12 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
   const perguntasAtivas = useMemo(() => {
     return PERGUNTAS.filter((p) => {
       if (p.campo === "quantidadePessoas") {
-        if (respostas.paraQuem === "so_eu") {
+        if (respostas.paraQuem === "so_eu" || respostas.paraQuem === "pet") {
+          return false;
+        }
+      }
+      if (p.campo === "faixaEtaria") {
+        if (respostas.paraQuem === "pet") {
           return false;
         }
       }

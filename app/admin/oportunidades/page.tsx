@@ -6,6 +6,9 @@ const PLANO_LABEL: Record<string, { label: string; cor: string }> = {
   essencial: { label: "Essencial", cor: "bg-slate-100 text-slate-700 border-slate-200" },
   familia: { label: "Família", cor: "bg-blue-50 text-blue-700 border-blue-100" },
   premium: { label: "Premium", cor: "bg-amber-50 text-amber-700 border-amber-100" },
+  "amar-plus": { label: "Amar Plus", cor: "bg-blue-50 text-blue-700 border-blue-100" },
+  "vida-plus": { label: "Vida Plus", cor: "bg-amber-50 text-amber-700 border-amber-100" },
+  "plano-pet": { label: "Plano Pet", cor: "bg-purple-50 text-purple-700 border-purple-150" },
 };
 
 const PRIORIDADE_LABEL: Record<string, string> = {
