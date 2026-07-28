@@ -282,9 +282,9 @@ function PetPageContent() {
         {/* ── DESTAQUE EMOCIONAL & FOTO ── */}
         <section className="py-24 lg:py-28 bg-gradient-to-br from-purple-900 to-slate-900 text-white relative overflow-hidden">
           <div className="max-w-[1280px] mx-auto px-6 min-[640px]:px-10 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-stretch">
               
-              <div className="lg:col-span-6 relative">
+              <div className="lg:col-span-6 relative flex items-center">
                 <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border-2 border-purple-400/30">
                   <Image
                     src="/pet_memorial_care.png"
@@ -295,26 +295,31 @@ function PetPageContent() {
                 </div>
               </div>
 
-              <div className="lg:col-span-6 text-left flex flex-col items-start justify-center">
-                <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-purple-300 mb-6">
-                  Prevenção É Amor
-                </p>
-                <h2 
-                  className="text-3xl min-[768px]:text-4xl lg:text-5xl font-semibold tracking-tight leading-[1.28] mb-8" 
-                  style={{ fontFamily: "var(--serif)" }}
-                >
-                  Evite despesas inesperadas de última hora.
-                </h2>
-                <p className="text-purple-100/90 text-base min-[768px]:text-xl leading-[1.85] mb-12 max-w-xl font-normal">
-                  Serviços particulares de funeral e sepultamento pet podem custar mais de R$ 1.500 de surpresa. Com o <strong>Plano Pet AmaVidas</strong>, você se previne pagando apenas <strong>R$ 25/mês</strong> e garante assistência completa sem sustos financeiros.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => openForm("Plano Pet")}
-                  className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-9 py-4.5 rounded-2xl text-base transition-all shadow-xl hover:shadow-amber-400/20 hover:-translate-y-0.5 cursor-pointer mt-2"
-                >
-                  Garantir Proteção Pet Agora
-                </button>
+              <div className="lg:col-span-6 text-left flex flex-col justify-between py-1">
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-purple-300 mb-4">
+                    PREVENÇÃO É AMOR
+                  </p>
+                  <h2 
+                    className="text-3xl min-[768px]:text-4xl lg:text-[44px] font-semibold tracking-tight leading-[1.22] mb-7" 
+                    style={{ fontFamily: "var(--serif)" }}
+                  >
+                    Evite despesas inesperadas de última hora.
+                  </h2>
+                  <p className="text-purple-100/90 text-base min-[768px]:text-lg leading-[1.8] font-normal max-w-xl">
+                    Serviços particulares de funeral e sepultamento pet podem custar mais de R$ 1.500 de surpresa. Com o <strong>Plano Pet AmaVidas</strong>, você se previne pagando apenas <strong>R$ 25/mês</strong> e garante assistência completa sem sustos financeiros.
+                  </p>
+                </div>
+
+                <div className="pt-6">
+                  <button
+                    type="button"
+                    onClick={() => openForm("Plano Pet")}
+                    className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-9 py-4.5 rounded-2xl text-base transition-all shadow-xl hover:shadow-amber-400/20 hover:-translate-y-0.5 cursor-pointer inline-flex items-center justify-center"
+                  >
+                    Garantir Proteção Pet Agora
+                  </button>
+                </div>
               </div>
 
             </div>
