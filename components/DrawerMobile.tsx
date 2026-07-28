@@ -93,15 +93,11 @@ export default function DrawerMobile({ open, onClose }: Props) {
               onClose();
               abrirWhatsApp(configs.whatsapp || "5561985825621", "Olá, preciso informar um óbito e solicitar atendimento de plantão imediato.", "obito-drawer");
             }}
-            className="h-14 flex items-center justify-center gap-2.5 rounded-xl font-bold text-[17px] border transition-all duration-200 active:scale-[0.98]"
-            style={{
-              color: "#991B1B",
-              background: "#FEF2F2",
-              borderColor: "#FECACA",
-            }}
+            className="h-14 flex items-center justify-center gap-2.5 rounded-xl font-bold text-[17px] text-white bg-[#09090B] border border-slate-800 shadow-md transition-all duration-200 active:scale-[0.98]"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            {/* Laço de Luto */}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="shrink-0 text-amber-400">
+              <path d="M12 2C9.5 2 7.5 4 7.5 6.5c0 2.2 1.3 4.1 3.2 5l-4.2 8.5c-.3.6.1 1.3.8 1.3h2.4c.4 0 .7-.2.9-.5L12 17.8l1.4 3c.2.3.5.5.9.5h2.4c.7 0 1.1-.7.8-1.3l-4.2-8.5c1.9-.9 3.2-2.8 3.2-5C16.5 4 14.5 2 12 2zm0 3c.8 0 1.5.7 1.5 1.5S12.8 8 12 8s-1.5-.7-1.5-1.5S11.2 5 12 5z"/>
             </svg>
             Informar Óbito
           </a>
