@@ -8,6 +8,7 @@ import ImpactoFinanceiro from "@/components/ImpactoFinanceiro";
 import Diferenciais from "@/components/Diferenciais";
 import Testimonials from "@/components/Testimonials";
 import Plans from "@/components/Plans";
+import PetSection from "@/components/PetSection";
 import ClubeDescontos from "@/components/ClubeDescontos";
 import SimuladorSection from "@/components/SimuladorSection";
 import Sobre from "@/components/Sobre";
@@ -29,6 +30,7 @@ export default function HomePage() {
         <Diferenciais />
         <Testimonials />
         <Plans />
+        <PetSection />
         <ClubeDescontos />
         <SimuladorSection />
         <Sobre />
