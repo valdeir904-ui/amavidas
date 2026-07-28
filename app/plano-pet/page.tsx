@@ -280,12 +280,13 @@ function PetPageContent() {
         </section>
 
         {/* ── DESTAQUE EMOCIONAL & FOTO ── */}
-        <section className="py-24 lg:py-28 bg-gradient-to-br from-purple-900 to-slate-900 text-white relative overflow-hidden">
+        <section className="py-20 lg:py-24 bg-gradient-to-br from-purple-950 via-purple-900 to-slate-900 text-white relative overflow-hidden">
           <div className="max-w-[1280px] mx-auto px-6 min-[640px]:px-10 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
               
-              <div className="lg:col-span-6 relative flex items-center">
-                <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border-2 border-purple-400/30">
+              {/* Left Column Image */}
+              <div className="lg:col-span-6 relative">
+                <div className="relative w-full aspect-[16/11] rounded-3xl overflow-hidden shadow-2xl border-2 border-purple-400/30">
                   <Image
                     src="/pet_memorial_care.png"
                     alt="Carinho e respeito pet"
@@ -295,27 +296,44 @@ function PetPageContent() {
                 </div>
               </div>
 
-              <div className="lg:col-span-6 text-left flex flex-col justify-between py-1">
-                <div>
-                  <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-purple-300 mb-4">
-                    PREVENÇÃO É AMOR
-                  </p>
-                  <h2 
-                    className="text-3xl min-[768px]:text-4xl lg:text-[44px] font-semibold tracking-tight leading-[1.22] mb-7" 
-                    style={{ fontFamily: "var(--serif)" }}
-                  >
-                    Evite despesas inesperadas de última hora.
-                  </h2>
-                  <p className="text-purple-100/90 text-base min-[768px]:text-lg leading-[1.8] font-normal max-w-xl">
-                    Serviços particulares de funeral e sepultamento pet podem custar mais de R$ 1.500 de surpresa. Com o <strong>Plano Pet AmaVidas</strong>, você se previne pagando apenas <strong>R$ 25/mês</strong> e garante assistência completa sem sustos financeiros.
-                  </p>
+              {/* Right Column Content */}
+              <div className="lg:col-span-6 text-left flex flex-col justify-center">
+                <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-purple-300 mb-3">
+                  PREVENÇÃO É AMOR
+                </p>
+
+                <h2 
+                  className="text-3xl min-[768px]:text-4xl lg:text-[40px] font-semibold tracking-tight leading-[1.2] mb-4" 
+                  style={{ fontFamily: "var(--serif)" }}
+                >
+                  Evite despesas inesperadas de última hora.
+                </h2>
+
+                <p className="text-purple-100/90 text-base min-[768px]:text-lg leading-relaxed mb-6 max-w-xl font-normal">
+                  Serviços particulares de funeral e sepultamento pet podem custar mais de R$ 1.500 de surpresa. Com o <strong>Plano Pet AmaVidas</strong>, você se previne pagando apenas <strong>R$ 25/mês</strong> e garante assistência completa sem sustos financeiros.
+                </p>
+
+                {/* 3 Destaques de Benefícios para preencher o espaço com valor visual e perfeito alinhamento */}
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-center gap-3 text-purple-100 text-sm font-medium">
+                    <div className="w-5 h-5 rounded-full bg-purple-500/30 border border-purple-400/40 text-amber-300 flex items-center justify-center font-bold text-xs shrink-0">✓</div>
+                    <span>Atendimento 24h e remoção rápida em Águas Lindas & DF</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-purple-100 text-sm font-medium">
+                    <div className="w-5 h-5 rounded-full bg-purple-500/30 border border-purple-400/40 text-amber-300 flex items-center justify-center font-bold text-xs shrink-0">✓</div>
+                    <span>Sem restrição de peso, porte ou raça do seu animal</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-purple-100 text-sm font-medium">
+                    <div className="w-5 h-5 rounded-full bg-purple-500/30 border border-purple-400/40 text-amber-300 flex items-center justify-center font-bold text-xs shrink-0">✓</div>
+                    <span>Velório reservado, lápide personalizada e embalagem ecológica</span>
+                  </div>
                 </div>
 
-                <div className="pt-6">
+                <div>
                   <button
                     type="button"
                     onClick={() => openForm("Plano Pet")}
-                    className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-9 py-4.5 rounded-2xl text-base transition-all shadow-xl hover:shadow-amber-400/20 hover:-translate-y-0.5 cursor-pointer inline-flex items-center justify-center"
+                    className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-9 py-4 rounded-2xl text-base transition-all shadow-xl hover:shadow-amber-400/20 hover:-translate-y-0.5 cursor-pointer inline-flex items-center justify-center"
                   >
                     Garantir Proteção Pet Agora
                   </button>
