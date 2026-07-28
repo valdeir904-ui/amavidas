@@ -19,6 +19,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://amavidas.com.br"),
   title: "AmaVidas — Planos Funerários em Águas Lindas e DF | A partir de R$ 43/mês",
   description:
     "Proteja sua família agora com um plano funerário completo a partir de R$ 43/mês. Cobertura nacional, atendimento 24h e zero burocracia. 4,9⭐ no Google. Quem Ama, Cuida.",
