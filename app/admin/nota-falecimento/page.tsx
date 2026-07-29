@@ -28,7 +28,7 @@ export default function NotaFalecimentoPage() {
   const [mensagem, setMensagem] = useState(PRESET_MENSAGENS.familiar[0]);
   
   // Cerimônia
-  const [localVelorio, setLocalVelorio] = useState("Memorial AmaVidas — Sala 02 (Águas Lindas de Goiás)");
+  const [localVelorio, setLocalVelorio] = useState("Cemitério Municipal de Águas Lindas");
   const [horarioVelorio, setHorarioVelorio] = useState("A partir das 08:00h");
   const [localSepultamento, setLocalSepultamento] = useState("Cemitério Municipal de Águas Lindas");
   const [horarioSepultamento, setHorarioSepultamento] = useState("Às 16:30h");
@@ -513,12 +513,12 @@ export default function NotaFalecimentoPage() {
               {/* ── TOP BANNER HEADER (com Logo AmaVidas) ── */}
               <div className="text-center relative z-10 flex flex-col items-center pt-1 space-y-2">
                 
-                {/* Logo AmaVidas Oficial */}
-                <div className="h-10 flex items-center justify-center">
+                {/* Logo AmaVidas Oficial (aumentada em 50%) */}
+                <div className="h-14 flex items-center justify-center">
                   <img
                     src="/logo.png"
                     alt="AmaVidas"
-                    className="h-9 object-contain brightness-0 invert"
+                    className="h-14 object-contain brightness-0 invert"
                   />
                 </div>
 
