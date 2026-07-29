@@ -88,6 +88,16 @@ const navItems = [
     ),
   },
   {
+    label: "Nota de Falecimento",
+    href: "/admin/nota-falecimento",
+    soon: false,
+    icon: (
+      <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2C9.5 2 7.5 4 7.5 6.5c0 2.2 1.3 4.1 3.2 5l-4.2 8.5c-.3.6.1 1.3.8 1.3h2.4c.4 0 .7-.2.9-.5L12 17.8l1.4 3c.2.3.5.5.9.5h2.4c.7 0 1.1-.7.8-1.3l-4.2-8.5c1.9-.9 3.2-2.8 3.2-5C16.5 4 14.5 2 12 2zm0 3c.8 0 1.5.7 1.5 1.5S12.8 8 12 8s-1.5-.7-1.5-1.5S11.2 5 12 5z"/>
+      </svg>
+    ),
+  },
+  {
     label: "Configurações",
     href: "/admin/configuracoes",
     soon: false,
@@ -118,7 +128,7 @@ export default function AdminSidebar() {
 
   const visibleNavItems = navItems.filter((item) => {
     if (currentUser?.perfil !== "MASTER") {
-      return item.label === "Dashboard" || item.label === "Oportunidades";
+      return item.label === "Dashboard" || item.label === "Oportunidades" || item.label === "Nota de Falecimento";
     }
     return true;
   });
