@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Image from "next/image";
 import html2canvas from "html2canvas";
 
 const PRESET_MENSAGENS = {
@@ -35,12 +34,13 @@ export default function NotaFalecimentoPage() {
   const [localSepultamento, setLocalSepultamento] = useState("Cemitério Municipal de Águas Lindas");
   const [horarioSepultamento, setHorarioSepultamento] = useState("Às 16:30h");
 
-  // Estilo
+  // Estilo & Layout
   const [formato, setFormato] = useState<"feed" | "story">("feed");
-  const [tema, setTema] = useState<"dark" | "maravilha" | "celeste" | "pet">("dark");
+  const [layoutEstilo, setLayoutEstilo] = useState<"imperial" | "editorial" | "celeste" | "pet">("imperial");
+  const [molduraFoto, setMolduraFoto] = useState<"oval" | "circulo" | "arredondado">("oval");
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
 
-  // Loading
+  // Loading & Feedback
   const [generating, setGenerating] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
 
@@ -60,24 +60,24 @@ export default function NotaFalecimentoPage() {
   const handleTipoChange = (newTipo: "familiar" | "pet") => {
     setTipo(newTipo);
     if (newTipo === "pet") {
-      setTema("pet");
+      setLayoutEstilo("pet");
       setNome("Thor");
       setMensagem(PRESET_MENSAGENS.pet[0]);
     } else {
-      setTema("dark");
+      setLayoutEstilo("imperial");
       setNome("Maria de Lourdes Oliveira");
       setMensagem(PRESET_MENSAGENS.familiar[0]);
     }
   };
 
-  // Download PNG
+  // Download PNG alta resolução
   const handleDownload = async () => {
     if (!cardRef.current) return;
     setGenerating(true);
 
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 3, // Alta resolução
+        scale: 3,
         useCORS: true,
         backgroundColor: null,
       });
@@ -119,55 +119,84 @@ export default function NotaFalecimentoPage() {
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
 
-  // Estilos de Tema
-  const getThemeStyles = () => {
-    switch (tema) {
+  // Preset themes styling
+  const getThemeConfig = () => {
+    switch (layoutEstilo) {
       case "pet":
         return {
-          bg: "bg-gradient-to-b from-[#2E1065] via-[#3B0764] to-[#1E1B4B]",
-          border: "border-purple-400/30",
-          accentText: "text-amber-300",
+          bgContainer: "bg-gradient-to-b from-[#2A085C] via-[#3B0764] to-[#130630]",
+          headerText: "text-amber-300",
+          borderAccent: "border-amber-400/50",
           ribbonColor: "text-amber-400",
-          cardBg: "bg-purple-950/60 border-purple-400/20",
-          subText: "text-purple-200",
+          nameColor: "text-white font-bold",
+          dateColor: "text-amber-300 font-bold",
+          bodyText: "text-purple-100",
+          cardBg: "bg-purple-950/70 border-purple-400/30",
+          footerText: "text-purple-300",
+          iconBadge: "🐾",
         };
-      case "maravilha":
+      case "editorial":
         return {
-          bg: "bg-gradient-to-b from-[#1E293B] via-[#0F172A] to-[#020617]",
-          border: "border-slate-700/60",
-          accentText: "text-slate-200",
-          ribbonColor: "text-slate-300",
-          cardBg: "bg-slate-900/80 border-slate-700/40",
-          subText: "text-slate-300",
+          bgContainer: "bg-gradient-to-b from-[#18181B] via-[#09090B] to-[#09090B]",
+          headerText: "text-amber-200",
+          borderAccent: "border-amber-400/40",
+          ribbonColor: "text-amber-400",
+          nameColor: "text-[#FAF5FF] font-serif font-bold",
+          dateColor: "text-amber-400 font-semibold",
+          bodyText: "text-zinc-300",
+          cardBg: "bg-zinc-900/90 border-zinc-700/50",
+          footerText: "text-zinc-400",
+          iconBadge: "🎗️",
         };
       case "celeste":
         return {
-          bg: "bg-gradient-to-b from-[#0F172A] via-[#1E3A8A] to-[#090D16]",
-          border: "border-sky-400/30",
-          accentText: "text-sky-200",
+          bgContainer: "bg-gradient-to-b from-[#0B1329] via-[#1E293B] to-[#030712]",
+          headerText: "text-sky-200",
+          borderAccent: "border-sky-300/40",
           ribbonColor: "text-sky-300",
-          cardBg: "bg-slate-900/70 border-sky-400/20",
-          subText: "text-sky-100",
+          nameColor: "text-white font-serif font-bold",
+          dateColor: "text-sky-300 font-semibold",
+          bodyText: "text-sky-100",
+          cardBg: "bg-slate-900/80 border-sky-400/30",
+          footerText: "text-sky-200",
+          iconBadge: "🕊️",
         };
-      case "dark":
+      case "imperial":
       default:
         return {
-          bg: "bg-gradient-to-b from-[#09090B] via-[#18181B] to-[#09090B]",
-          border: "border-amber-500/30",
-          accentText: "text-amber-400",
+          bgContainer: "bg-gradient-to-b from-[#0C0A09] via-[#1C1917] to-[#0C0A09]",
+          headerText: "text-amber-400",
+          borderAccent: "border-amber-500/50",
           ribbonColor: "text-amber-400",
-          cardBg: "bg-zinc-900/90 border-amber-500/20",
-          subText: "text-zinc-300",
+          nameColor: "text-amber-50 font-serif font-extrabold",
+          dateColor: "text-amber-400 font-bold",
+          bodyText: "text-stone-300",
+          cardBg: "bg-stone-900/90 border-amber-500/30",
+          footerText: "text-amber-200/80",
+          iconBadge: "🎗️",
         };
     }
   };
 
-  const currentTheme = getThemeStyles();
+  const theme = getThemeConfig();
+
+  // Photo Frame class builder
+  const getPhotoFrameClass = () => {
+    switch (molduraFoto) {
+      case "oval":
+        return "w-28 h-36 rounded-[50%] border-4 border-amber-400/80 shadow-2xl overflow-hidden";
+      case "circulo":
+        return "w-32 h-32 rounded-full border-4 border-amber-400/80 shadow-2xl overflow-hidden";
+      case "arredondado":
+      default:
+        return "w-32 h-36 rounded-2xl border-3 border-amber-400/70 shadow-2xl overflow-hidden";
+    }
+  };
 
   return (
     <div className="p-6 max-w-[1400px] mx-auto space-y-6">
       
-      {/* Header */}
+      {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 border border-amber-200 text-amber-900 text-xs font-bold uppercase tracking-wider mb-2">
@@ -175,7 +204,7 @@ export default function NotaFalecimentoPage() {
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Gerador de Nota de Falecimento</h1>
           <p className="text-slate-600 text-sm mt-1">
-            Crie comunicados solenes de homenagem e velório para baixar em alta resolução ou enviar via WhatsApp.
+            Personalize o layout visual, insira a foto e os detalhes do velório para compartilhar no WhatsApp ou redes sociais.
           </p>
         </div>
 
@@ -210,13 +239,13 @@ export default function NotaFalecimentoPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* Left Column: Form Settings */}
+        {/* Left Column: Settings Form */}
         <div className="lg:col-span-5 space-y-6">
           
-          {/* Card 1: Tipo & Formato */}
+          {/* Card 1: Tipo, Estilo & Moldura */}
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>⚙️</span> Tipo & Formato
+              <span>🎨</span> Estilo & Formato do Card
             </h3>
 
             {/* Tipo */}
@@ -230,7 +259,7 @@ export default function NotaFalecimentoPage() {
                     : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                 }`}
               >
-                <span>🎗️</span> Homenagem Familiar
+                <span>🎗️</span> Familiar
               </button>
 
               <button
@@ -246,40 +275,67 @@ export default function NotaFalecimentoPage() {
               </button>
             </div>
 
-            {/* Formato & Tema */}
+            {/* Estilo Visual & Moldura */}
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div>
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">Formato</label>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">Estilo do Layout</label>
                 <select
-                  value={formato}
-                  onChange={(e) => setFormato(e.target.value as "feed" | "story")}
+                  value={layoutEstilo}
+                  onChange={(e) => setLayoutEstilo(e.target.value as any)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:border-slate-900"
                 >
-                  <option value="feed">Feed (Quadrado 1:1)</option>
-                  <option value="story">Stories / WA Status (9:16)</option>
+                  <option value="imperial">Imperial Dourado 🏛️</option>
+                  <option value="editorial">Mármore Solene 🖤</option>
+                  <option value="celeste">Celeste & Prata 🕊️</option>
+                  <option value="pet">Roxo Pet 🐾</option>
                 </select>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">Tema Visual</label>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">Moldura da Foto</label>
                 <select
-                  value={tema}
-                  onChange={(e) => setTema(e.target.value as any)}
+                  value={molduraFoto}
+                  onChange={(e) => setMolduraFoto(e.target.value as any)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:border-slate-900"
                 >
-                  <option value="dark">Escuro & Dourado</option>
-                  <option value="maravilha">Mármore Solene</option>
-                  <option value="celeste">Celeste & Prata</option>
-                  <option value="pet">Roxo Pet 🐾</option>
+                  <option value="oval">Oval Clássico 🖼️</option>
+                  <option value="circulo">Circular Luxo ⭕</option>
+                  <option value="arredondado">Retâng. Arredondado 🔲</option>
                 </select>
               </div>
             </div>
+
+            {/* Formato da Imagem */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">Proporção da Imagem</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormato("feed")}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    formato === "feed" ? "bg-amber-400 text-slate-950 border-amber-400 shadow-sm" : "bg-slate-50 border-slate-200 text-slate-700"
+                  }`}
+                >
+                  Feed (1:1 Quadrado)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormato("story")}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    formato === "story" ? "bg-amber-400 text-slate-950 border-amber-400 shadow-sm" : "bg-slate-50 border-slate-200 text-slate-700"
+                  }`}
+                >
+                  Stories / WA Status (9:16)
+                </button>
+              </div>
+            </div>
+
           </div>
 
           {/* Card 2: Dados do Falecido */}
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>👤</span> {tipo === "pet" ? "Dados do Pet" : "Dados do Falecido"}
+              <span>👤</span> {tipo === "pet" ? "Dados do Pet" : "Dados do Ente Querido"}
             </h3>
 
             <div>
@@ -321,7 +377,7 @@ export default function NotaFalecimentoPage() {
 
             {/* Foto Upload */}
             <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">Foto de Homenagem (Opcional)</label>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">Foto de Homenagem (Carregar Imagem)</label>
               <div className="flex items-center gap-3">
                 <input
                   type="file"
@@ -348,7 +404,7 @@ export default function NotaFalecimentoPage() {
                 onChange={(e) => setMensagem(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-700 mb-2 focus:outline-none"
               >
-                <option value="">-- Escolher uma Frase Pronta --</option>
+                <option value="">-- Escolher Frase Pré-definida --</option>
                 {PRESET_MENSAGENS[tipo].map((msg, i) => (
                   <option key={i} value={msg}>{msg.slice(0, 55)}...</option>
                 ))}
@@ -366,7 +422,7 @@ export default function NotaFalecimentoPage() {
           {/* Card 3: Informações do Velório & Sepultamento */}
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>📍</span> Cerimônia de Despedida
+              <span>📍</span> Informações das Homenagens & Velório
             </h3>
 
             <div>
@@ -412,101 +468,110 @@ export default function NotaFalecimentoPage() {
 
         </div>
 
-        {/* Right Column: Live Card Canvas Preview */}
+        {/* Right Column: High Resolution Live Preview */}
         <div className="lg:col-span-7 flex flex-col items-center justify-start sticky top-6">
           
           <div className="w-full flex items-center justify-between mb-3 px-2">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Pré-visualização em Tempo Real</span>
-            <span className="text-xs font-bold bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full">{formato === "feed" ? "1080 x 1080px (Feed)" : "1080 x 1920px (Story)"}</span>
+            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Pré-visualização da Arte Final</span>
+            <span className="text-xs font-bold bg-slate-200 text-slate-800 px-3 py-1 rounded-full">{formato === "feed" ? "1080 x 1080px (Feed)" : "1080 x 1920px (Story)"}</span>
           </div>
 
           {/* Canvas Wrapper */}
-          <div className="w-full flex justify-center bg-slate-200/60 p-4 rounded-3xl border border-slate-300/80 shadow-inner">
+          <div className="w-full flex justify-center bg-slate-300/60 p-6 rounded-3xl border border-slate-300/80 shadow-inner">
             <div
               ref={cardRef}
               style={{
-                width: formato === "feed" ? "540px" : "420px",
-                height: formato === "feed" ? "540px" : "740px",
-                fontFamily: "var(--serif), Georgia, serif",
+                width: formato === "feed" ? "520px" : "410px",
+                height: formato === "feed" ? "520px" : "720px",
               }}
-              className={`relative flex flex-col justify-between p-8 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ${currentTheme.bg} text-white border ${currentTheme.border}`}
+              className={`relative flex flex-col justify-between p-8 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ${theme.bgContainer} text-white border ${theme.borderAccent}`}
             >
-              {/* Subtle Pattern Background Overlay */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.05),transparent_60%)] pointer-events-none" />
+              {/* Subtle Ambient Radial Light */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center_top,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none" />
 
-              {/* Decorative Corner Ornaments */}
-              <div className="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-amber-400/40 pointer-events-none" />
-              <div className="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-amber-400/40 pointer-events-none" />
-              <div className="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-amber-400/40 pointer-events-none" />
-              <div className="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-amber-400/40 pointer-events-none" />
+              {/* Gold Filigree Corner Accents */}
+              <div className="absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-amber-400/50 pointer-events-none" />
+              <div className="absolute top-3 right-3 w-7 h-7 border-t-2 border-r-2 border-amber-400/50 pointer-events-none" />
+              <div className="absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 border-amber-400/50 pointer-events-none" />
+              <div className="absolute bottom-3 right-3 w-8 h-7 border-b-2 border-r-2 border-amber-400/50 pointer-events-none" />
 
-              {/* Top Header Card */}
-              <div className="text-center relative z-10 flex flex-col items-center">
-                
-                {/* Logo & Ribbon */}
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  {/* Mourning Ribbon Icon */}
-                  <svg className={`w-6 h-6 ${currentTheme.ribbonColor}`} fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C9.5 2 7.5 4 7.5 6.5c0 2.2 1.3 4.1 3.2 5l-4.2 8.5c-.3.6.1 1.3.8 1.3h2.4c.4 0 .7-.2.9-.5L12 17.8l1.4 3c.2.3.5.5.9.5h2.4c.7 0 1.1-.7.8-1.3l-4.2-8.5c1.9-.9 3.2-2.8 3.2-5C16.5 4 14.5 2 12 2zm0 3c.8 0 1.5.7 1.5 1.5S12.8 8 12 8s-1.5-.7-1.5-1.5S11.2 5 12 5z"/>
-                  </svg>
-                  <span className="text-xs font-black tracking-[0.3em] uppercase text-white/90">NOTÍCIA DE FALECIMENTO</span>
+              {/* ── TOP BANNER HEADER ── */}
+              <div className="text-center relative z-10 flex flex-col items-center pt-1">
+                <div className="flex items-center justify-center gap-2.5 mb-1.5">
+                  <span className="text-lg">{theme.iconBadge}</span>
+                  <span className={`text-xs font-black tracking-[0.35em] uppercase ${theme.headerText}`}>
+                    {tipo === "pet" ? "HOMENAGEM PET AMANVIDAS" : "NOTA DE FALECIMENTO"}
+                  </span>
                 </div>
-
-                <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent my-1" />
+                <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-amber-400/70 to-transparent" />
               </div>
 
-              {/* Middle Section: Photo + Name + Message */}
-              <div className="flex flex-col items-center text-center my-auto relative z-10 px-2 space-y-3">
+              {/* ── CENTERPORTRAIT & NAME ── */}
+              <div className="flex flex-col items-center text-center my-auto relative z-10 px-3 space-y-3">
                 
-                {/* Photo Frame (if uploaded) */}
+                {/* Photo Frame Container */}
                 {fotoUrl ? (
-                  <div className="relative w-24 h-24 min-[640px]:w-28 min-[640px]:h-28 rounded-full overflow-hidden border-2 border-amber-400/70 shadow-xl mb-1 shrink-0">
+                  <div className={`relative ${getPhotoFrameClass()} flex items-center justify-center shrink-0`}>
                     <img src={fotoUrl} alt={nome} className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-white/5 border border-white/20 flex items-center justify-center text-2xl mb-1 shadow-sm shrink-0">
+                  <div className="w-20 h-20 rounded-full bg-white/5 border-2 border-amber-400/50 flex items-center justify-center text-3xl shadow-lg shrink-0">
                     {tipo === "pet" ? "🐾" : "🕊️"}
                   </div>
                 )}
 
-                {/* Name */}
-                <h2 className="text-2xl min-[640px]:text-3xl font-extrabold tracking-tight leading-tight text-white">
+                {/* Deceased Name */}
+                <h2 
+                  className={`text-2xl min-[640px]:text-3xl tracking-tight leading-tight ${theme.nameColor}`}
+                  style={{ fontFamily: "var(--serif), Georgia, serif" }}
+                >
                   {nome || "Nome do Ente Querido"}
                 </h2>
 
-                {/* Dates */}
-                <p className={`text-xs min-[640px]:text-sm font-semibold uppercase tracking-widest ${currentTheme.accentText}`}>
-                  {dataNascimento ? `* ${dataNascimento}` : ''} {dataFalecimento ? `† ${dataFalecimento}` : ''}
-                </p>
+                {/* Dates Banner */}
+                <div className="inline-flex items-center gap-3 px-3 py-1 rounded-full bg-black/30 border border-white/10 text-xs">
+                  <span className={theme.dateColor}>{dataNascimento ? `* ${dataNascimento}` : ''}</span>
+                  <span className="text-white/40">•</span>
+                  <span className={theme.dateColor}>{dataFalecimento ? `† ${dataFalecimento}` : ''}</span>
+                </div>
 
-                {/* Quote Message */}
+                {/* Quote Text */}
                 {mensagem && (
-                  <p className={`text-xs min-[640px]:text-sm italic font-normal leading-relaxed max-w-md ${currentTheme.subText} pt-1`}>
+                  <p 
+                    className={`text-xs min-[640px]:text-sm italic leading-relaxed max-w-md ${theme.bodyText} px-2 pt-1 font-serif`}
+                  >
                     "{mensagem}"
                   </p>
                 )}
               </div>
 
-              {/* Bottom Section: Ceremony Details Card */}
-              <div className={`relative z-10 rounded-xl p-3.5 text-left border ${currentTheme.cardBg} backdrop-blur-md shadow-lg space-y-2 mt-auto`}>
+              {/* ── BOTTOM CEREMONY CARD ── */}
+              <div className={`relative z-10 rounded-2xl p-4 text-left border ${theme.cardBg} backdrop-blur-md shadow-2xl space-y-3 mt-auto`}>
                 
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <span className={`font-extrabold uppercase text-[10px] tracking-wider block ${currentTheme.accentText}`}>📍 Velório</span>
-                    <p className="font-semibold text-white/90 text-[11px] leading-tight truncate">{localVelorio || "À definir"}</p>
-                    <p className="text-[10px] text-white/70 mt-0.5">{horarioVelorio}</p>
+                  <div className="border-r border-white/10 pr-2">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-xs">📍</span>
+                      <span className={`font-extrabold uppercase text-[10px] tracking-wider ${theme.headerText}`}>VELÓRIO</span>
+                    </div>
+                    <p className="font-bold text-white text-[11px] leading-tight truncate">{localVelorio || "À definir"}</p>
+                    <p className={`text-[10px] mt-0.5 font-medium ${theme.footerText}`}>{horarioVelorio}</p>
                   </div>
 
-                  <div>
-                    <span className={`font-extrabold uppercase text-[10px] tracking-wider block ${currentTheme.accentText}`}>📍 Sepultamento</span>
-                    <p className="font-semibold text-white/90 text-[11px] leading-tight truncate">{localSepultamento || "À definir"}</p>
-                    <p className="text-[10px] text-white/70 mt-0.5">{horarioSepultamento}</p>
+                  <div className="pl-1">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-xs">⚰️</span>
+                      <span className={`font-extrabold uppercase text-[10px] tracking-wider ${theme.headerText}`}>SEPULTAMENTO</span>
+                    </div>
+                    <p className="font-bold text-white text-[11px] leading-tight truncate">{localSepultamento || "À definir"}</p>
+                    <p className={`text-[10px] mt-0.5 font-medium ${theme.footerText}`}>{horarioSepultamento}</p>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-white/60 font-sans font-medium">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-white tracking-wider">AmaVidas</span>
+                {/* Footer Watermark */}
+                <div className="pt-2.5 border-t border-white/10 flex items-center justify-between text-[10px] font-sans font-medium text-white/70">
+                  <div className="flex items-center gap-2">
+                    <span className="font-black tracking-wider text-amber-400 uppercase">AmaVidas</span>
                     <span>· Assistência Funeral 24h</span>
                   </div>
                   <span>Águas Lindas & DF</span>
@@ -517,8 +582,8 @@ export default function NotaFalecimentoPage() {
             </div>
           </div>
 
-          <p className="text-xs text-slate-500 text-center mt-4">
-            💡 Dica: Ao clicar em <strong>"Baixar Imagem PNG"</strong>, a imagem acima será baixada em alta resolução pronta para publicação!
+          <p className="text-xs text-slate-600 text-center mt-4">
+            ✨ Clique em <strong>"Baixar Imagem PNG"</strong> para exportar a arte pronta em alta resolução!
           </p>
 
         </div>
