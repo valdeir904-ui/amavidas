@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import html2canvas from "html2canvas";
 
 const PRESET_MENSAGENS = {
   familiar: [
@@ -76,21 +75,37 @@ export default function NotaFalecimentoPage() {
     setGenerating(true);
 
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: null,
+      const { toPng } = await import("html-to-image");
+      const dataUrl = await toPng(cardRef.current, {
+        quality: 0.98,
+        pixelRatio: 2.5,
+        cacheBust: true,
       });
 
-      const image = canvas.toDataURL("image/png");
       const link = document.createElement("a");
-      const cleanName = nome.toLowerCase().replace(/\s+/g, "_");
+      const cleanName = nome ? nome.toLowerCase().replace(/\s+/g, "_") : "homenagem";
       link.download = `nota_falecimento_${cleanName}.png`;
-      link.href = image;
+      link.href = dataUrl;
       link.click();
     } catch (err) {
-      console.error("Erro ao gerar imagem:", err);
-      alert("Não foi possível gerar a imagem. Tente novamente.");
+      console.error("Erro ao gerar imagem com html-to-image:", err);
+      try {
+        const html2canvas = (await import("html2canvas")).default;
+        const canvas = await html2canvas(cardRef.current, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+        });
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        const cleanName = nome ? nome.toLowerCase().replace(/\s+/g, "_") : "homenagem";
+        link.download = `nota_falecimento_${cleanName}.png`;
+        link.href = image;
+        link.click();
+      } catch (fallbackErr) {
+        console.error("Erro no fallback:", fallbackErr);
+        alert("Não foi possível gerar a imagem PNG. Tente usar uma foto diferente ou navegador recente.");
+      }
     } finally {
       setGenerating(false);
     }
