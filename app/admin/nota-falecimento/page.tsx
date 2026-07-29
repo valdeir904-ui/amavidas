@@ -34,7 +34,7 @@ export default function NotaFalecimentoPage() {
   const [horarioSepultamento, setHorarioSepultamento] = useState("Às 16:30h");
 
   // Estilo & Layout
-  const [formato, setFormato] = useState<"feed" | "story">("feed");
+  const [formato, setFormato] = useState<"feed" | "story">("story");
   const [layoutEstilo, setLayoutEstilo] = useState<"imperial" | "editorial" | "celeste" | "pet">("imperial");
   const [molduraFoto, setMolduraFoto] = useState<"oval" | "circulo" | "arredondado">("oval");
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
@@ -134,59 +134,59 @@ export default function NotaFalecimentoPage() {
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
 
-  // Preset themes styling
+  // Preset themes styling (Sem backdrop-blur para evitar manchas na exportacao)
   const getThemeConfig = () => {
     switch (layoutEstilo) {
       case "pet":
         return {
-          bgContainer: "bg-gradient-to-b from-[#2A085C] via-[#3B0764] to-[#130630]",
+          bgContainer: "bg-[#1E0942]",
           headerText: "text-amber-300",
-          borderAccent: "border-amber-400/50",
+          borderAccent: "border-purple-400/40",
           ribbonColor: "text-amber-400",
           nameColor: "text-white font-bold",
           dateColor: "text-amber-300 font-bold",
           bodyText: "text-purple-100",
-          cardBg: "bg-purple-950/70 border-purple-400/30",
+          cardBg: "bg-[#2D105D] border-purple-400/40",
           footerText: "text-purple-300",
           iconBadge: "🐾",
         };
       case "editorial":
         return {
-          bgContainer: "bg-gradient-to-b from-[#18181B] via-[#09090B] to-[#09090B]",
+          bgContainer: "bg-[#09090B]",
           headerText: "text-amber-200",
-          borderAccent: "border-amber-400/40",
+          borderAccent: "border-zinc-700/60",
           ribbonColor: "text-amber-400",
           nameColor: "text-[#FAF5FF] font-serif font-bold",
           dateColor: "text-amber-400 font-semibold",
           bodyText: "text-zinc-300",
-          cardBg: "bg-zinc-900/90 border-zinc-700/50",
+          cardBg: "bg-[#18181B] border-zinc-700/60",
           footerText: "text-zinc-400",
           iconBadge: "🎗️",
         };
       case "celeste":
         return {
-          bgContainer: "bg-gradient-to-b from-[#0B1329] via-[#1E293B] to-[#030712]",
+          bgContainer: "bg-[#070D1E]",
           headerText: "text-sky-200",
-          borderAccent: "border-sky-300/40",
+          borderAccent: "border-sky-400/40",
           ribbonColor: "text-sky-300",
           nameColor: "text-white font-serif font-bold",
           dateColor: "text-sky-300 font-semibold",
           bodyText: "text-sky-100",
-          cardBg: "bg-slate-900/80 border-sky-400/30",
+          cardBg: "bg-[#0F172A] border-sky-400/40",
           footerText: "text-sky-200",
           iconBadge: "🕊️",
         };
       case "imperial":
       default:
         return {
-          bgContainer: "bg-gradient-to-b from-[#0C0A09] via-[#1C1917] to-[#0C0A09]",
+          bgContainer: "bg-[#0C0A09]",
           headerText: "text-amber-400",
           borderAccent: "border-amber-500/50",
           ribbonColor: "text-amber-400",
           nameColor: "text-amber-50 font-serif font-extrabold",
           dateColor: "text-amber-400 font-bold",
           bodyText: "text-stone-300",
-          cardBg: "bg-stone-900/90 border-amber-500/30",
+          cardBg: "bg-[#1C1917] border-amber-500/40",
           footerText: "text-amber-200/80",
           iconBadge: "🎗️",
         };
@@ -326,21 +326,21 @@ export default function NotaFalecimentoPage() {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setFormato("feed")}
-                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                    formato === "feed" ? "bg-amber-400 text-slate-950 border-amber-400 shadow-sm" : "bg-slate-50 border-slate-200 text-slate-700"
-                  }`}
-                >
-                  Feed (1:1 Quadrado)
-                </button>
-                <button
-                  type="button"
                   onClick={() => setFormato("story")}
                   className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                     formato === "story" ? "bg-amber-400 text-slate-950 border-amber-400 shadow-sm" : "bg-slate-50 border-slate-200 text-slate-700"
                   }`}
                 >
                   Stories / WA Status (9:16)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormato("feed")}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    formato === "feed" ? "bg-amber-400 text-slate-950 border-amber-400 shadow-sm" : "bg-slate-50 border-slate-200 text-slate-700"
+                  }`}
+                >
+                  Feed (1:1 Quadrado)
                 </button>
               </div>
             </div>
@@ -502,7 +502,7 @@ export default function NotaFalecimentoPage() {
               className={`relative flex flex-col justify-between p-8 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ${theme.bgContainer} text-white border ${theme.borderAccent}`}
             >
               {/* Subtle Ambient Radial Light */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center_top,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center_top,rgba(255,255,255,0.06),transparent_70%)] pointer-events-none" />
 
               {/* Gold Filigree Corner Accents */}
               <div className="absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-amber-400/50 pointer-events-none" />
@@ -510,18 +510,28 @@ export default function NotaFalecimentoPage() {
               <div className="absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 border-amber-400/50 pointer-events-none" />
               <div className="absolute bottom-3 right-3 w-8 h-7 border-b-2 border-r-2 border-amber-400/50 pointer-events-none" />
 
-              {/* ── TOP BANNER HEADER ── */}
-              <div className="text-center relative z-10 flex flex-col items-center pt-1">
-                <div className="flex items-center justify-center gap-2.5 mb-1.5">
-                  <span className="text-lg">{theme.iconBadge}</span>
-                  <span className={`text-xs font-black tracking-[0.35em] uppercase ${theme.headerText}`}>
+              {/* ── TOP BANNER HEADER (com Logo AmaVidas) ── */}
+              <div className="text-center relative z-10 flex flex-col items-center pt-1 space-y-2">
+                
+                {/* Logo AmaVidas Oficial */}
+                <div className="h-10 flex items-center justify-center">
+                  <img
+                    src="/logo.png"
+                    alt="AmaVidas"
+                    className="h-9 object-contain brightness-0 invert"
+                  />
+                </div>
+
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <span className="text-sm">{theme.iconBadge}</span>
+                  <span className={`text-[11px] font-black tracking-[0.35em] uppercase ${theme.headerText}`}>
                     {tipo === "pet" ? "HOMENAGEM PET AMANVIDAS" : "NOTA DE FALECIMENTO"}
                   </span>
                 </div>
                 <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-amber-400/70 to-transparent" />
               </div>
 
-              {/* ── CENTERPORTRAIT & NAME ── */}
+              {/* ── CENTER PORTRAIT & NAME ── */}
               <div className="flex flex-col items-center text-center my-auto relative z-10 px-3 space-y-3">
                 
                 {/* Photo Frame Container */}
@@ -544,7 +554,7 @@ export default function NotaFalecimentoPage() {
                 </h2>
 
                 {/* Dates Banner */}
-                <div className="inline-flex items-center gap-3 px-3 py-1 rounded-full bg-black/30 border border-white/10 text-xs">
+                <div className="inline-flex items-center gap-3 px-3 py-1 rounded-full bg-black/40 border border-white/10 text-xs">
                   <span className={theme.dateColor}>{dataNascimento ? `* ${dataNascimento}` : ''}</span>
                   <span className="text-white/40">•</span>
                   <span className={theme.dateColor}>{dataFalecimento ? `† ${dataFalecimento}` : ''}</span>
@@ -560,8 +570,8 @@ export default function NotaFalecimentoPage() {
                 )}
               </div>
 
-              {/* ── BOTTOM CEREMONY CARD ── */}
-              <div className={`relative z-10 rounded-2xl p-4 text-left border ${theme.cardBg} backdrop-blur-md shadow-2xl space-y-3 mt-auto`}>
+              {/* ── BOTTOM CEREMONY CARD (Informações Completas sem Corte / Sem Mancha) ── */}
+              <div className={`relative z-10 rounded-2xl p-4 text-left border ${theme.cardBg} shadow-2xl space-y-3 mt-auto`}>
                 
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div className="border-r border-white/10 pr-2">
@@ -569,8 +579,8 @@ export default function NotaFalecimentoPage() {
                       <span className="text-xs">📍</span>
                       <span className={`font-extrabold uppercase text-[10px] tracking-wider ${theme.headerText}`}>VELÓRIO</span>
                     </div>
-                    <p className="font-bold text-white text-[11px] leading-tight truncate">{localVelorio || "À definir"}</p>
-                    <p className={`text-[10px] mt-0.5 font-medium ${theme.footerText}`}>{horarioVelorio}</p>
+                    <p className="font-bold text-white text-[11px] leading-snug break-words whitespace-normal">{localVelorio || "À definir"}</p>
+                    <p className={`text-[10px] mt-1 font-medium ${theme.footerText}`}>{horarioVelorio}</p>
                   </div>
 
                   <div className="pl-1">
@@ -578,13 +588,13 @@ export default function NotaFalecimentoPage() {
                       <span className="text-xs">⚰️</span>
                       <span className={`font-extrabold uppercase text-[10px] tracking-wider ${theme.headerText}`}>SEPULTAMENTO</span>
                     </div>
-                    <p className="font-bold text-white text-[11px] leading-tight truncate">{localSepultamento || "À definir"}</p>
-                    <p className={`text-[10px] mt-0.5 font-medium ${theme.footerText}`}>{horarioSepultamento}</p>
+                    <p className="font-bold text-white text-[11px] leading-snug break-words whitespace-normal">{localSepultamento || "À definir"}</p>
+                    <p className={`text-[10px] mt-1 font-medium ${theme.footerText}`}>{horarioSepultamento}</p>
                   </div>
                 </div>
 
                 {/* Footer Watermark */}
-                <div className="pt-2.5 border-t border-white/10 flex items-center justify-between text-[10px] font-sans font-medium text-white/70">
+                <div className="pt-2.5 border-t border-white/10 flex items-center justify-between text-[10px] font-sans font-medium text-white/80">
                   <div className="flex items-center gap-2">
                     <span className="font-black tracking-wider text-amber-400 uppercase">AmaVidas</span>
                     <span>· Assistência Funeral 24h</span>
