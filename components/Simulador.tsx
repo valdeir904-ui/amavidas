@@ -99,19 +99,19 @@ const PERGUNTAS: Pergunta[] = [
     texto: "Você está buscando proteção para quem?",
     mensagemEmpatica: "Que decisão importante. Vamos encontrar o plano certo para você.",
     opcoes: [
-      { value: "so_eu", emoji: "🙋", label: "Só para mim" },
-      { value: "conjuge", emoji: "👫", label: "Para mim e meu cônjuge" },
-      { value: "familia", emoji: "👨‍👩‍👧‍👦", label: "Para minha família (filhos incluídos)" },
-      { value: "pais", emoji: "👴", label: "Para meus pais ou familiares idosos" },
-      { value: "pet", emoji: "🐾", label: "Para o meu pet (cão ou gato)" },
+      { value: "so_eu", emoji: "👤", label: "Individual (uma pessoa)" },
+      { value: "familia", emoji: "👨‍👩‍👧‍👦", label: "Familiar" },
+      { value: "familia_pet", emoji: "🐾", label: "Familiar e pet" },
+      { value: "pet", emoji: "🐶", label: "Pet" },
+      { value: "terceiros", emoji: "🤝", label: "Para terceiros" },
     ],
   },
   {
     campo: "quantidadePessoas",
     texto: "Quantas pessoas você quer proteger no total?",
     mensagemEmpatica: (r) => {
-      if (r.paraQuem === "familia") return "Sua família segura é a sua maior tranquilidade. Quantos vocês são?";
-      if (r.paraQuem === "pais") return "Cuidar de quem sempre cuidou de você é um ato de amor. Quantos vamos proteger?";
+      if (r.paraQuem === "familia" || r.paraQuem === "familia_pet") return "Sua família segura é a sua maior tranquilidade. Quantos vocês são?";
+      if (r.paraQuem === "terceiros" || r.paraQuem === "pais") return "Cuidar de quem é importante para você é um ato de carinho. Quantos vamos proteger?";
       return "Ótimo. Proteger quem mais importa.";
     },
     opcoes: (r) => {
@@ -121,7 +121,7 @@ const PERGUNTAS: Pergunta[] = [
         { value: "3-4", emoji: "👨‍👩‍👧", label: "3 a 4 pessoas" },
         { value: "5+", emoji: "👪", label: "5 ou mais pessoas" },
       ];
-      if (r.paraQuem === "familia") {
+      if (r.paraQuem === "familia" || r.paraQuem === "familia_pet") {
         return baseOpcoes.filter(o => o.value !== "1");
       }
       return baseOpcoes;
