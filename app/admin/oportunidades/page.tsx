@@ -198,6 +198,7 @@ export default function OportunidadesPage() {
   const [timeline, setTimeline] = useState<any[]>([]);
   const [loadingNotas, setLoadingNotas] = useState(false);
   const [novaNota, setNovaNota] = useState("");
+  const [enviandoNota, setEnviandoNota] = useState(false);
 
   // Estados para WhatsApp Modal
   const [waLead, setWaLead] = useState<Lead | null>(null);
@@ -574,7 +575,8 @@ export default function OportunidadesPage() {
 
   const adicionarNota = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!novaNota.trim() || !selectedLead) return;
+    if (!novaNota.trim() || !selectedLead || enviandoNota) return;
+    setEnviandoNota(true);
 
     try {
       const r = await fetch(`/api/leads/${selectedLead.id}/notas`, {
@@ -597,6 +599,8 @@ export default function OportunidadesPage() {
       }
     } catch (err) {
       console.error("Erro ao salvar nota:", err);
+    } finally {
+      setEnviandoNota(false);
     }
   };
 
@@ -1510,222 +1514,194 @@ export default function OportunidadesPage() {
         </div>
       )}
 
-      {/* Lead Detail Modal */}
+      {/* Lead Detail Modal - NOVO DESIGN EXECUTIVE */}
       {selectedLead && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
           onClick={() => setSelectedLead(null)}
         >
           <div 
-            className="bg-white rounded-3xl w-full max-w-5xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all duration-300 scale-100 opacity-100 mx-auto"
+            className="bg-white rounded-3xl w-full max-w-5xl shadow-2xl border border-slate-100 overflow-hidden my-auto flex flex-col max-h-[92vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="px-8 py-6 border-b border-slate-100 bg-white flex justify-between items-start relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-60 pointer-events-none" />
-              
-              <div className="flex items-center gap-4 relative z-10">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-2xl font-bold text-white shadow-md border border-slate-700">
-                  {selectedLead.nome.charAt(0)}
-                </div>
-                <div className="flex flex-col justify-center">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">Ficha do Lead</span>
-                    {selectedLead.criadoEm && (
-                      <span className="text-[10px] font-medium text-slate-400 bg-white border border-slate-150 px-2 py-0.5 rounded-md flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        {new Date(selectedLead.criadoEm).toLocaleDateString('pt-BR')} às {new Date(selectedLead.criadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            {/* ── HEADER HERO DASHBOARD ────────────────────────────────────────────── */}
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-6 relative overflow-hidden shrink-0">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+              <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                {/* Avatar e Informações Básicas */}
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-3xl font-extrabold text-white shadow-lg border border-white/20 shrink-0">
+                    {selectedLead.nome.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest bg-white/10 text-white px-2.5 py-0.5 rounded-full border border-white/15">
+                        Ficha do Lead #{selectedLead.id.slice(-6).toUpperCase()}
                       </span>
+
+                      {/* Intenção */}
+                      {selectedLead.intencao === "contratar_agora" && (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-red-500 text-white shadow-sm uppercase tracking-wider flex items-center gap-1">
+                          🔥 Quer contratar
+                        </span>
+                      )}
+                      {selectedLead.intencao === "entender_melhor" && (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/90 text-white shadow-sm uppercase tracking-wider flex items-center gap-1">
+                          💡 Quer entender
+                        </span>
+                      )}
+                      {selectedLead.intencao === "pesquisando" && (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-slate-300 border border-white/10 uppercase tracking-wider">
+                          🔍 Pesquisando
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-2xl font-black text-white tracking-tight">{selectedLead.nome}</h3>
+                    
+                    {selectedLead.criadoEm && (
+                      <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 font-medium">
+                        <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        Criado em {new Date(selectedLead.criadoEm).toLocaleDateString('pt-BR')} às {new Date(selectedLead.criadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
                     )}
                   </div>
-                  <h3 className="text-2xl font-extrabold text-slate-900 mt-1.5 tracking-tight">{selectedLead.nome}</h3>
-                  {selectedLead.intencao && (
-                    <div className="mt-2 flex">
-                      {selectedLead.intencao === "contratar_agora" ? (
-                        <div className={`px-2.5 py-1 rounded-lg text-[10px] font-black bg-red-500 text-white border border-red-600 shadow-sm uppercase tracking-wider flex items-center gap-1.5 ${
-                          selectedLead.status === "novo_lead" ? "animate-pulse" : ""
-                        }`}>
-                          🔥 Quer contratar
-                        </div>
-                      ) : selectedLead.intencao === "entender_melhor" ? (
-                        <div className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
-                          💡 Quer entender
-                        </div>
-                      ) : (
-                        <div className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">
-                          🔍 Pesquisando
-                        </div>
-                      )}
-                    </div>
+                </div>
+
+                {/* Botões de Ação do Header */}
+                <div className="flex items-center gap-2 self-end md:self-center">
+                  {(selectedLead.status !== "novo_lead" || currentUser?.perfil === "MASTER") && (
+                    <>
+                      <button
+                        onClick={() => abrirWhatsAppModal(selectedLead)}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-900/30 flex items-center gap-2 cursor-pointer active:scale-95"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+                        <span>WhatsApp</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedLead.telefone);
+                          alert("Telefone copiado para a área de transferência!");
+                        }}
+                        className="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all border border-white/15 cursor-pointer"
+                        title="Copiar Telefone"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                      </button>
+                    </>
                   )}
+
+                  <button 
+                    onClick={() => setSelectedLead(null)}
+                    className="bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white p-2.5 rounded-xl transition-all border border-white/15 cursor-pointer ml-1"
+                    title="Fechar Modal"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
                 </div>
               </div>
-              <button 
-                onClick={() => setSelectedLead(null)}
-                className="text-slate-400 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors relative z-10 cursor-pointer shadow-sm"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
+
+              {/* Barra Rápida de Contato */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-4 border-t border-white/10 text-xs">
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Telefone</p>
+                  <p className="font-semibold text-white mt-0.5">
+                    {selectedLead.status !== "novo_lead" || currentUser?.perfil === "MASTER" ? (
+                      selectedLead.telefone
+                    ) : (
+                      <span className="text-amber-400 italic">🔒 Oculto até assumir</span>
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">E-mail</p>
+                  <p className="font-semibold text-white mt-0.5 truncate" title={selectedLead.email || "Não informado"}>
+                    {selectedLead.status !== "novo_lead" || currentUser?.perfil === "MASTER" ? (
+                      selectedLead.email || "Não informado"
+                    ) : (
+                      <span className="text-amber-400 italic">🔒 Oculto</span>
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Cidade</p>
+                  <p className="font-semibold text-white mt-0.5 truncate" title={selectedLead.cidade || "Não informada"}>
+                    {selectedLead.cidade || "Não informada"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Responsável</p>
+                  <p className="font-semibold text-white mt-0.5 flex items-center gap-1 truncate">
+                    {selectedLead.responsavel ? (
+                      <>
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+                        {selectedLead.responsavel.nome.split(" ")[0]}
+                      </>
+                    ) : (
+                      <span className="text-slate-400 italic">Sem responsável</span>
+                    )}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Body */}
-            <div className="p-8 space-y-8 max-h-[80vh] overflow-y-auto bg-slate-50/30">
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+            {/* ── BODY COM ESTRUTURA REORGANIZADA DA FICHA ────────────────────────── */}
+            <div className="p-6 md:p-8 space-y-6 overflow-y-auto bg-slate-50/50 flex-1">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 
-                {/* Left Column (Main Details & Status) - Span 3/5 */}
+                {/* ── PAINEL ESQUERDO (60% da largura - 3 Colunas) ────────────────────── */}
                 <div className="lg:col-span-3 space-y-6">
-                  
-                  {/* Section 1: Contato */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center text-sm">📞</div>
-                      Contato
-                    </h4>
-                    <div className="flex flex-col gap-4">
-                      {selectedLead.status !== "novo_lead" || currentUser?.perfil === "MASTER" ? (
-                        <>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Telefone</p>
-                              <p className="text-sm font-semibold text-slate-800">{selectedLead.telefone}</p>
-                            </div>
-                            <button onClick={() => abrirWhatsAppModal(selectedLead)} className="text-[#25D366] bg-green-50 hover:bg-green-100 p-2 rounded-lg transition-colors border border-green-200" title="Chamar no WhatsApp">
-                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
-                            </button>
-                          </div>
-                          <div className="pt-3 border-t border-slate-100 flex justify-between items-center">
-                            <div>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">E-mail</p>
-                              <p className="text-sm font-semibold text-slate-800 break-all">{selectedLead.email || "Não informado"}</p>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col gap-3 py-2">
-                          <p className="text-sm font-bold text-slate-500 italic flex items-center gap-1.5">
-                            🔒 Telefone e E-mail ocultos até que o lead seja assumido.
-                          </p>
-                          <button
-                            onClick={async () => {
-                              if (currentUser) {
-                                await updateLeadStatus(selectedLead.id, "contatado", currentUser.id);
-                                setSelectedLead(prev => prev ? { ...prev, status: "contatado", responsavelId: currentUser.id, responsavel: { id: currentUser.id, nome: currentUser.email } } : null);
-                                fetchLeads(false);
-                              }
-                            }}
-                            className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl transition-all cursor-pointer shadow-sm text-xs flex items-center justify-center gap-1.5 w-full animate-pulse"
-                          >
-                            👋 Atribuir a mim & Liberar contato
-                          </button>
-                        </div>
-                      )}
+
+                  {/* CARD HERO 1: PLANO RECOMENDADO & VALOR */}
+                  <div className="bg-gradient-to-br from-amber-500/10 via-amber-50 to-orange-50 border border-amber-200/80 p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
+                    <div className="relative z-10">
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-800 bg-amber-100/90 border border-amber-250 px-2.5 py-1 rounded-md inline-flex items-center gap-1.5 mb-2">
+                        <span>🏆</span> Recomendação Automática
+                      </span>
+                      <h4 className="text-2xl font-black text-amber-950 tracking-tight">
+                        Plano {PLANO_LABEL[selectedLead.planoRecomendado]?.label ?? selectedLead.planoRecomendado}
+                      </h4>
+                      <p className="text-xs text-amber-800/80 font-medium mt-1">
+                        {selectedLead.planoRecomendado === "plano-pet"
+                          ? "Proteção e carinho para o companheiro de estimação nos momentos difíceis."
+                          : selectedLead.planoRecomendado === "vida-plus"
+                          ? "Cobertura VIP e completa para toda a família com assistência total."
+                          : "O equilíbrio certo entre proteção essencial e excelente custo-benefício."}
+                      </p>
+                    </div>
+                    <div className="sm:text-right shrink-0 relative z-10">
+                      <p className="text-[10px] text-amber-800 font-bold uppercase tracking-wider">Valor Estimado</p>
+                      <p className="text-3xl font-black text-amber-900 mt-0.5">
+                        {selectedLead.planoRecomendado === "plano-pet"
+                          ? "R$ 25,00"
+                          : selectedLead.planoRecomendado === "vida-plus"
+                          ? "R$ 90,00"
+                          : "R$ 43,00"}
+                        <span className="text-xs font-semibold text-amber-800">/mês</span>
+                      </p>
                     </div>
                   </div>
 
-                  {/* Section 1.5: Origem do Lead */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">🌐</div>
-                      Origem do Lead
-                    </h4>
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-3 text-xs">
-                      <div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Canal/Origem</p>
-                        <p className="font-bold text-slate-800 mt-0.5">
-                          {selectedLead.origem === "whatsapp_direto" ? (
-                            <span className="text-emerald-755">🟢 WhatsApp Direto</span>
-                          ) : selectedLead.utmSource?.toLowerCase() === "google" ? (
-                            <span className="text-blue-755">🔵 Google Ads (CPC)</span>
-                          ) : selectedLead.utmSource?.toLowerCase() === "meta" ? (
-                            <span className="text-purple-755">🟣 Meta Ads (CPC)</span>
-                          ) : selectedLead.origem === "manual" ? (
-                            <span className="text-slate-755">👤 Cadastro Manual</span>
-                          ) : (
-                            <span className="text-slate-500">⚪ Orgânico / Direto</span>
-                          )}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Campanha</p>
-                        <p className="font-semibold text-slate-800 mt-0.5 truncate" title={selectedLead.utmCampaign || "Sem campanha"}>
-                          {selectedLead.utmCampaign || <span className="text-slate-400 italic">Sem campanha</span>}
-                        </p>
-                      </div>
-
-                      {selectedLead.utmSource?.toLowerCase() === "google" && selectedLead.utmTerm && (
-                        <div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Palavra-chave (Google)</p>
-                          <p className="font-semibold text-slate-800 mt-0.5 truncate" title={selectedLead.utmTerm}>{selectedLead.utmTerm}</p>
-                        </div>
-                      )}
-
-                      {selectedLead.utmSource?.toLowerCase() === "meta" && selectedLead.utmContent && (
-                        <div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Criativo (Meta)</p>
-                          <p className="font-semibold text-slate-800 mt-0.5 truncate" title={selectedLead.utmContent}>{selectedLead.utmContent}</p>
-                        </div>
-                      )}
-
-                      {selectedLead.utmSource?.toLowerCase() === "meta" && selectedLead.utmTerm && (
-                        <div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Conjunto (Meta)</p>
-                          <p className="font-semibold text-slate-800 mt-0.5 truncate" title={selectedLead.utmTerm}>{selectedLead.utmTerm}</p>
-                        </div>
-                      )}
-
-                      {selectedLead.dispositivo && (
-                        <div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Dispositivo</p>
-                          <p className="font-semibold text-slate-800 mt-0.5 uppercase">
-                            {selectedLead.dispositivo === "mobile" ? "📱 Mobile" : selectedLead.dispositivo === "tablet" ? "📟 Tablet" : "💻 Desktop"}
-                          </p>
-                        </div>
-                      )}
-
-                      {selectedLead.landingPage && (
-                        <div className="col-span-2 pt-2 border-t border-slate-100">
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Página de Entrada</p>
-                          <p className="font-mono text-slate-700 truncate mt-0.5" title={selectedLead.landingPage}>{selectedLead.landingPage}</p>
-                        </div>
-                      )}
-
-                      {selectedLead.referrer && (
-                        <div className="col-span-2 pt-2 border-t border-slate-100">
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Origem de Referência (Referrer)</p>
-                          <p className="font-semibold text-slate-655 truncate mt-0.5" title={selectedLead.referrer}>{selectedLead.referrer}</p>
-                        </div>
-                      )}
-
-                      {(selectedLead.gclid || selectedLead.fbclid) && (
-                        <div className="col-span-2 pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
-                          {selectedLead.gclid && (
-                            <div>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Google Click ID (GCLID)</p>
-                              <p className="font-mono text-[10px] text-slate-600 truncate mt-0.5" title={selectedLead.gclid}>{selectedLead.gclid}</p>
-                            </div>
-                          )}
-                          {selectedLead.fbclid && (
-                            <div>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Facebook Click ID (FBCLID)</p>
-                              <p className="font-mono text-[10px] text-slate-600 truncate mt-0.5" title={selectedLead.fbclid}>{selectedLead.fbclid}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                  {/* CARD 2: PERFIL DA SIMULAÇÃO (NECESSIDADES DO CLIENTE) */}
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-5">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-base">📋</div>
+                        Perfil da Simulação
+                      </h4>
+                      <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+                        Respostas do Cliente
+                      </span>
                     </div>
-                  </div>
 
-                  {/* Section 2: Respostas do Simulador */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-cyan-50 text-cyan-600 flex items-center justify-center text-sm">📋</div>
-                      Perfil da Simulação
-                    </h4>
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-3">
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-4">
                       <div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Proteger quem</p>
-                        <p className="text-sm font-bold text-slate-800 mt-0.5">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Proteger Quem</p>
+                        <p className="text-sm font-extrabold text-slate-800 mt-1 flex items-center gap-1.5">
                           {selectedLead.paraQuem === "familia"
                             ? "👨‍👩‍👧‍👦 Familiar"
                             : selectedLead.paraQuem === "familia_pet"
@@ -1740,47 +1716,60 @@ export default function OportunidadesPage() {
 
                       <div>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Cidade</p>
-                        <p className="text-sm font-semibold text-slate-800 mt-0.5 truncate" title={selectedLead.cidade}>{selectedLead.cidade || "Não informada"}</p>
+                        <p className="text-sm font-semibold text-slate-800 mt-1 truncate" title={selectedLead.cidade || "Não informada"}>
+                          📍 {selectedLead.cidade || "Não informada"}
+                        </p>
                       </div>
 
-                      {/* Bloco Pet (se for pet, familia_pet ou plano-pet ou se tiver dados de pet) */}
+                      {/* BLOCO EXCLUSIVO DO PET (SE APLICÁVEL) */}
                       {(selectedLead.paraQuem === "pet" || selectedLead.paraQuem === "familia_pet" || selectedLead.planoRecomendado === "plano-pet" || selectedLead.nomePet || selectedLead.tipoPet) && (
-                        <div className="col-span-2 bg-amber-50/60 border border-amber-200/80 p-4 rounded-xl space-y-2.5 my-1">
-                          <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-                            <span>🐾</span> Dados do Pet Protegido
-                          </p>
-                          <div className="grid grid-cols-2 gap-3 text-xs">
-                            <div>
-                              <p className="text-[10px] text-amber-700/80 font-bold uppercase tracking-wider">Espécie</p>
-                              <p className="font-bold text-amber-950 mt-0.5">
+                        <div className="col-span-2 bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50/50 border border-amber-200 p-4 rounded-2xl space-y-3 my-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                              <span className="text-base">🐾</span> Ficha do Pet Cadastrado
+                            </p>
+                            <span className="text-[9px] font-extrabold uppercase bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-md">
+                              Plano Pet
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
+                            <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200/60">
+                              <p className="text-[9px] text-amber-800/80 font-bold uppercase tracking-wider">Espécie</p>
+                              <p className="font-extrabold text-amber-950 mt-0.5">
                                 {selectedLead.tipoPet === "cao" ? "🐶 Cão" : selectedLead.tipoPet === "gato" ? "🐱 Gato" : selectedLead.tipoPet || "Cão/Gato"}
                               </p>
                             </div>
-                            <div>
-                              <p className="text-[10px] text-amber-700/80 font-bold uppercase tracking-wider">Nome do Pet</p>
-                              <p className="font-extrabold text-amber-950 mt-0.5">{selectedLead.nomePet || "Não informado"}</p>
+
+                            <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200/60">
+                              <p className="text-[9px] text-amber-800/80 font-bold uppercase tracking-wider">Nome do Pet</p>
+                              <p className="font-black text-amber-950 mt-0.5 truncate" title={selectedLead.nomePet || "Não informado"}>
+                                {selectedLead.nomePet || "Não informado"}
+                              </p>
                             </div>
-                            <div>
-                              <p className="text-[10px] text-amber-700/80 font-bold uppercase tracking-wider">Porte</p>
-                              <p className="font-semibold text-amber-950 mt-0.5">
+
+                            <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200/60">
+                              <p className="text-[9px] text-amber-800/80 font-bold uppercase tracking-wider">Porte</p>
+                              <p className="font-bold text-amber-950 mt-0.5">
                                 {selectedLead.portePet === "pequeno"
-                                  ? "Pequeno (até 10kg)"
+                                  ? "Pequeno (<10kg)"
                                   : selectedLead.portePet === "medio"
-                                  ? "Médio (10kg a 25kg)"
+                                  ? "Médio (10-25kg)"
                                   : selectedLead.portePet === "grande"
-                                  ? "Grande (acima de 25kg)"
+                                  ? "Grande (>25kg)"
                                   : selectedLead.portePet || "Não informado"}
                               </p>
                             </div>
-                            <div>
-                              <p className="text-[10px] text-amber-700/80 font-bold uppercase tracking-wider">Idade do Pet</p>
-                              <p className="font-semibold text-amber-950 mt-0.5">
+
+                            <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200/60">
+                              <p className="text-[9px] text-amber-800/80 font-bold uppercase tracking-wider">Idade do Pet</p>
+                              <p className="font-bold text-amber-950 mt-0.5">
                                 {selectedLead.idadePet === "filhote"
-                                  ? "Filhote (até 1 ano)"
+                                  ? "Filhote (<1 ano)"
                                   : selectedLead.idadePet === "adulto"
-                                  ? "Adulto (1 a 7 anos)"
+                                  ? "Adulto (1-7 anos)"
                                   : selectedLead.idadePet === "idoso"
-                                  ? "Idoso (acima de 7 anos)"
+                                  ? "Idoso (>7 anos)"
                                   : selectedLead.idadePet || "Não informada"}
                               </p>
                             </div>
@@ -1788,21 +1777,21 @@ export default function OportunidadesPage() {
                         </div>
                       )}
 
-                      {/* Se NÃO for plano pet exclusivo */}
+                      {/* BLOCO HUMANO / FAMILIAR */}
                       {selectedLead.paraQuem !== "pet" && (
                         <>
                           {selectedLead.quantidadePessoas && (
                             <div>
                               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Vidas Humanas</p>
-                              <p className="text-sm font-semibold text-slate-800 mt-0.5">{selectedLead.quantidadePessoas} pessoa(s)</p>
+                              <p className="text-sm font-semibold text-slate-800 mt-1">👥 {selectedLead.quantidadePessoas} pessoa(s)</p>
                             </div>
                           )}
 
                           {selectedLead.faixaEtaria && (
                             <div>
                               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Faixa Etária Mais Velha</p>
-                              <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                                {selectedLead.faixaEtaria === "ate_40" ? "Até 40 anos" : selectedLead.faixaEtaria === "41_59" ? "41 a 59 anos" : selectedLead.faixaEtaria === "60_70" ? "60 a 70 anos" : selectedLead.faixaEtaria === "acima_70" ? "Acima de 70 anos" : selectedLead.faixaEtaria}
+                              <p className="text-sm font-semibold text-slate-800 mt-1">
+                                🧓 {selectedLead.faixaEtaria === "ate_40" ? "Até 40 anos" : selectedLead.faixaEtaria === "41_59" ? "41 a 59 anos" : selectedLead.faixaEtaria === "60_70" ? "60 a 70 anos" : selectedLead.faixaEtaria === "acima_70" ? "Acima de 70 anos" : selectedLead.faixaEtaria}
                               </p>
                             </div>
                           )}
@@ -1810,14 +1799,14 @@ export default function OportunidadesPage() {
                           {selectedLead.orcamento && (
                             <div>
                               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Orçamento Pretendido</p>
-                              <p className="text-sm font-bold text-emerald-600 mt-0.5">Até {selectedLead.orcamento}/mês</p>
+                              <p className="text-sm font-extrabold text-emerald-600 mt-1">💰 Até {selectedLead.orcamento}/mês</p>
                             </div>
                           )}
 
                           {selectedLead.prioridade && (
                             <div className="col-span-2 pt-3 border-t border-slate-100">
                               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Prioridade Declarada</p>
-                              <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                              <p className="text-sm font-semibold text-slate-800 mt-1">
                                 🎯 {PRIORIDADE_LABEL[selectedLead.prioridade] ?? selectedLead.prioridade ?? "Não informada"}
                               </p>
                             </div>
@@ -1827,37 +1816,116 @@ export default function OportunidadesPage() {
                     </div>
                   </div>
 
-                  {/* Section 3: Indicação */}
-                  <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1 flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-amber-100 text-amber-600 flex items-center justify-center text-sm">🏆</div>
-                        Plano Recomendado
+                  {/* CARD 3: ORIGEM & RASTREAMENTO (UTM / MARKETING) */}
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-base">🌐</div>
+                        Origem & Rastreamento de Tráfego
                       </h4>
-                      <p className="text-2xl font-black text-amber-900 mt-1">
-                        Plano {PLANO_LABEL[selectedLead.planoRecomendado]?.label ?? selectedLead.planoRecomendado}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs font-bold text-amber-700 bg-amber-100/80 px-3 py-1.5 rounded-xl border border-amber-300/60 block">
-                        {selectedLead.planoRecomendado === "plano-pet" ? "R$ 25,00/mês" : selectedLead.planoRecomendado === "vida-plus" ? "R$ 90,00/mês" : "R$ 43,00/mês"}
+                      <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                        Marketing Analytics
                       </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-4 text-xs">
+                      <div>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Canal / Origem</p>
+                        <p className="font-bold text-slate-800 mt-1">
+                          {selectedLead.origem === "whatsapp_direto" ? (
+                            <span className="text-emerald-600 font-extrabold">🟢 WhatsApp Direto</span>
+                          ) : selectedLead.utmSource?.toLowerCase() === "google" ? (
+                            <span className="text-blue-600 font-extrabold">🔵 Google Ads (CPC)</span>
+                          ) : selectedLead.utmSource?.toLowerCase() === "meta" ? (
+                            <span className="text-purple-600 font-extrabold">🟣 Meta Ads (CPC)</span>
+                          ) : selectedLead.origem === "manual" ? (
+                            <span className="text-slate-700 font-extrabold">👤 Cadastro Manual</span>
+                          ) : (
+                            <span className="text-slate-600 font-extrabold">⚪ Orgânico / Direto</span>
+                          )}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Campanha (utm_campaign)</p>
+                        <p className="font-semibold text-slate-800 mt-1 truncate" title={selectedLead.utmCampaign || "Sem campanha"}>
+                          {selectedLead.utmCampaign || <span className="text-slate-400 italic">Sem campanha</span>}
+                        </p>
+                      </div>
+
+                      {selectedLead.utmSource?.toLowerCase() === "google" && selectedLead.utmTerm && (
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Palavra-chave (Google)</p>
+                          <p className="font-semibold text-slate-800 mt-1 truncate" title={selectedLead.utmTerm}>{selectedLead.utmTerm}</p>
+                        </div>
+                      )}
+
+                      {selectedLead.utmSource?.toLowerCase() === "meta" && selectedLead.utmContent && (
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Criativo (Meta)</p>
+                          <p className="font-semibold text-slate-800 mt-1 truncate" title={selectedLead.utmContent}>{selectedLead.utmContent}</p>
+                        </div>
+                      )}
+
+                      {selectedLead.dispositivo && (
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Dispositivo</p>
+                          <p className="font-semibold text-slate-800 mt-1 uppercase">
+                            {selectedLead.dispositivo === "mobile" ? "📱 Smartphone" : selectedLead.dispositivo === "tablet" ? "📟 Tablet" : "💻 Desktop / PC"}
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedLead.landingPage && (
+                        <div className="col-span-2 pt-3 border-t border-slate-100">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Página de Entrada</p>
+                          <p className="font-mono text-slate-700 text-[11px] truncate mt-0.5 bg-slate-50 p-2 rounded-lg border border-slate-200/60" title={selectedLead.landingPage}>{selectedLead.landingPage}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Section 4: Gestão do Funil */}
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
-                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-white border border-slate-200 flex items-center justify-center text-sm shadow-sm">🎯</div>
-                      Atualizar Status
+                </div>
+
+                {/* ── PAINEL DIREITO (40% da largura - 2 Colunas) ────────────────────── */}
+                <div className="lg:col-span-2 space-y-6">
+
+                  {/* CARD 1: GESTÃO DO FUNIL (MUDANÇA RÁPIDA DE STATUS) */}
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-base">🎯</div>
+                      Estágio do Funil
                     </h4>
-                    <div className="flex flex-wrap gap-2">
+
+                    {/* Alerta se bloqueado */}
+                    {selectedLead.status === "novo_lead" && currentUser?.perfil !== "MASTER" && (
+                      <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl space-y-2">
+                        <p className="text-xs font-bold text-amber-900">🔒 Lead Pendente</p>
+                        <p className="text-[11px] text-amber-800 leading-snug">
+                          Assuma o lead para liberar os dados de contato completos.
+                        </p>
+                        <button
+                          onClick={async () => {
+                            if (currentUser) {
+                              await updateLeadStatus(selectedLead.id, "contatado", currentUser.id);
+                              setSelectedLead(prev => prev ? { ...prev, status: "contatado", responsavelId: currentUser.id, responsavel: { id: currentUser.id, nome: currentUser.email } } : null);
+                              fetchLeads(false);
+                            }
+                          }}
+                          className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-3 rounded-lg text-xs transition-all w-full cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+                        >
+                          👋 Atribuir a Mim & Liberar
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-2 pt-1">
                       {[
-                        { id: "novo_lead", label: "⏳ Novo Lead", color: "bg-red-50 text-red-700 border-red-200" },
-                        { id: "contatado", label: "📞 Em Contato", color: "bg-blue-50 text-blue-700 border-blue-200" },
-                        { id: "negociando", label: "💬 Negociando", color: "bg-purple-50 text-purple-700 border-purple-200" },
-                        { id: "ganho", label: "🤝 Ganho", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-                        { id: "perdido", label: "❌ Perdido", color: "bg-slate-50 text-slate-650 border-slate-200" },
+                        { id: "novo_lead", label: "⏳ Novo Lead (Aguardando)", color: "bg-red-50 text-red-700 border-red-200" },
+                        { id: "contatado", label: "📞 Em Contato Comercial", color: "bg-blue-50 text-blue-700 border-blue-200" },
+                        { id: "negociando", label: "💬 Em Negociação / Proposta", color: "bg-purple-50 text-purple-700 border-purple-200" },
+                        { id: "ganho", label: "🤝 Ganho (Contrato Fechado)", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+                        { id: "perdido", label: "❌ Perdido / Descartado", color: "bg-slate-100 text-slate-650 border-slate-250" },
                       ].map((btn) => {
                         const currentStatus = getStatusSafe(selectedLead);
                         const isActive = currentStatus === btn.id;
@@ -1873,68 +1941,43 @@ export default function OportunidadesPage() {
                                 setSelectedLead((prev) => prev ? { ...prev, status: btn.id, contatado: btn.id !== "novo_lead" } : null);
                               }
                             }}
-                            className={`py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                              isActive ? `${btn.color} ring-2 ring-offset-2 ring-current/25 shadow-sm` : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+                            className={`px-4 py-3 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
+                              isActive
+                                ? `${btn.color} ring-2 ring-offset-1 ring-current/30 shadow-sm`
+                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                             }`}
                           >
-                            {btn.label}
+                            <span>{btn.label}</span>
+                            {isActive && <span className="text-xs">✓ Ativo</span>}
                           </button>
                         );
                       })}
                     </div>
                   </div>
 
-                  {/* Section 4.5: Lead Descartado / Perdido */}
-                  {selectedLead.status === "perdido" && (
-                    <div className="bg-red-50/50 border border-red-200 p-5 rounded-2xl shadow-sm">
-                      <h4 className="text-xs font-bold text-red-800 uppercase tracking-wider mb-2 flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-red-100 text-red-650 flex items-center justify-center text-sm">❌</div>
-                        Informações do Descarte (Perda)
-                      </h4>
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Motivo da Perda</p>
-                          <p className="text-sm font-bold text-slate-800 mt-0.5">
-                            {MOTIVOS_LABELS[selectedLead.motivoDescarte || selectedLead.motivoPerda || ""] ?? selectedLead.motivoDescarte ?? selectedLead.motivoPerda ?? "Não informado"}
-                          </p>
-                        </div>
-                        {selectedLead.descarteObservacao && (
-                          <div>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Observações / Detalhes</p>
-                            <p className="text-xs text-slate-600 font-medium bg-white p-3 border border-red-150 rounded-xl leading-relaxed whitespace-pre-wrap mt-1">
-                              {selectedLead.descarteObservacao}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Right Column (Notes & History logs & Attempts) - Span 2/5 */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Contact Attempts Summary */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">📊</div>
+                  {/* CARD 2: REGISTRO DE CONTATOS (LIGAÇÃO E WA) */}
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                      <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-base">📊</div>
                       Contador de Contatos
                     </h4>
+
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-blue-50/50 border border-blue-100 p-3 rounded-xl flex flex-col justify-between">
+                      <div className="bg-blue-50/60 border border-blue-100 p-3.5 rounded-xl flex flex-col justify-between">
                         <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Ligações</p>
                         <p className="text-2xl font-black text-blue-700 mt-1">
                           {selectedLead.historico?.filter(h => h.acao === "contato_ligacao").length || 0}
                         </p>
                       </div>
-                      <div className="bg-green-50/50 border border-green-100 p-3 rounded-xl flex flex-col justify-between">
-                        <p className="text-[10px] text-green-700 font-bold uppercase tracking-wider">WhatsApp</p>
-                        <p className="text-2xl font-black text-green-700 mt-1">
+                      <div className="bg-emerald-50/60 border border-emerald-100 p-3.5 rounded-xl flex flex-col justify-between">
+                        <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">WhatsApp</p>
+                        <p className="text-2xl font-black text-emerald-700 mt-1">
                           {selectedLead.historico?.filter(h => h.acao === "contato_whatsapp").length || 0}
                         </p>
                       </div>
                     </div>
-                    {/* Botões de Registrar Contato */}
-                    <div className="flex gap-2 mt-4 pt-3 border-t border-slate-100">
+
+                    <div className="flex gap-2 pt-2">
                       <button
                         type="button"
                         onClick={async () => {
@@ -1948,14 +1991,14 @@ export default function OportunidadesPage() {
                             fetchLeads(false);
                           }
                         }}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-2 rounded-xl text-xs font-bold transition-all border border-blue-200 cursor-pointer shadow-sm"
+                        className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
                       >
-                        📞 Registrar Ligação
+                        📞 +1 Ligação
                       </button>
                       <button
                         type="button"
                         onClick={async () => {
-                          if (confirm("Registrar tentativa de contato por WhatsApp para este lead?")) {
+                          if (confirm("Registrar mensagem enviada no WhatsApp para este lead?")) {
                             await updateLeadStatus(selectedLead.id, selectedLead.status, selectedLead.responsavelId, undefined, undefined, { registrarContato: "whatsapp" });
                             setSelectedLead(prev => prev ? {
                               ...prev,
@@ -1965,42 +2008,41 @@ export default function OportunidadesPage() {
                             fetchLeads(false);
                           }
                         }}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-green-50 text-green-700 hover:bg-green-100 px-3 py-2 rounded-xl text-xs font-bold transition-all border border-green-200 cursor-pointer shadow-sm"
+                        className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
                       >
-                        💬 Registrar WhatsApp
+                        💬 +1 WhatsApp
                       </button>
                     </div>
                   </div>
 
-                  {/* Section 5: Histórico de Notas & Interações */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100">
-                      <div className="w-6 h-6 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-center text-sm">📝</div>
-                      Anotações & Histórico
+                  {/* CARD 3: TIMELINE DE NOTAS INTERNAS */}
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                      <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-base">📝</div>
+                      Notas & Observações Internas
                     </h4>
 
-                    {/* Form para Adicionar Nota */}
-                    <form onSubmit={adicionarNota} className="flex gap-2 items-end">
-                      <div className="flex-1">
-                        <textarea
-                          placeholder="Adicione uma anotação de acompanhamento..."
-                          value={novaNota}
-                          onChange={(e) => setNovaNota(e.target.value)}
-                          rows={2}
-                          className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 placeholder:text-slate-400 shadow-sm resize-none"
-                        />
-                      </div>
+                    {/* Adicionar nota */}
+                    <div className="space-y-2">
+                      <textarea
+                        value={novaNota}
+                        onChange={(e) => setNovaNota(e.target.value)}
+                        placeholder="Digite uma observação comercial..."
+                        rows={2}
+                        className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50/50 resize-none font-medium"
+                      />
                       <button
-                        type="submit"
-                        disabled={!novaNota.trim()}
-                        className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-md cursor-pointer h-[38px] mb-1"
+                        type="button"
+                        disabled={!novaNota.trim() || enviandoNota}
+                        onClick={adicionarNota}
+                        className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold py-2.5 rounded-xl text-xs transition-all cursor-pointer shadow-sm"
                       >
-                        Salvar
+                        {enviandoNota ? "Salvando..." : "Salvar Anotação"}
                       </button>
-                    </form>
+                    </div>
 
                     {/* Lista de Notas (Timeline) */}
-                    <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1 mt-2 scrollbar-thin">
+                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1 mt-2 scrollbar-thin">
                       {loadingNotas ? (
                         <div className="flex items-center justify-center py-4 gap-2 text-slate-400 text-xs">
                           <div className="w-3.5 h-3.5 border-2 border-slate-300 border-t-[#2B3DA8] rounded-full animate-spin" />
@@ -2060,7 +2102,7 @@ export default function OportunidadesPage() {
             </div>
 
             {/* Footer / Main CTA */}
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3">
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 shrink-0">
               <button 
                 type="button"
                 onClick={() => setDeletingLead(selectedLead)}
@@ -2080,7 +2122,7 @@ export default function OportunidadesPage() {
                 <button
                   type="button"
                   onClick={() => abrirWhatsAppModal(selectedLead)}
-                  className="bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-md flex-1 text-center cursor-pointer"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-md flex-1 text-center cursor-pointer"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
