@@ -72,6 +72,10 @@ interface Lead {
   referrer?: string | null;
   landingPage?: string | null;
   dispositivo?: string | null;
+  tipoPet?: string | null;
+  nomePet?: string | null;
+  portePet?: string | null;
+  idadePet?: string | null;
 }
 
 const MOTIVOS_LABELS: Record<string, string> = {
@@ -1718,43 +1722,127 @@ export default function OportunidadesPage() {
                       <div className="w-6 h-6 rounded-md bg-cyan-50 text-cyan-600 flex items-center justify-center text-sm">📋</div>
                       Perfil da Simulação
                     </h4>
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-2">
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-3">
                       <div>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Proteger quem</p>
-                        <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                          {selectedLead.paraQuem === "familia" ? "👨‍👩‍👧‍👦 Família" : "👤 Si mesmo"}
+                        <p className="text-sm font-bold text-slate-800 mt-0.5">
+                          {selectedLead.paraQuem === "familia"
+                            ? "👨‍👩‍👧‍👦 Familiar"
+                            : selectedLead.paraQuem === "familia_pet"
+                            ? "🐾 Familiar e pet"
+                            : selectedLead.paraQuem === "pet"
+                            ? "🐶 Pet"
+                            : selectedLead.paraQuem === "terceiros"
+                            ? "🤝 Para terceiros"
+                            : "👤 Individual (uma pessoa)"}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Vidas</p>
-                        <p className="text-sm font-semibold text-slate-800 mt-0.5">{selectedLead.quantidadePessoas} pessoa(s)</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Orçamento</p>
-                        <p className="text-sm font-semibold text-emerald-600 mt-0.5">Até {selectedLead.orcamento}/mês</p>
-                      </div>
+
                       <div>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Cidade</p>
                         <p className="text-sm font-semibold text-slate-800 mt-0.5 truncate" title={selectedLead.cidade}>{selectedLead.cidade || "Não informada"}</p>
                       </div>
-                      <div className="col-span-2 pt-3 border-t border-slate-100">
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Prioridade Declarada</p>
-                        <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                          🎯 {PRIORIDADE_LABEL[selectedLead.prioridade] ?? selectedLead.prioridade ?? "Não informada"}
-                        </p>
-                      </div>
+
+                      {/* Bloco Pet (se for pet, familia_pet ou plano-pet ou se tiver dados de pet) */}
+                      {(selectedLead.paraQuem === "pet" || selectedLead.paraQuem === "familia_pet" || selectedLead.planoRecomendado === "plano-pet" || selectedLead.nomePet || selectedLead.tipoPet) && (
+                        <div className="col-span-2 bg-amber-50/60 border border-amber-200/80 p-4 rounded-xl space-y-2.5 my-1">
+                          <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>🐾</span> Dados do Pet Protegido
+                          </p>
+                          <div className="grid grid-cols-2 gap-3 text-xs">
+                            <div>
+                              <p className="text-[10px] text-amber-700/80 font-bold uppercase tracking-wider">Espécie</p>
+                              <p className="font-bold text-amber-950 mt-0.5">
+                                {selectedLead.tipoPet === "cao" ? "🐶 Cão" : selectedLead.tipoPet === "gato" ? "🐱 Gato" : selectedLead.tipoPet || "Cão/Gato"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-amber-700/80 font-bold uppercase tracking-wider">Nome do Pet</p>
+                              <p className="font-extrabold text-amber-950 mt-0.5">{selectedLead.nomePet || "Não informado"}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-amber-700/80 font-bold uppercase tracking-wider">Porte</p>
+                              <p className="font-semibold text-amber-950 mt-0.5">
+                                {selectedLead.portePet === "pequeno"
+                                  ? "Pequeno (até 10kg)"
+                                  : selectedLead.portePet === "medio"
+                                  ? "Médio (10kg a 25kg)"
+                                  : selectedLead.portePet === "grande"
+                                  ? "Grande (acima de 25kg)"
+                                  : selectedLead.portePet || "Não informado"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-amber-700/80 font-bold uppercase tracking-wider">Idade do Pet</p>
+                              <p className="font-semibold text-amber-950 mt-0.5">
+                                {selectedLead.idadePet === "filhote"
+                                  ? "Filhote (até 1 ano)"
+                                  : selectedLead.idadePet === "adulto"
+                                  ? "Adulto (1 a 7 anos)"
+                                  : selectedLead.idadePet === "idoso"
+                                  ? "Idoso (acima de 7 anos)"
+                                  : selectedLead.idadePet || "Não informada"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Se NÃO for plano pet exclusivo */}
+                      {selectedLead.paraQuem !== "pet" && (
+                        <>
+                          {selectedLead.quantidadePessoas && (
+                            <div>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Vidas Humanas</p>
+                              <p className="text-sm font-semibold text-slate-800 mt-0.5">{selectedLead.quantidadePessoas} pessoa(s)</p>
+                            </div>
+                          )}
+
+                          {selectedLead.faixaEtaria && (
+                            <div>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Faixa Etária Mais Velha</p>
+                              <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                                {selectedLead.faixaEtaria === "ate_40" ? "Até 40 anos" : selectedLead.faixaEtaria === "41_59" ? "41 a 59 anos" : selectedLead.faixaEtaria === "60_70" ? "60 a 70 anos" : selectedLead.faixaEtaria === "acima_70" ? "Acima de 70 anos" : selectedLead.faixaEtaria}
+                              </p>
+                            </div>
+                          )}
+
+                          {selectedLead.orcamento && (
+                            <div>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Orçamento Pretendido</p>
+                              <p className="text-sm font-bold text-emerald-600 mt-0.5">Até {selectedLead.orcamento}/mês</p>
+                            </div>
+                          )}
+
+                          {selectedLead.prioridade && (
+                            <div className="col-span-2 pt-3 border-t border-slate-100">
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Prioridade Declarada</p>
+                              <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                                🎯 {PRIORIDADE_LABEL[selectedLead.prioridade] ?? selectedLead.prioridade ?? "Não informada"}
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
 
                   {/* Section 3: Indicação */}
-                  <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 p-5 rounded-2xl shadow-sm">
-                    <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-amber-100 text-amber-600 flex items-center justify-center text-sm">🏆</div>
-                      Plano Recomendado
-                    </h4>
-                    <p className="text-2xl font-black text-amber-900">
-                      Plano {PLANO_LABEL[selectedLead.planoRecomendado]?.label ?? selectedLead.planoRecomendado}
-                    </p>
+                  <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 p-5 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1 flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-md bg-amber-100 text-amber-600 flex items-center justify-center text-sm">🏆</div>
+                        Plano Recomendado
+                      </h4>
+                      <p className="text-2xl font-black text-amber-900 mt-1">
+                        Plano {PLANO_LABEL[selectedLead.planoRecomendado]?.label ?? selectedLead.planoRecomendado}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-amber-700 bg-amber-100/80 px-3 py-1.5 rounded-xl border border-amber-300/60 block">
+                        {selectedLead.planoRecomendado === "plano-pet" ? "R$ 25,00/mês" : selectedLead.planoRecomendado === "vida-plus" ? "R$ 90,00/mês" : "R$ 43,00/mês"}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Section 4: Gestão do Funil */}

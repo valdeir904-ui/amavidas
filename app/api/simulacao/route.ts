@@ -63,6 +63,10 @@ export async function POST(req: NextRequest) {
       landingPage,
       dispositivo,
       origem,
+      tipoPet,
+      nomePet,
+      portePet,
+      idadePet,
     } = body;
 
     if (!nome || !telefone || !planoRecomendado) {
@@ -95,6 +99,10 @@ export async function POST(req: NextRequest) {
         orcamento: orcamento ?? "",
         planoRecomendado,
         cidade: cidade ?? "",
+        tipoPet: tipoPet ?? null,
+        nomePet: nomePet ?? null,
+        portePet: portePet ?? null,
+        idadePet: idadePet ?? null,
         status: "novo_lead",
         consentimento: true,
         consentimentoEm: new Date(),

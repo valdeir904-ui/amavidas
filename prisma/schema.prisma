@@ -90,6 +90,11 @@ model Simulacao {
   comoContatar      String          @default("")
   contatado         Boolean         @default(false)
   
+  tipoPet           String?
+  nomePet           String?
+  portePet          String?
+  idadePet          String?
+
   status            String          @default("novo_lead")
   
   motivoPerda       String?         @db.Text
@@ -204,6 +209,11 @@ model SimulacaoIncompleta {
   prioridade        String?
   orcamento         String?
   intencao          String?
+
+  tipoPet           String?
+  nomePet           String?
+  portePet          String?
+  idadePet          String?
 
   // ── ORIGEM DO LEAD ────────────────────────────────
   utmSource      String?
