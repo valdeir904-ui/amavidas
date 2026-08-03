@@ -19,6 +19,10 @@ interface Respostas {
   nome: string;
   telefone: string;
   consentimento: boolean;
+  tipoPet?: string;
+  nomePet?: string;
+  portePet?: string;
+  idadePet?: string;
 }
 
 interface PlanoInfo {
@@ -139,6 +143,41 @@ const PERGUNTAS: Pergunta[] = [
     ],
   },
   {
+    campo: "tipoPet",
+    texto: "Seu pet é um cão ou um gato?",
+    mensagemEmpatica: "Que carinho especial! Nossos amiguinhos trazem tanta alegria para nossa vida.",
+    opcoes: [
+      { value: "cao", emoji: "🐶", label: "Cão" },
+      { value: "gato", emoji: "🐱", label: "Gato" },
+    ],
+  },
+  {
+    campo: "nomePet",
+    texto: "Qual é o nome do seu pet?",
+    mensagemEmpatica: "Lindo nome! Vamos cuidar muito bem dele(a).",
+    opcoes: null,
+  },
+  {
+    campo: "portePet",
+    texto: (r) => (r.tipoPet === "gato" ? "Qual o porte do seu gato?" : "Qual o porte do seu cão?"),
+    mensagemEmpatica: "Entendido! O Plano Pet atende animais de todos os portes com todo o cuidado.",
+    opcoes: [
+      { value: "pequeno", emoji: "🐕", label: "Pequeno (até 10kg)" },
+      { value: "medio", emoji: "🦮", label: "Médio (10kg a 25kg)" },
+      { value: "grande", emoji: "🐕‍🦺", label: "Grande (acima de 25kg)" },
+    ],
+  },
+  {
+    campo: "idadePet",
+    texto: "Qual a idade do seu pet?",
+    mensagemEmpatica: "Excelente! É muito importante garantir proteção e carinho em todas as fases da vida.",
+    opcoes: [
+      { value: "filhote", emoji: "🐾", label: "Filhote (até 1 ano)" },
+      { value: "adulto", emoji: "🐕", label: "Adulto (1 a 7 anos)" },
+      { value: "idoso", emoji: "🦴", label: "Idoso (acima de 7 anos)" },
+    ],
+  },
+  {
     campo: "cidade",
     texto: "De qual cidade você é?",
     mensagemEmpatica: "Excelente! Atendemos com excelência na sua região.",
@@ -219,9 +258,11 @@ export default function ChatSimulador() {
   const [erroContato, setErroContato] = useState("");
   const [submetendo, setSubmetendo] = useState(false);
 
-  // Cidade Custom
+  // Cidade Custom e Nome Pet Custom
   const [cidadeOutros, setCidadeOutros] = useState("");
   const [mostrarInputCidade, setMostrarInputCidade] = useState(false);
+  const [nomePetInput, setNomePetInput] = useState("");
+  const [mostrarInputNomePet, setMostrarInputNomePet] = useState(false);
 
   const chatRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -272,8 +313,22 @@ export default function ChatSimulador() {
 
   const perguntasAtivas = useMemo(() => {
     return PERGUNTAS.filter((p) => {
-      if (p.campo === "quantidadePessoas" && (respostas.paraQuem === "so_eu" || respostas.paraQuem === "pet")) return false;
-      if (p.campo === "faixaEtaria" && respostas.paraQuem === "pet") return false;
+      const isPetPlan = respostas.paraQuem === "pet";
+      const isPetRelacionado = respostas.paraQuem === "pet" || respostas.paraQuem === "familia_pet";
+
+      if (isPetPlan) {
+        if (p.campo === "quantidadePessoas" || p.campo === "faixaEtaria" || p.campo === "prioridade" || p.campo === "orcamento") {
+          return false;
+        }
+      }
+      if (respostas.paraQuem === "so_eu" && p.campo === "quantidadePessoas") {
+        return false;
+      }
+      if (!isPetRelacionado) {
+        if (p.campo === "tipoPet" || p.campo === "nomePet" || p.campo === "portePet" || p.campo === "idadePet") {
+          return false;
+        }
+      }
       return true;
     });
   }, [respostas.paraQuem]);
@@ -318,8 +373,22 @@ export default function ChatSimulador() {
 
   function adicionarPergunta(index: number, currentResp: Partial<Respostas>) {
     const ativas = PERGUNTAS.filter((p) => {
-      if (p.campo === "quantidadePessoas" && (currentResp.paraQuem === "so_eu" || currentResp.paraQuem === "pet")) return false;
-      if (p.campo === "faixaEtaria" && currentResp.paraQuem === "pet") return false;
+      const isPetPlan = currentResp.paraQuem === "pet";
+      const isPetRelacionado = currentResp.paraQuem === "pet" || currentResp.paraQuem === "familia_pet";
+
+      if (isPetPlan) {
+        if (p.campo === "quantidadePessoas" || p.campo === "faixaEtaria" || p.campo === "prioridade" || p.campo === "orcamento") {
+          return false;
+        }
+      }
+      if (currentResp.paraQuem === "so_eu" && p.campo === "quantidadePessoas") {
+        return false;
+      }
+      if (!isPetRelacionado) {
+        if (p.campo === "tipoPet" || p.campo === "nomePet" || p.campo === "portePet" || p.campo === "idadePet") {
+          return false;
+        }
+      }
       return true;
     });
 
@@ -341,19 +410,22 @@ export default function ChatSimulador() {
           ...prev,
           { id: Date.now().toString() + "_opt", role: "bot", tipo: "opcoes", opcoes, campoContexto: pergunta.campo },
         ]);
+      } else if (pergunta.campo === "nomePet") {
+        setMostrarInputNomePet(true);
       }
     }, 800);
   }
 
   async function handleRespostaUser(valorReal: string, labelExibicao: string) {
     // Se escolheu 'Outros' no campo cidade, ativa input
-    if (valorReal === "outros" && perguntasAtivas[passo].campo === "cidade") {
+    if (valorReal === "outros" && perguntasAtivas[passo]?.campo === "cidade") {
       setMostrarInputCidade(true);
       setMensagens((prev) => prev.filter((m) => m.tipo !== "opcoes"));
       return;
     }
 
     setMostrarInputCidade(false);
+    setMostrarInputNomePet(false);
 
     // Adiciona resposta do usuário ao chat
     setMensagens((prev) =>
@@ -365,7 +437,7 @@ export default function ChatSimulador() {
     const perguntaAtual = perguntasAtivas[passo];
     
     let valorFinal = valorReal;
-    if (perguntaAtual.campo === "cidade") {
+    if (perguntaAtual?.campo === "cidade") {
       if (valorReal === "aguas_lindas") valorFinal = "Águas Lindas de Goiás";
       if (valorReal === "brasilia") valorFinal = "Brasília";
       if (valorReal === "entorno") valorFinal = "Cidades do Entorno";
@@ -417,6 +489,13 @@ export default function ChatSimulador() {
     if (!cidadeOutros.trim()) return;
     handleRespostaUser(cidadeOutros.trim(), `🗺️ ${cidadeOutros.trim()}`);
     setCidadeOutros("");
+  }
+
+  function handleInputNomePetSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nomePetInput.trim()) return;
+    handleRespostaUser(nomePetInput.trim(), `🐾 ${nomePetInput.trim()}`);
+    setNomePetInput("");
   }
 
   async function handleContatoSubmit(e: React.FormEvent) {
@@ -694,6 +773,29 @@ export default function ChatSimulador() {
           <div ref={chatRef} />
         </AnimatePresence>
       </div>
+
+      {/* Input area for custom pet name */}
+      {mostrarInputNomePet && (
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-white p-3.5 border-t border-slate-200 z-10 shadow-lg">
+          <form onSubmit={handleInputNomePetSubmit} className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Digite o nome do seu pet (ex: Thor, Mel)..."
+              value={nomePetInput}
+              onChange={(e) => setNomePetInput(e.target.value)}
+              className="flex-1 bg-slate-100 px-4 py-3 rounded-full text-slate-800 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00B4C8]"
+              autoFocus
+            />
+            <button
+              type="submit"
+              disabled={!nomePetInput.trim()}
+              className="w-12 h-12 bg-[#008ba3] hover:bg-[#00768b] text-white rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:bg-slate-350 transition-colors shadow-sm cursor-pointer"
+            >
+              <Send className="w-5 h-5 ml-1" />
+            </button>
+          </form>
+        </motion.div>
+      )}
 
       {/* Input area for custom city if "outros" was selected */}
       {mostrarInputCidade && (

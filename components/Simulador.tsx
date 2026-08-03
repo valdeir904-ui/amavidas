@@ -19,6 +19,10 @@ interface Respostas {
   nome: string;
   telefone: string;
   consentimento: boolean;
+  tipoPet?: string;
+  nomePet?: string;
+  portePet?: string;
+  idadePet?: string;
 }
 
 interface PlanoInfo {
@@ -139,6 +143,41 @@ const PERGUNTAS: Pergunta[] = [
     ],
   },
   {
+    campo: "tipoPet",
+    texto: "Seu pet é um cão ou um gato?",
+    mensagemEmpatica: "Que carinho especial! Nossos amiguinhos trazem tanta alegria para nossa vida.",
+    opcoes: [
+      { value: "cao", emoji: "🐶", label: "Cão" },
+      { value: "gato", emoji: "🐱", label: "Gato" },
+    ],
+  },
+  {
+    campo: "nomePet",
+    texto: "Qual é o nome do seu pet?",
+    mensagemEmpatica: "Lindo nome! Vamos cuidar muito bem dele(a).",
+    opcoes: null,
+  },
+  {
+    campo: "portePet",
+    texto: (r) => (r.tipoPet === "gato" ? "Qual o porte do seu gato?" : "Qual o porte do seu cão?"),
+    mensagemEmpatica: "Entendido! O Plano Pet atende animais de todos os portes com todo o cuidado.",
+    opcoes: [
+      { value: "pequeno", emoji: "🐕", label: "Pequeno (até 10kg)" },
+      { value: "medio", emoji: "🦮", label: "Médio (10kg a 25kg)" },
+      { value: "grande", emoji: "🐕‍🦺", label: "Grande (acima de 25kg)" },
+    ],
+  },
+  {
+    campo: "idadePet",
+    texto: "Qual a idade do seu pet?",
+    mensagemEmpatica: "Excelente! É muito importante garantir proteção e carinho em todas as fases da vida.",
+    opcoes: [
+      { value: "filhote", emoji: "🐾", label: "Filhote (até 1 ano)" },
+      { value: "adulto", emoji: "🐕", label: "Adulto (1 a 7 anos)" },
+      { value: "idoso", emoji: "🦴", label: "Idoso (acima de 7 anos)" },
+    ],
+  },
+  {
     campo: "cidade",
     texto: "De qual cidade você é?",
     mensagemEmpatica: "Excelente! Atendemos com excelência na sua região.",
@@ -252,6 +291,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
   const [consentimento, setConsentimento] = useState(false);
   const [cidadeOutros, setCidadeOutros] = useState("");
   const [mostrarInputCidade, setMostrarInputCidade] = useState(false);
+  const [nomePetInput, setNomePetInput] = useState("");
 
   const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
   const [mensagemEmpatica, setMensagemEmpatica] = useState<string | null>(null);
@@ -317,13 +357,19 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
 
   const perguntasAtivas = useMemo(() => {
     return PERGUNTAS.filter((p) => {
-      if (p.campo === "quantidadePessoas") {
-        if (respostas.paraQuem === "so_eu" || respostas.paraQuem === "pet") {
+      const isPetPlan = respostas.paraQuem === "pet";
+      const isPetRelacionado = respostas.paraQuem === "pet" || respostas.paraQuem === "familia_pet";
+
+      if (isPetPlan) {
+        if (p.campo === "quantidadePessoas" || p.campo === "faixaEtaria" || p.campo === "prioridade" || p.campo === "orcamento") {
           return false;
         }
       }
-      if (p.campo === "faixaEtaria") {
-        if (respostas.paraQuem === "pet") {
+      if (respostas.paraQuem === "so_eu" && p.campo === "quantidadePessoas") {
+        return false;
+      }
+      if (!isPetRelacionado) {
+        if (p.campo === "tipoPet" || p.campo === "nomePet" || p.campo === "portePet" || p.campo === "idadePet") {
           return false;
         }
       }
@@ -394,7 +440,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
 
     const novasRespostas = { ...respostas, [perguntaAtual.campo]: valorFinal };
     
-    if (perguntaAtual.campo === "paraQuem" && valor === "so_eu") {
+    if (perguntaAtual.campo === "paraQuem" && (valor === "so_eu" || valor === "pet")) {
       novasRespostas.quantidadePessoas = "1";
     }
 
@@ -418,6 +464,34 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
         setPlanoSlug(currentSlug);
         setFase("contato");
         // Registrar etapa 8 como contato pendente
+        trackAbandono(8, novasRespostas);
+      } else {
+        setPasso(indexAtualNoQuiz + 1);
+      }
+    }, 1300);
+  }
+
+  function confirmarNomePet() {
+    if (!nomePetInput.trim() || opcaoSelecionada) return;
+
+    const novasRespostas = { ...respostas, nomePet: nomePetInput.trim() };
+    setRespostas(novasRespostas);
+    setOpcaoSelecionada(nomePetInput.trim());
+    setMensagemEmpatica(obterMensagemEmpatica(perguntaAtual));
+
+    const indexAtualNoQuiz = perguntasAtivas.findIndex((p) => p.campo === "nomePet");
+    trackAbandono(indexAtualNoQuiz + 1, novasRespostas);
+
+    const isUltima = indexAtualNoQuiz === perguntasAtivas.length - 1;
+    const currentSlug = recomendarSlug(novasRespostas);
+
+    timerRef.current = setTimeout(() => {
+      setMensagemEmpatica(null);
+      setOpcaoSelecionada(null);
+
+      if (isUltima) {
+        setPlanoSlug(currentSlug);
+        setFase("contato");
         trackAbandono(8, novasRespostas);
       } else {
         setPasso(indexAtualNoQuiz + 1);
@@ -710,7 +784,30 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
                   })}
                 </div>
               )
-            ) : null}
+            ) : (
+              <div className="space-y-4 mb-6">
+                <input
+                  type="text"
+                  required
+                  value={nomePetInput}
+                  onChange={(e) => setNomePetInput(e.target.value)}
+                  placeholder="Digite o nome do seu pet (ex: Thor, Mel)..."
+                  className="w-full px-5 py-4 border border-[var(--line-strong)] rounded-2xl focus:border-[var(--royal)] focus:ring-4 focus:ring-[var(--royal-soft)]/50 focus:outline-none transition-all bg-white text-[var(--ink)] placeholder-[var(--ink-mute)]/50 font-medium text-[15px]"
+                  onKeyDown={(e) => { if (e.key === "Enter" && nomePetInput.trim()) confirmarNomePet(); }}
+                  autoFocus
+                />
+                <button
+                  disabled={!nomePetInput.trim()}
+                  onClick={confirmarNomePet}
+                  className="w-full bg-[var(--royal)] hover:bg-[var(--royal)]/90 active:scale-[0.99] text-white text-[15px] font-bold py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <span>Continuar</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </button>
+              </div>
+            )}
 
             {/* Mensagem Empática */}
             <AnimatePresence>
