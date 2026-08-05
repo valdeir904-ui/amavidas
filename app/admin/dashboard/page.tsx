@@ -45,7 +45,9 @@ export interface AtendentePerformance {
   leadsPorStatus: {
     novo_lead: number;
     contatado: number;
+    proposta_enviada?: number;
     negociando: number;
+    fechamento?: number;
     ganho: number;
     perdido: number;
   };
@@ -288,9 +290,19 @@ function AtendentesPerformanceSection({
                         📞 {atendente.leadsPorStatus.contatado} contato
                       </span>
                     )}
+                    {(atendente.leadsPorStatus.proposta_enviada ?? 0) > 0 && (
+                      <span className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg font-bold">
+                        📄 {atendente.leadsPorStatus.proposta_enviada} prop.
+                      </span>
+                    )}
                     {atendente.leadsPorStatus.negociando > 0 && (
                       <span className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg font-bold">
                         💬 {atendente.leadsPorStatus.negociando} negoc.
+                      </span>
+                    )}
+                    {(atendente.leadsPorStatus.fechamento ?? 0) > 0 && (
+                      <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg font-bold">
+                        ✍️ {atendente.leadsPorStatus.fechamento} fecham.
                       </span>
                     )}
                     {atendente.leadsPorStatus.ganho > 0 && (

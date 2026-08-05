@@ -93,10 +93,10 @@ const MOTIVOS_LABELS: Record<string, string> = {
 
 const COLUNAS = [
   { id: "novo_lead", label: "Novo Lead", emoji: "⏳", corCol: "border-t-red-400 bg-red-50/5", textCor: "text-red-700" },
-  { id: "contatado", label: "Em Contato", emoji: "📞", corCol: "border-t-blue-400 bg-blue-50/5", textCor: "text-blue-700" },
-  { id: "negociando", label: "Negociando", emoji: "💬", corCol: "border-t-purple-400 bg-purple-50/5", textCor: "text-purple-700" },
-  { id: "ganho", label: "Ganho (Contratado)", emoji: "🤝", corCol: "border-t-emerald-400 bg-emerald-50/5", textCor: "text-emerald-700" },
-  { id: "perdido", label: "Perdido", emoji: "❌", corCol: "border-t-slate-350 bg-slate-50/5", textCor: "text-slate-600" },
+  { id: "contatado", label: "Primeiro Contato", emoji: "📞", corCol: "border-t-blue-400 bg-blue-50/5", textCor: "text-blue-700" },
+  { id: "proposta_enviada", label: "Proposta Enviada", emoji: "📄", corCol: "border-t-amber-400 bg-amber-50/5", textCor: "text-amber-700" },
+  { id: "negociando", label: "Em Negociação", emoji: "💬", corCol: "border-t-purple-400 bg-purple-50/5", textCor: "text-purple-700" },
+  { id: "fechamento", label: "Em Fechamento", emoji: "✍️", corCol: "border-t-indigo-400 bg-indigo-50/5", textCor: "text-indigo-700" },
 ] as const;
 
 export default function OportunidadesPage() {
@@ -105,7 +105,8 @@ export default function OportunidadesPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
-  const [filtro, setFiltro] = useState<"todos" | "pendentes" | "contatados" | "negociando" | "ganhos" | "perdidos">("todos");
+  const [abaPrincipal, setAbaPrincipal] = useState<"ativo" | "ganhos" | "perdidos">("ativo");
+  const [filtro, setFiltro] = useState<"todos" | "pendentes" | "contatados" | "proposta" | "negociando" | "fechamento" | "ganhos" | "perdidos">("todos");
   const [showFiltersMenu, setShowFiltersMenu] = useState(false);
   const [filtrosCanais, setFiltrosCanais] = useState<string[]>([]);
   const [filtrosCampanhas, setFiltrosCampanhas] = useState<string[]>([]);
@@ -699,13 +700,19 @@ export default function OportunidadesPage() {
   const leadsFiltrados = leads
     .filter((l) => {
       const currentStatus = getStatusSafe(l);
-      if (viewMode === "tabela") {
-        if (filtro === "pendentes") return currentStatus === "novo_lead";
-        if (filtro === "contatados") return currentStatus === "contatado";
-        if (filtro === "negociando") return currentStatus === "negociando";
-        if (filtro === "ganhos") return currentStatus === "ganho";
-        if (filtro === "perdidos") return currentStatus === "perdido";
-      }
+      if (abaPrincipal === "ganhos") return currentStatus === "ganho";
+      if (abaPrincipal === "perdidos") return currentStatus === "perdido";
+      return currentStatus !== "ganho" && currentStatus !== "perdido";
+    })
+    .filter((l) => {
+      const currentStatus = getStatusSafe(l);
+      if (filtro === "pendentes") return currentStatus === "novo_lead";
+      if (filtro === "contatados") return currentStatus === "contatado";
+      if (filtro === "proposta") return currentStatus === "proposta_enviada";
+      if (filtro === "negociando") return currentStatus === "negociando";
+      if (filtro === "fechamento") return currentStatus === "fechamento";
+      if (filtro === "ganhos") return currentStatus === "ganho";
+      if (filtro === "perdidos") return currentStatus === "perdido";
       return true;
     })
     .filter((l) => {
@@ -736,9 +743,12 @@ export default function OportunidadesPage() {
 
   const stats = {
     total: leads.length,
+    ativos: leads.filter((l) => getStatusSafe(l) !== "ganho" && getStatusSafe(l) !== "perdido").length,
     pendentes: leads.filter((l) => getStatusSafe(l) === "novo_lead").length,
     contatados: leads.filter((l) => getStatusSafe(l) === "contatado").length,
+    proposta: leads.filter((l) => getStatusSafe(l) === "proposta_enviada").length,
     negociando: leads.filter((l) => getStatusSafe(l) === "negociando").length,
+    fechamento: leads.filter((l) => getStatusSafe(l) === "fechamento").length,
     ganhos: leads.filter((l) => getStatusSafe(l) === "ganho").length,
     perdidos: leads.filter((l) => getStatusSafe(l) === "perdido").length,
   };
@@ -769,21 +779,68 @@ export default function OportunidadesPage() {
           </p>
         </div>
 
-        {/* Action Buttons: Exportar na esquerda, Novo Lead na direita */}
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={exportarCSV}
-            className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer h-[38px]"
-          >
-            📥 Exportar CSV
-          </button>
+        {/* Seletor de Abas do Funil (Pipeline Ativo vs Ganhos vs Perdidos) */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80">
+            <button
+              onClick={() => { setAbaPrincipal("ativo"); setFiltro("todos"); }}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+                abaPrincipal === "ativo"
+                  ? "bg-slate-900 text-white shadow-md"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+              }`}
+            >
+              <span>⚡ Funil Ativo</span>
+              <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-[10px] font-black">
+                {stats.ativos}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setIsAddingLead(true)}
-            className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer h-[38px]"
-          >
-            ➕ Novo Lead
-          </button>
+            <button
+              onClick={() => { setAbaPrincipal("ganhos"); setFiltro("todos"); }}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+                abaPrincipal === "ganhos"
+                  ? "bg-emerald-600 text-white shadow-md"
+                  : "text-emerald-700 hover:bg-emerald-100/60"
+              }`}
+            >
+              <span>🤝 Ganhos (Clientes)</span>
+              <span className="bg-emerald-700 text-white px-2 py-0.5 rounded-full text-[10px] font-black">
+                {stats.ganhos}
+              </span>
+            </button>
+
+            <button
+              onClick={() => { setAbaPrincipal("perdidos"); setFiltro("todos"); }}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+                abaPrincipal === "perdidos"
+                  ? "bg-slate-700 text-white shadow-md"
+                  : "text-slate-600 hover:bg-slate-200/60"
+              }`}
+            >
+              <span>❌ Perdidos & Descartados</span>
+              <span className="bg-slate-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black">
+                {stats.perdidos}
+              </span>
+            </button>
+          </div>
+
+          {/* Action Buttons: Exportar na esquerda, Novo Lead na direita */}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={exportarCSV}
+              className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer h-[38px]"
+            >
+              📥 Exportar CSV
+            </button>
+
+            <button
+              onClick={() => setIsAddingLead(true)}
+              className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer h-[38px]"
+            >
+              ➕ Novo Lead
+            </button>
+          </div>
         </div>
       </div>
 
@@ -825,21 +882,22 @@ export default function OportunidadesPage() {
       )}
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-7">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-7">
         {[
-          { label: "Total de leads", value: stats.total, icon: "👥", color: "text-slate-900", bg: "bg-slate-50 border-slate-100" },
+          { label: "Leads Ativos", value: stats.ativos, icon: "⚡", color: "text-slate-900", bg: "bg-slate-50 border-slate-100" },
           { label: "Novos Leads", value: stats.pendentes, icon: "⏳", color: "text-red-650", bg: "bg-red-50/50 border-red-100" },
-          { label: "Em Contato", value: stats.contatados, icon: "📞", color: "text-blue-650", bg: "bg-blue-50/50 border-blue-100" },
+          { label: "1º Contato", value: stats.contatados, icon: "📞", color: "text-blue-650", bg: "bg-blue-50/50 border-blue-100" },
+          { label: "Proposta", value: stats.proposta, icon: "📄", color: "text-amber-650", bg: "bg-amber-50/50 border-amber-100" },
           { label: "Negociando", value: stats.negociando, icon: "💬", color: "text-purple-650", bg: "bg-purple-50/50 border-purple-100" },
-          { label: "Ganhos (Contratados)", value: stats.ganhos, icon: "🤝", color: "text-emerald-650", bg: "bg-emerald-50/50 border-emerald-100" },
-          { label: "Perdidos", value: stats.perdidos, icon: "❌", color: "text-slate-550", bg: "bg-slate-100 border-slate-200" },
+          { label: "Fechamento", value: stats.fechamento, icon: "✍️", color: "text-indigo-650", bg: "bg-indigo-50/50 border-indigo-100" },
+          { label: "Ganhos / Perdidos", value: `${stats.ganhos} / ${stats.perdidos}`, icon: "🏁", color: "text-emerald-700", bg: "bg-emerald-50/40 border-emerald-100" },
         ].map((s) => (
-          <div key={s.label} className={`bg-white rounded-2xl border p-4 shadow-sm transition-all hover:shadow-md ${s.bg}`}>
-            <div className="flex items-start justify-between mb-1.5">
-              <span className="text-lg">{s.icon}</span>
+          <div key={s.label} className={`bg-white rounded-2xl border p-3.5 shadow-sm transition-all hover:shadow-md ${s.bg}`}>
+            <div className="flex items-start justify-between mb-1">
+              <span className="text-base">{s.icon}</span>
             </div>
-            <p className={`text-2xl font-black tracking-tight ${s.color}`}>{s.value}</p>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mt-1">{s.label}</p>
+            <p className={`text-xl font-black tracking-tight ${s.color}`}>{s.value}</p>
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -1186,11 +1244,11 @@ export default function OportunidadesPage() {
                               ? "border-l-4 border-l-red-500 border-red-100 hover:border-red-200" 
                               : col.id === "contatado"
                               ? "border-l-4 border-l-blue-500 border-slate-200 hover:border-slate-300"
+                              : col.id === "proposta_enviada"
+                              ? "border-l-4 border-l-amber-500 border-slate-200 hover:border-slate-300"
                               : col.id === "negociando"
                               ? "border-l-4 border-l-purple-500 border-slate-200 hover:border-slate-300"
-                              : col.id === "ganho"
-                              ? "border-l-4 border-l-emerald-500 border-slate-200 hover:border-slate-300"
-                              : "border-l-4 border-l-slate-400 border-slate-200 hover:border-slate-300"
+                              : "border-l-4 border-l-indigo-500 border-slate-200 hover:border-slate-300"
                         }`}
                       >
                         {/* Header card info */}
@@ -1346,26 +1404,32 @@ export default function OportunidadesPage() {
                           <div className="flex items-center gap-1.5">
                             {/* Selector for quick change */}
                             <select
-                              value={col.id}
-                              onChange={(e) => handleStatusChangeRequest(lead.id, e.target.value)}
-                              className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border outline-none cursor-pointer transition-all ${
-                                col.id === "ganho"
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : col.id === "perdido"
-                                  ? "bg-slate-50 text-slate-650 border-slate-200"
-                                  : col.id === "negociando"
-                                  ? "bg-purple-50 text-purple-700 border-purple-200"
-                                  : col.id === "contatado"
-                                  ? "bg-blue-50 text-blue-700 border-blue-200"
-                                  : "bg-red-50 text-red-700 border-red-200"
-                              }`}
-                            >
-                              <option value="novo_lead">⏳</option>
-                              <option value="contatado">📞</option>
-                              <option value="negociando">💬</option>
-                              <option value="ganho">🤝</option>
-                              <option value="perdido">❌</option>
-                            </select>
+                               value={lead.status}
+                               onChange={(e) => handleStatusChangeRequest(lead.id, e.target.value)}
+                               className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border outline-none cursor-pointer transition-all ${
+                                 lead.status === "ganho"
+                                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                   : lead.status === "perdido"
+                                   ? "bg-slate-50 text-slate-650 border-slate-200"
+                                   : lead.status === "fechamento"
+                                   ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                   : lead.status === "negociando"
+                                   ? "bg-purple-50 text-purple-700 border-purple-200"
+                                   : lead.status === "proposta_enviada"
+                                   ? "bg-amber-50 text-amber-700 border-amber-200"
+                                   : lead.status === "contatado"
+                                   ? "bg-blue-50 text-blue-700 border-blue-200"
+                                   : "bg-red-50 text-red-700 border-red-200"
+                               }`}
+                             >
+                               <option value="novo_lead">⏳ Novo Lead</option>
+                               <option value="contatado">📞 1º Contato</option>
+                               <option value="proposta_enviada">📄 Proposta Enviada</option>
+                               <option value="negociando">💬 Em Negociação</option>
+                               <option value="fechamento">✍️ Em Fechamento</option>
+                               <option value="ganho">🤝 Mover p/ Ganhos</option>
+                               <option value="perdido">❌ Mover p/ Perdidos</option>
+                             </select>
 
                             {/* WhatsApp Shortcut */}
                             <button
@@ -1498,18 +1562,24 @@ export default function OportunidadesPage() {
                                       ? "bg-emerald-50 text-emerald-700 border-emerald-250 hover:bg-emerald-100"
                                       : currentStatus === "perdido"
                                       ? "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                                      : currentStatus === "fechamento"
+                                      ? "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
                                       : currentStatus === "negociando"
                                       ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                                      : currentStatus === "proposta_enviada"
+                                      ? "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
                                       : currentStatus === "contatado"
                                       ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
                                       : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
                                   }`}
                                 >
                                   <option value="novo_lead">⏳ Novo Lead</option>
-                                  <option value="contatado">📞 Em Contato</option>
-                                  <option value="negociando">💬 Negociando</option>
-                                  <option value="ganho">🤝 Ganho (Contratado)</option>
-                                  <option value="perdido">❌ Perdido</option>
+                                  <option value="contatado">📞 1º Contato</option>
+                                  <option value="proposta_enviada">📄 Proposta Enviada</option>
+                                  <option value="negociando">💬 Em Negociação</option>
+                                  <option value="fechamento">✍️ Em Fechamento</option>
+                                  <option value="ganho">🤝 Mover p/ Ganhos</option>
+                                  <option value="perdido">❌ Mover p/ Perdidos</option>
                                 </select>
 
                                 {currentUser?.perfil === "MASTER" ? (
@@ -1992,8 +2062,10 @@ export default function OportunidadesPage() {
                     <div className="grid grid-cols-1 gap-2 pt-1">
                       {[
                         { id: "novo_lead", label: "⏳ Novo Lead (Aguardando)", color: "bg-red-50 text-red-700 border-red-200" },
-                        { id: "contatado", label: "📞 Em Contato Comercial", color: "bg-blue-50 text-blue-700 border-blue-200" },
-                        { id: "negociando", label: "💬 Em Negociação / Proposta", color: "bg-purple-50 text-purple-700 border-purple-200" },
+                        { id: "contatado", label: "📞 1º Contato Comercial", color: "bg-blue-50 text-blue-700 border-blue-200" },
+                        { id: "proposta_enviada", label: "📄 Proposta Enviada", color: "bg-amber-50 text-amber-700 border-amber-200" },
+                        { id: "negociando", label: "💬 Em Negociação", color: "bg-purple-50 text-purple-700 border-purple-200" },
+                        { id: "fechamento", label: "✍️ Em Fechamento", color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
                         { id: "ganho", label: "🤝 Ganho (Contrato Fechado)", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
                         { id: "perdido", label: "❌ Perdido / Descartado", color: "bg-slate-100 text-slate-650 border-slate-250" },
                       ].map((btn) => {
