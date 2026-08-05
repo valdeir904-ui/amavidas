@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
   startOfWeek.setDate(startOfWeek.getDate() - 6);
   startOfWeek.setHours(0, 0, 0, 0);
 
-  const [leads, eventos, planos] = await Promise.all([
+  const [leads, eventos, planos, usuarios, leadsAtribuidos] = await Promise.all([
     prisma.simulacao.findMany({
       where: { criadoEm: { gte: startDate, lte: endDate } },
       orderBy: { criadoEm: "asc" }
@@ -61,6 +61,19 @@ export async function GET(req: NextRequest) {
       orderBy: { criadoEm: "asc" },
     }),
     prisma.plano.findMany(),
+    prisma.usuario.findMany({
+      where: { ativo: true },
+      select: { id: true, nome: true, email: true, perfil: true }
+    }),
+    prisma.simulacao.findMany({
+      where: { responsavelId: { not: null } },
+      include: {
+        historico: {
+          orderBy: { criadoEm: "desc" },
+          select: { acao: true, usuarioId: true, criadoEm: true }
+        }
+      }
+    })
   ]);
 
   // Map plan prices
@@ -160,6 +173,83 @@ export async function GET(req: NextRequest) {
     else paraQuem.individual++;
   }
 
+  // Cálculo da Performance e Tempo com cada Atendente
+  const formatDuration = (start: Date, end: Date) => {
+    const diffMs = Math.max(0, end.getTime() - start.getTime());
+    const minutes = Math.floor(diffMs / (1000 * 60));
+    
+    if (minutes < 1) return { minutes, text: "Agora mesmo" };
+    if (minutes < 60) return { minutes, text: `${minutes} min` };
+    
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    if (hours < 24) {
+      return {
+        minutes,
+        text: remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`
+      };
+    }
+    
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    return {
+      minutes,
+      text: remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`
+    };
+  };
+
+  const atendentesPerformance = usuarios.map((u) => {
+    const userLeads = leadsAtribuidos.filter((l) => l.responsavelId === u.id);
+    
+    const leadsPorStatus = {
+      novo_lead: 0,
+      contatado: 0,
+      negociando: 0,
+      ganho: 0,
+      perdido: 0,
+    };
+
+    const formattedLeads = userLeads.map((l) => {
+      if (l.status in leadsPorStatus) {
+        leadsPorStatus[l.status as keyof typeof leadsPorStatus]++;
+      }
+
+      const atribLog = l.historico.find(
+        (h) => h.acao === "atribuiu" && h.usuarioId === u.id
+      ) || l.historico.find((h) => h.acao === "atribuiu");
+
+      const atribuidoEm = atribLog ? atribLog.criadoEm : (l.atualizadoEm || l.criadoEm);
+      const { minutes, text } = formatDuration(new Date(atribuidoEm), now);
+
+      return {
+        id: l.id,
+        nome: l.nome,
+        telefone: l.telefone,
+        status: l.status,
+        planoRecomendado: l.planoRecomendado,
+        cidade: l.cidade,
+        criadoEm: l.criadoEm,
+        atribuidoEm,
+        tempoMinutos: minutes,
+        tempoFormatado: text,
+      };
+    });
+
+    formattedLeads.sort((a, b) => b.tempoMinutos - a.tempoMinutos);
+
+    return {
+      id: u.id,
+      nome: u.nome,
+      email: u.email,
+      perfil: u.perfil,
+      totalLeads: userLeads.length,
+      leadsPorStatus,
+      leads: formattedLeads,
+    };
+  });
+
+  atendentesPerformance.sort((a, b) => b.totalLeads - a.totalLeads);
+
   return Response.json({
     kpi: {
       totalLeads,
@@ -192,5 +282,6 @@ export async function GET(req: NextRequest) {
       { status: "Contatados", total: contatados },
       { status: "Pendentes", total: totalLeads - contatados },
     ],
+    atendentesPerformance,
   });
 }
