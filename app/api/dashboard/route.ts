@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
     }),
     prisma.plano.findMany(),
     prisma.usuario.findMany({
-      where: { ativo: true },
+      where: { ativo: true, perfil: "ATENDENTE" },
       select: { id: true, nome: true, email: true, perfil: true }
     }),
     prisma.simulacao.findMany({
