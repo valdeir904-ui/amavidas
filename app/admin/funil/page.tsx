@@ -184,11 +184,11 @@ export default function FunilPage() {
       {/* Header */}
       <div className="mb-10 flex flex-col xl:flex-row xl:items-end justify-between gap-6 lg:pl-0 pl-12">
         <div>
-          <h1 className="text-3xl font-extrabold text-zinc-950 tracking-tight">Análise de Funil</h1>
-          <p className="text-zinc-505 text-sm mt-1.5 font-medium">ROI de Marketing, Abandono por Pergunta e Qualidade Comercial.</p>
+          <h1 className="text-3xl font-extrabold text-zinc-955 tracking-tight">Análise de Funil</h1>
+          <p className="text-zinc-500 text-sm mt-1.5 font-medium">Abandono por Pergunta, Qualidade Comercial e SLA de Atendimento.</p>
         </div>
         
-        {/* Controles de Filtro e Ad Spend */}
+        {/* Controles de Filtro */}
         <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
           {/* Período */}
           <div className="flex items-center gap-2">
@@ -207,31 +207,6 @@ export default function FunilPage() {
             />
           </div>
 
-          <div className="h-6 w-[1px] bg-zinc-200 hidden sm:block" />
-
-          {/* Ad Spend */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Investimento:</span>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">R$</span>
-              <input
-                type="text"
-                value={inputSpend}
-                onChange={(e) => setInputSpend(e.target.value)}
-                placeholder="0.00"
-                className="w-24 pl-8 pr-2.5 py-2 border border-zinc-200 rounded-xl bg-white text-zinc-800 text-xs font-bold focus:outline-none"
-              />
-            </div>
-            <button
-              onClick={handleSaveSpend}
-              disabled={savingSpend}
-              className="p-2 bg-zinc-900 text-white hover:bg-zinc-800 rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center"
-              title="Salvar investimento"
-            >
-              {savingSpend ? <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            </button>
-          </div>
-
           <button
             onClick={fetchData}
             disabled={loading}
@@ -245,48 +220,18 @@ export default function FunilPage() {
 
       <div className="space-y-8 max-w-[1600px] mx-auto">
         
-        {/* ROW 1: Custos e ROI de Anúncios */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        {/* ROW 1: Métricas de Volume e Eficiência do Funil */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           
-          <div className="bg-gradient-to-br from-zinc-950 to-zinc-900 rounded-2xl p-6 text-white shadow-md relative overflow-hidden flex flex-col justify-between">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Investimento Total</p>
-              <p className="text-3xl font-black mt-2 tracking-tight">R$ {data.adSpend.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-            </div>
-            <p className="text-[11px] text-zinc-500 font-medium mt-4">Meta/Google Ads no período</p>
-          </div>
-
-          <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+          <div className="bg-gradient-to-br from-zinc-950 to-zinc-900 rounded-2xl p-6 text-white shadow-md flex flex-col justify-between">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Custo por Lead (CPL)</p>
-                <p className="text-3xl font-black text-zinc-900 mt-2 tracking-tight">R$ {data.custos.cpl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total de Leads Gerados</p>
+                <p className="text-3xl font-black mt-2 tracking-tight">{data.totalLeads.toLocaleString()}</p>
               </div>
-              <div className="p-2 rounded-xl bg-slate-50 text-slate-600"><DollarSign className="w-4 h-4" /></div>
+              <div className="p-2 rounded-xl bg-white/10 text-white"><Users className="w-4 h-4" /></div>
             </div>
-            <p className="text-[11px] text-zinc-500 font-medium mt-4">Calculado sobre {data.totalLeads} leads gerados</p>
-          </div>
-
-          <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">CPL Qualificado (CPLQ)</p>
-                <p className="text-3xl font-black text-zinc-900 mt-2 tracking-tight">R$ {data.custos.cplq.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-              </div>
-              <div className="p-2 rounded-xl bg-slate-50 text-slate-600"><TrendingUp className="w-4 h-4" /></div>
-            </div>
-            <p className="text-[11px] text-zinc-500 font-medium mt-4">Leads com intenção "Contratar agora" ({data.custos.totalQualificados})</p>
-          </div>
-
-          <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Custo de Aquisição (CAC)</p>
-                <p className="text-3xl font-black text-zinc-900 mt-2 tracking-tight">R$ {data.custos.cac.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-              </div>
-              <div className="p-2 rounded-xl bg-slate-50 text-slate-600"><Award className="w-4 h-4" /></div>
-            </div>
-            <p className="text-[11px] text-zinc-500 font-medium mt-4">Calculado sobre {data.custos.totalGanhos} clientes ganhos</p>
+            <p className="text-[11px] text-zinc-400 font-medium mt-4">Simulações completas no período</p>
           </div>
 
           <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
@@ -298,6 +243,28 @@ export default function FunilPage() {
               <div className="p-2 rounded-xl bg-slate-50 text-slate-600"><Percent className="w-4 h-4" /></div>
             </div>
             <p className="text-[11px] text-zinc-500 font-medium mt-4">Simulações concluídas vs iniciadas</p>
+          </div>
+
+          <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total de Abandonos</p>
+                <p className="text-3xl font-black text-zinc-900 mt-2 tracking-tight">{data.totalAbandonos.toLocaleString()}</p>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 text-slate-600"><AlertTriangle className="w-4 h-4" /></div>
+            </div>
+            <p className="text-[11px] text-zinc-500 font-medium mt-4">Desistências durante as perguntas</p>
+          </div>
+
+          <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">SLA de Atendimento</p>
+                <p className="text-3xl font-black text-zinc-900 mt-2 tracking-tight">{formatSla(data.performance.slaMedioMinutos)}</p>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 text-slate-600"><Clock className="w-4 h-4" /></div>
+            </div>
+            <p className="text-[11px] text-zinc-500 font-medium mt-4">Tempo médio para primeiro contato comercial</p>
           </div>
 
         </section>

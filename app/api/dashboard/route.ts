@@ -220,6 +220,7 @@ export async function GET(req: NextRequest) {
 
       const atribuidoEm = atribLog ? atribLog.criadoEm : (l.atualizadoEm || l.criadoEm);
       const { minutes, text } = formatDuration(new Date(atribuidoEm), now);
+      const isParadoMais7Dias = l.status !== "ganho" && l.status !== "perdido" && minutes >= 10080;
 
       return {
         id: l.id,
@@ -232,10 +233,13 @@ export async function GET(req: NextRequest) {
         atribuidoEm,
         tempoMinutos: minutes,
         tempoFormatado: text,
+        isParadoMais7Dias,
       };
     });
 
     formattedLeads.sort((a, b) => b.tempoMinutos - a.tempoMinutos);
+
+    const leadsParadosCount = formattedLeads.filter((l) => l.isParadoMais7Dias).length;
 
     return {
       id: u.id,
@@ -243,6 +247,7 @@ export async function GET(req: NextRequest) {
       email: u.email,
       perfil: u.perfil,
       totalLeads: userLeads.length,
+      leadsParadosCount,
       leadsPorStatus,
       leads: formattedLeads,
     };

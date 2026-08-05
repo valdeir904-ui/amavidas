@@ -41,6 +41,7 @@ export interface AtendentePerformance {
   email: string;
   perfil: string;
   totalLeads: number;
+  leadsParadosCount?: number;
   leadsPorStatus: {
     novo_lead: number;
     contatado: number;
@@ -59,6 +60,7 @@ export interface AtendentePerformance {
     atribuidoEm: string;
     tempoMinutos: number;
     tempoFormatado: string;
+    isParadoMais7Dias?: boolean;
   }[];
 }
 
@@ -268,6 +270,12 @@ function AtendentesPerformanceSection({
                     </span>
                   </div>
 
+                  {(atendente.leadsParadosCount ?? 0) > 0 && (
+                    <span className="px-3 py-1.5 bg-red-500 text-white font-black text-xs rounded-xl shadow-sm animate-pulse flex items-center gap-1">
+                      🚨 {atendente.leadsParadosCount} parado(s) &gt; 7 dias
+                    </span>
+                  )}
+
                   {/* Badges de Status */}
                   <div className="hidden xl:flex items-center gap-1.5 text-xs">
                     {atendente.leadsPorStatus.novo_lead > 0 && (
@@ -317,12 +325,19 @@ function AtendentesPerformanceSection({
                       {atendente.leads.map((lead) => (
                         <div 
                           key={lead.id} 
-                          className="bg-white border border-zinc-200/80 rounded-xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-3"
+                          className={`rounded-xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-3 ${
+                            lead.isParadoMais7Dias || lead.tempoMinutos >= 10080
+                              ? "bg-red-50/40 border-2 border-red-500/80 shadow-red-100"
+                              : "bg-white border border-zinc-200/80"
+                          }`}
                         >
                           <div>
                             <div className="flex items-center justify-between gap-2 mb-2">
-                              <h4 className="font-bold text-zinc-900 text-sm truncate" title={lead.nome}>
-                                {lead.nome}
+                              <h4 className="font-bold text-zinc-900 text-sm truncate flex items-center gap-1.5" title={lead.nome}>
+                                {(lead.isParadoMais7Dias || lead.tempoMinutos >= 10080) && (
+                                  <span className="text-red-600 font-extrabold animate-pulse" title="Lead parado a mais de 7 dias">🚨</span>
+                                )}
+                                <span className="truncate">{lead.nome}</span>
                               </h4>
                               {getStatusBadge(lead.status)}
                             </div>

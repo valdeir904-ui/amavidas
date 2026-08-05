@@ -743,6 +743,10 @@ export default function OportunidadesPage() {
     perdidos: leads.filter((l) => getStatusSafe(l) === "perdido").length,
   };
 
+  const leadsParados7DiasCount = leadsFiltrados.filter(
+    (l) => l.status !== "ganho" && l.status !== "perdido" && (now.getTime() - new Date(l.criadoEm).getTime() >= 604800000)
+  ).length;
+
   return (
     <main className="flex-1 p-6 lg:p-8 bg-[#f8fafc] min-h-screen relative">
       {/* Page header */}
@@ -771,6 +775,29 @@ export default function OportunidadesPage() {
           </button>
         </div>
       </div>
+
+      {/* Alerta de Leads Parados > 7 Dias */}
+      {leadsParados7DiasCount > 0 && (
+        <div className="mb-7 bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white p-4 rounded-2xl shadow-lg border border-red-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center text-xl shrink-0">
+              🚨
+            </div>
+            <div>
+              <h3 className="font-black text-sm uppercase tracking-wider text-white">Alerta de Atenção Comercial</h3>
+              <p className="text-xs text-white/95 font-medium mt-0.5">
+                Você possui <strong className="underline underline-offset-2 font-black">{leadsParados7DiasCount} lead(s) parado(s) há mais de 7 dias</strong> sem conclusão! Por favor, realize o atendimento ou atualização do status.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setFiltro("pendentes")}
+            className="bg-white hover:bg-red-50 text-red-700 font-extrabold text-xs px-4 py-2 rounded-xl transition-all shadow-md shrink-0 cursor-pointer border border-red-200"
+          >
+            Filtrar Leads Pendentes
+          </button>
+        </div>
+      )}
 
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-7">
@@ -1044,6 +1071,7 @@ export default function OportunidadesPage() {
                     const isDragging = draggedLeadId === lead.id;
                     const totalTentativas = lead.historico?.filter((h) => ["contato_ligacao", "contato_whatsapp"].includes(h.acao)).length || 0;
                     const isMaster = currentUser?.perfil === "MASTER";
+                    const isParado7Dias = lead.status !== "ganho" && lead.status !== "perdido" && (now.getTime() - new Date(lead.criadoEm).getTime() >= 604800000);
 
                     if (lead.status === "novo_lead") {
                       return (
@@ -1055,6 +1083,9 @@ export default function OportunidadesPage() {
                           <div className="flex-1 min-w-0">
                             {/* Badges */}
                             <div className="flex flex-wrap gap-1 mb-2">
+                              {isParado7Dias && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-red-600 text-white shadow-sm animate-pulse">🚨 Parado +7d</span>
+                              )}
                               <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-900 text-white border border-slate-950">👥 Lead</span>
                               {lead.origem === "whatsapp_direto" ? (
                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-250">🟢 WhatsApp Direto</span>
@@ -1124,6 +1155,8 @@ export default function OportunidadesPage() {
                         className={`cursor-pointer bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-3 relative group overflow-hidden w-full shrink-0 ${
                           isDragging 
                             ? "opacity-40 border-dashed border-blue-400" 
+                            : isParado7Dias
+                            ? "border-2 border-red-500 bg-red-50/20 shadow-red-100/50 animate-pulse"
                             : col.id === "novo_lead" 
                               ? "border-l-4 border-l-red-500 border-red-100 hover:border-red-200" 
                               : col.id === "contatado"
@@ -1140,6 +1173,9 @@ export default function OportunidadesPage() {
                           <div className="flex-1 min-w-0">
                             {/* Badges de Intenção & Origem */}
                             <div className="flex flex-wrap gap-1 mb-2">
+                              {isParado7Dias && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-red-600 text-white shadow-sm animate-pulse">🚨 Parado +7d</span>
+                              )}
                               {lead.intencao === "contratar_agora" && (
                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-red-100 text-red-700 border border-red-200">🔴 Quer contratar</span>
                               )}
@@ -1366,17 +1402,26 @@ export default function OportunidadesPage() {
                 <tbody className="divide-y divide-slate-100">
                   {leadsFiltrados.map((lead) => {
                     const currentStatus = getStatusSafe(lead);
+                    const isParado7Dias = currentStatus !== "ganho" && currentStatus !== "perdido" && (now.getTime() - new Date(lead.criadoEm).getTime() >= 604800000);
                     
                     return (
                       <tr 
                         key={lead.id} 
                         onClick={() => setSelectedLead(lead)}
-                        className="hover:bg-slate-50/50 transition-colors cursor-pointer"
+                        className={`hover:bg-slate-50/50 transition-colors cursor-pointer ${
+                          isParado7Dias ? "bg-red-50/40 border-l-4 border-l-red-500" : ""
+                        }`}
                       >
                         <td className="px-5 py-4 w-[20%] max-w-[200px]">
                           <div className="flex flex-col gap-1">
-                            <p className="font-bold text-slate-800 truncate">{lead.nome}</p>
+                            <p className="font-bold text-slate-800 truncate flex items-center gap-1">
+                              {isParado7Dias && <span className="text-xs text-red-600 animate-pulse" title="Parado a mais de 7 dias">🚨</span>}
+                              <span className="truncate">{lead.nome}</span>
+                            </p>
                             <div className="flex flex-wrap gap-1">
+                              {isParado7Dias && (
+                                <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-red-600 text-white w-max leading-none animate-pulse">Parado +7d</span>
+                              )}
                               {lead.origem === "whatsapp_direto" ? (
                                 <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-250 w-max leading-none">WhatsApp Direto</span>
                               ) : lead.utmSource?.toLowerCase() === "google" ? (
