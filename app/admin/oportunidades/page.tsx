@@ -743,9 +743,20 @@ export default function OportunidadesPage() {
     perdidos: leads.filter((l) => getStatusSafe(l) === "perdido").length,
   };
 
-  const leadsParados7DiasCount = leadsFiltrados.filter(
+  const leadsParados7Dias = leadsFiltrados.filter(
     (l) => l.status !== "ganho" && l.status !== "perdido" && (now.getTime() - new Date(l.criadoEm).getTime() >= 604800000)
-  ).length;
+  );
+
+  const leadsParados7DiasCount = leadsParados7Dias.length;
+
+  const paradosPorAtendente = (() => {
+    const map: Record<string, number> = {};
+    for (const lead of leadsParados7Dias) {
+      const nome = lead.responsavel ? lead.responsavel.nome.split(" ")[0] : "Sem responsável";
+      map[nome] = (map[nome] || 0) + 1;
+    }
+    return Object.entries(map).map(([nome, count]) => ({ nome, count }));
+  })();
 
   return (
     <main className="flex-1 p-6 lg:p-8 bg-[#f8fafc] min-h-screen relative">
@@ -784,10 +795,24 @@ export default function OportunidadesPage() {
               🚨
             </div>
             <div>
-              <h3 className="font-black text-sm uppercase tracking-wider text-white">Alerta de Atenção Comercial</h3>
-              <p className="text-xs text-white/95 font-medium mt-0.5">
-                Você possui <strong className="underline underline-offset-2 font-black">{leadsParados7DiasCount} lead(s) parado(s) há mais de 7 dias</strong> sem conclusão! Por favor, realize o atendimento ou atualização do status.
-              </p>
+              <h3 className="font-black text-sm uppercase tracking-wider text-white">
+                {currentUser?.perfil === "MASTER" ? "Alerta de Atenção (Visão Gestor)" : "Alerta de Atenção Comercial"}
+              </h3>
+              
+              {currentUser?.perfil === "MASTER" ? (
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <span className="text-xs text-white/95 font-medium">Leads parados há +7 dias por atendente:</span>
+                  {paradosPorAtendente.map((item) => (
+                    <span key={item.nome} className="bg-white/20 border border-white/30 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm">
+                      👤 {item.nome}: <strong>{item.count} lead(s)</strong>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-white/95 font-medium mt-0.5">
+                  Você possui <strong className="underline underline-offset-2 font-black">{leadsParados7DiasCount} lead(s) parado(s) há mais de 7 dias</strong> sem conclusão! Por favor, realize o atendimento ou atualização do status.
+                </p>
+              )}
             </div>
           </div>
           <button
