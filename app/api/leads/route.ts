@@ -110,6 +110,24 @@ export async function PATCH(req: NextRequest) {
   const currentLead = await prisma.simulacao.findUnique({ where: { id } });
   if (!currentLead) return Response.json({ error: "Não encontrado" }, { status: 404 });
 
+  const currentStatus = currentLead.status || (currentLead.contatado ? "contatado" : "novo_lead");
+
+  // Trava Backend: Lead novo não pode ser movido diretamente para negociando, follow_up, fechamento ou ganho
+  if (currentStatus === "novo_lead" && status && status !== "novo_lead" && status !== "contatado") {
+    return Response.json(
+      { error: "Leads novos devem primeiro ser assumidos ou movidos para a coluna Primeiro Contato." },
+      { status: 400 }
+    );
+  }
+
+  // Trava Backend: Lead marcado como perdido exige motivo de descarte
+  if (status === "perdido" && !motivoDescarte && !currentLead.motivoDescarte) {
+    return Response.json(
+      { error: "É obrigatório informar o motivo do descarte ao marcar um lead como perdido." },
+      { status: 400 }
+    );
+  }
+
   const updateData: any = {};
   if (contatado !== undefined) {
     updateData.contatado = contatado;
@@ -119,7 +137,7 @@ export async function PATCH(req: NextRequest) {
 
   if (status !== undefined && status !== currentLead.status) {
     updateData.status = status;
-    if (status === "ganho" || status === "perdido" || status === "contatado" || status === "negociando") {
+    if (status === "ganho" || status === "perdido" || status === "contatado" || status === "negociando" || status === "follow_up" || status === "fechamento") {
       updateData.contatado = true;
     } else if (status === "novo_lead") {
       updateData.contatado = false;

@@ -204,8 +204,8 @@ export async function GET(req: NextRequest) {
     const leadsPorStatus = {
       novo_lead: 0,
       contatado: 0,
-      proposta_enviada: 0,
       negociando: 0,
+      follow_up: 0,
       fechamento: 0,
       ganho: 0,
       perdido: 0,

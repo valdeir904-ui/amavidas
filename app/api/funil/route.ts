@@ -103,6 +103,8 @@ export async function GET(req: NextRequest) {
       novo_lead: { somaMinutos: 0, count: 0 },
       em_contato: { somaMinutos: 0, count: 0 },
       negociando: { somaMinutos: 0, count: 0 },
+      follow_up: { somaMinutos: 0, count: 0 },
+      fechamento: { somaMinutos: 0, count: 0 },
     };
 
     // Para cada lead, calcular quanto tempo ele ficou em cada etapa
@@ -142,6 +144,8 @@ export async function GET(req: NextRequest) {
       novo_lead: tempoEtapas.novo_lead.count > 0 ? parseFloat((tempoEtapas.novo_lead.somaMinutos / tempoEtapas.novo_lead.count / 60).toFixed(1)) : 0,
       em_contato: tempoEtapas.em_contato.count > 0 ? parseFloat((tempoEtapas.em_contato.somaMinutos / tempoEtapas.em_contato.count / 60).toFixed(1)) : 0,
       negociando: tempoEtapas.negociando.count > 0 ? parseFloat((tempoEtapas.negociando.somaMinutos / tempoEtapas.negociando.count / 60).toFixed(1)) : 0,
+      follow_up: tempoEtapas.follow_up.count > 0 ? parseFloat((tempoEtapas.follow_up.somaMinutos / tempoEtapas.follow_up.count / 60).toFixed(1)) : 0,
+      fechamento: tempoEtapas.fechamento.count > 0 ? parseFloat((tempoEtapas.fechamento.somaMinutos / tempoEtapas.fechamento.count / 60).toFixed(1)) : 0,
     };
 
     // ── PERFORMANCE COMERCIAL: TAXA DE DESCARTE POR VENDEDOR ──

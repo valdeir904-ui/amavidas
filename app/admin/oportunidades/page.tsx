@@ -94,8 +94,8 @@ const MOTIVOS_LABELS: Record<string, string> = {
 const COLUNAS = [
   { id: "novo_lead", label: "Novo Lead", emoji: "⏳", corCol: "border-t-red-400 bg-red-50/5", textCor: "text-red-700" },
   { id: "contatado", label: "Primeiro Contato", emoji: "📞", corCol: "border-t-blue-400 bg-blue-50/5", textCor: "text-blue-700" },
-  { id: "proposta_enviada", label: "Proposta Enviada", emoji: "📄", corCol: "border-t-amber-400 bg-amber-50/5", textCor: "text-amber-700" },
   { id: "negociando", label: "Em Negociação", emoji: "💬", corCol: "border-t-purple-400 bg-purple-50/5", textCor: "text-purple-700" },
+  { id: "follow_up", label: "Follow Up", emoji: "🔔", corCol: "border-t-amber-400 bg-amber-50/5", textCor: "text-amber-700" },
   { id: "fechamento", label: "Em Fechamento", emoji: "✍️", corCol: "border-t-indigo-400 bg-indigo-50/5", textCor: "text-indigo-700" },
 ] as const;
 
@@ -106,7 +106,7 @@ export default function OportunidadesPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [abaPrincipal, setAbaPrincipal] = useState<"ativo" | "ganhos" | "perdidos">("ativo");
-  const [filtro, setFiltro] = useState<"todos" | "pendentes" | "contatados" | "proposta" | "negociando" | "fechamento" | "ganhos" | "perdidos">("todos");
+  const [filtro, setFiltro] = useState<"todos" | "pendentes" | "contatados" | "negociando" | "follow_up" | "fechamento" | "ganhos" | "perdidos">("todos");
   const [showFiltersMenu, setShowFiltersMenu] = useState(false);
   const [filtrosCanais, setFiltrosCanais] = useState<string[]>([]);
   const [filtrosCampanhas, setFiltrosCampanhas] = useState<string[]>([]);
@@ -400,21 +400,35 @@ export default function OportunidadesPage() {
   }, [fetchLeads]);
 
   const handleStatusChangeRequest = (id: string, status: string, responsavelId?: string | null) => {
-    if (status === "perdido") {
+    const targetLead = leads.find((l) => l.id === id);
+    const currentStatus = targetLead ? getStatusSafe(targetLead) : "";
+
+    // Trava: Lead novo não pode ser movido diretamente para negociando, follow_up ou fechamento
+    if (currentStatus === "novo_lead" && status !== "novo_lead" && status !== "contatado") {
+      alert("Leads novos devem primeiro ser assumidos / movidos para a coluna Primeiro Contato!");
+      return;
+    }
+
+    // Se estiver atribuindo um novo lead, muda automaticamente para contatado
+    let finalStatus = status;
+    if (currentStatus === "novo_lead" && responsavelId) {
+      finalStatus = "contatado";
+    }
+
+    if (finalStatus === "perdido") {
       setMotivoModal({ id, responsavelId });
-    } else if (status === "ganho") {
-      const currentLead = leads.find(l => l.id === id);
+    } else if (finalStatus === "ganho") {
       setGanhoDados({
-        nomeCompletoContrato: currentLead?.nome || "",
-        numeroDependentes: currentLead?.quantidadePessoas || "0",
-        planoContratado: currentLead?.planoRecomendado || "",
+        nomeCompletoContrato: targetLead?.nome || "",
+        numeroDependentes: targetLead?.quantidadePessoas || "0",
+        planoContratado: targetLead?.planoRecomendado || "",
         valorAdesao: "",
         valorPlano: "",
-        contratoAssinado: false
+        contratoAssinado: false,
       });
       setGanhoModal({ id, responsavelId });
     } else {
-      updateLeadStatus(id, status, responsavelId);
+      updateLeadStatus(id, finalStatus, responsavelId);
     }
   };
 
@@ -429,7 +443,7 @@ export default function OportunidadesPage() {
     // Atualização otimista no estado local
     setLeads((prev) => prev.map((l) => {
       if (l.id === id) {
-        const contatado = status === "ganho" || status === "perdido" || status === "contatado" || status === "negociando";
+        const contatado = status === "ganho" || status === "perdido" || status === "contatado" || status === "negociando" || status === "follow_up" || status === "fechamento";
         const novoResp = responsavelId !== undefined 
           ? (responsavelId === null ? null : atendentes.find(a => a.id === responsavelId) || l.responsavel)
           : l.responsavel;
@@ -671,9 +685,36 @@ export default function OportunidadesPage() {
     document.body.removeChild(link);
   };
 
-  const getStatusSafe = (lead: Lead) => {
+  const getStatusSafe = useCallback((lead: Lead) => {
     return lead.status || (lead.contatado ? "contatado" : "novo_lead");
-  };
+  }, []);
+
+  const getEffectiveStatus = useCallback((lead: Lead, currentDate: Date) => {
+    const rawStatus = getStatusSafe(lead);
+    if (rawStatus === "contatado") {
+      const refDateStr = lead.primeiroContatoEm || lead.criadoEm;
+      if (refDateStr) {
+        const diffHours = (currentDate.getTime() - new Date(refDateStr).getTime()) / (1000 * 60 * 60);
+        if (diffHours >= 24) {
+          return "follow_up";
+        }
+      }
+    }
+    return rawStatus;
+  }, [getStatusSafe]);
+
+  const isLead24hFollowUp = useCallback((lead: Lead, currentDate: Date) => {
+    const rawStatus = getStatusSafe(lead);
+    if (rawStatus === "follow_up") return true;
+    if (rawStatus === "contatado") {
+      const refDateStr = lead.primeiroContatoEm || lead.criadoEm;
+      if (refDateStr) {
+        const diffHours = (currentDate.getTime() - new Date(refDateStr).getTime()) / (1000 * 60 * 60);
+        return diffHours >= 24;
+      }
+    }
+    return false;
+  }, [getStatusSafe]);
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -699,20 +740,20 @@ export default function OportunidadesPage() {
 
   const leadsFiltrados = leads
     .filter((l) => {
-      const currentStatus = getStatusSafe(l);
-      if (abaPrincipal === "ganhos") return currentStatus === "ganho";
-      if (abaPrincipal === "perdidos") return currentStatus === "perdido";
-      return currentStatus !== "ganho" && currentStatus !== "perdido";
+      const rawStatus = getStatusSafe(l);
+      if (abaPrincipal === "ganhos") return rawStatus === "ganho";
+      if (abaPrincipal === "perdidos") return rawStatus === "perdido";
+      return rawStatus !== "ganho" && rawStatus !== "perdido";
     })
     .filter((l) => {
-      const currentStatus = getStatusSafe(l);
+      const currentStatus = getEffectiveStatus(l, now);
       if (filtro === "pendentes") return currentStatus === "novo_lead";
       if (filtro === "contatados") return currentStatus === "contatado";
-      if (filtro === "proposta") return currentStatus === "proposta_enviada";
       if (filtro === "negociando") return currentStatus === "negociando";
+      if (filtro === "follow_up") return currentStatus === "follow_up";
       if (filtro === "fechamento") return currentStatus === "fechamento";
-      if (filtro === "ganhos") return currentStatus === "ganho";
-      if (filtro === "perdidos") return currentStatus === "perdido";
+      if (filtro === "ganhos") return getStatusSafe(l) === "ganho";
+      if (filtro === "perdidos") return getStatusSafe(l) === "perdido";
       return true;
     })
     .filter((l) => {
@@ -744,11 +785,11 @@ export default function OportunidadesPage() {
   const stats = {
     total: leads.length,
     ativos: leads.filter((l) => getStatusSafe(l) !== "ganho" && getStatusSafe(l) !== "perdido").length,
-    pendentes: leads.filter((l) => getStatusSafe(l) === "novo_lead").length,
-    contatados: leads.filter((l) => getStatusSafe(l) === "contatado").length,
-    proposta: leads.filter((l) => getStatusSafe(l) === "proposta_enviada").length,
-    negociando: leads.filter((l) => getStatusSafe(l) === "negociando").length,
-    fechamento: leads.filter((l) => getStatusSafe(l) === "fechamento").length,
+    pendentes: leads.filter((l) => getEffectiveStatus(l, now) === "novo_lead").length,
+    contatados: leads.filter((l) => getEffectiveStatus(l, now) === "contatado").length,
+    negociando: leads.filter((l) => getEffectiveStatus(l, now) === "negociando").length,
+    followUp: leads.filter((l) => getEffectiveStatus(l, now) === "follow_up").length,
+    fechamento: leads.filter((l) => getEffectiveStatus(l, now) === "fechamento").length,
     ganhos: leads.filter((l) => getStatusSafe(l) === "ganho").length,
     perdidos: leads.filter((l) => getStatusSafe(l) === "perdido").length,
   };
@@ -887,7 +928,7 @@ export default function OportunidadesPage() {
           { label: "Leads Ativos", value: stats.ativos, icon: "⚡", color: "text-slate-900", bg: "bg-slate-50 border-slate-100" },
           { label: "Novos Leads", value: stats.pendentes, icon: "⏳", color: "text-red-650", bg: "bg-red-50/50 border-red-100" },
           { label: "1º Contato", value: stats.contatados, icon: "📞", color: "text-blue-650", bg: "bg-blue-50/50 border-blue-100" },
-          { label: "Proposta", value: stats.proposta, icon: "📄", color: "text-amber-650", bg: "bg-amber-50/50 border-amber-100" },
+          { label: "Follow Up", value: stats.followUp, icon: "🔔", color: "text-amber-650", bg: "bg-amber-50/50 border-amber-100" },
           { label: "Negociando", value: stats.negociando, icon: "💬", color: "text-purple-650", bg: "bg-purple-50/50 border-purple-100" },
           { label: "Fechamento", value: stats.fechamento, icon: "✍️", color: "text-indigo-650", bg: "bg-indigo-50/50 border-indigo-100" },
           { label: "Ganhos / Perdidos", value: `${stats.ganhos} / ${stats.perdidos}`, icon: "🏁", color: "text-emerald-700", bg: "bg-emerald-50/40 border-emerald-100" },
@@ -1067,7 +1108,7 @@ export default function OportunidadesPage() {
         {/* Right Side: Filters or Info */}
         {viewMode === "tabela" ? (
           <div className="flex flex-wrap gap-1.5 xl:justify-end">
-            {(["todos", "pendentes", "contatados", "negociando", "ganhos", "perdidos"] as const).map((f) => (
+            {(["todos", "pendentes", "contatados", "negociando", "follow_up", "fechamento", "ganhos", "perdidos"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFiltro(f)}
@@ -1082,9 +1123,13 @@ export default function OportunidadesPage() {
                   : f === "pendentes"
                   ? `⏳ Novos Leads (${stats.pendentes})`
                   : f === "contatados"
-                  ? `📞 Contatados (${stats.contatados})`
+                  ? `📞 1º Contato (${stats.contatados})`
                   : f === "negociando"
                   ? `💬 Negociando (${stats.negociando})`
+                  : f === "follow_up"
+                  ? `🔔 Follow Up (${stats.followUp})`
+                  : f === "fechamento"
+                  ? `✍️ Fechamento (${stats.fechamento})`
                   : f === "ganhos"
                   ? `🤝 Ganhos (${stats.ganhos})`
                   : `❌ Perdidos (${stats.perdidos})`}
@@ -1112,7 +1157,7 @@ export default function OportunidadesPage() {
         /* KANBAN VIEW */
         <div className="flex gap-4 overflow-x-auto pb-6 items-stretch select-none min-h-[650px] scrollbar-thin">
           {COLUNAS.map((col) => {
-            const colLeads = leadsFiltrados.filter((l) => getStatusSafe(l) === col.id);
+            const colLeads = leadsFiltrados.filter((l) => getEffectiveStatus(l, now) === col.id);
             return (
               <div
                 key={col.id}
@@ -1155,6 +1200,8 @@ export default function OportunidadesPage() {
                     const totalTentativas = lead.historico?.filter((h) => ["contato_ligacao", "contato_whatsapp"].includes(h.acao)).length || 0;
                     const isMaster = currentUser?.perfil === "MASTER";
                     const isParado7Dias = lead.status !== "ganho" && lead.status !== "perdido" && (now.getTime() - new Date(lead.criadoEm).getTime() >= 604800000);
+
+                    const isFollowUp24h = isLead24hFollowUp(lead, now);
 
                     if (lead.status === "novo_lead") {
                       return (
@@ -1235,20 +1282,22 @@ export default function OportunidadesPage() {
                         onDragStart={(e) => handleDragStart(e, lead.id)}
                         onDragEnd={handleDragEnd}
                         onClick={() => setSelectedLead(lead)}
-                        className={`cursor-pointer bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-3 relative group overflow-hidden w-full shrink-0 ${
+                        className={`cursor-pointer border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-3 relative group overflow-hidden w-full shrink-0 ${
                           isDragging 
-                            ? "opacity-40 border-dashed border-blue-400" 
+                            ? "opacity-40 border-dashed border-blue-400 bg-white" 
+                            : isFollowUp24h
+                            ? "border-2 border-red-500 bg-red-50/30 shadow-red-100 animate-pulse"
                             : isParado7Dias
                             ? "border-2 border-red-500 bg-red-50/20 shadow-red-100/50 animate-pulse"
                             : col.id === "novo_lead" 
-                              ? "border-l-4 border-l-red-500 border-red-100 hover:border-red-200" 
+                              ? "border-l-4 border-l-red-500 border-red-100 hover:border-red-200 bg-white" 
                               : col.id === "contatado"
-                              ? "border-l-4 border-l-blue-500 border-slate-200 hover:border-slate-300"
-                              : col.id === "proposta_enviada"
-                              ? "border-l-4 border-l-amber-500 border-slate-200 hover:border-slate-300"
+                              ? "border-l-4 border-l-blue-500 border-slate-200 hover:border-slate-300 bg-white"
                               : col.id === "negociando"
-                              ? "border-l-4 border-l-purple-500 border-slate-200 hover:border-slate-300"
-                              : "border-l-4 border-l-indigo-500 border-slate-200 hover:border-slate-300"
+                              ? "border-l-4 border-l-purple-500 border-slate-200 hover:border-slate-300 bg-white"
+                              : col.id === "follow_up"
+                              ? "border-l-4 border-l-amber-500 border-slate-200 hover:border-slate-300 bg-white"
+                              : "border-l-4 border-l-indigo-500 border-slate-200 hover:border-slate-300 bg-white"
                         }`}
                       >
                         {/* Header card info */}
@@ -1256,6 +1305,9 @@ export default function OportunidadesPage() {
                           <div className="flex-1 min-w-0">
                             {/* Badges de Intenção & Origem */}
                             <div className="flex flex-wrap gap-1 mb-2">
+                              {isFollowUp24h && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-red-600 text-white shadow-sm animate-pulse">🚨 Follow Up (+24h)</span>
+                              )}
                               {isParado7Dias && (
                                 <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-red-600 text-white shadow-sm animate-pulse">🚨 Parado +7d</span>
                               )}
@@ -1404,32 +1456,32 @@ export default function OportunidadesPage() {
                           <div className="flex items-center gap-1.5">
                             {/* Selector for quick change */}
                             <select
-                               value={lead.status}
-                               onChange={(e) => handleStatusChangeRequest(lead.id, e.target.value)}
-                               className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border outline-none cursor-pointer transition-all ${
-                                 lead.status === "ganho"
-                                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                   : lead.status === "perdido"
-                                   ? "bg-slate-50 text-slate-650 border-slate-200"
-                                   : lead.status === "fechamento"
-                                   ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                   : lead.status === "negociando"
-                                   ? "bg-purple-50 text-purple-700 border-purple-200"
-                                   : lead.status === "proposta_enviada"
-                                   ? "bg-amber-50 text-amber-700 border-amber-200"
-                                   : lead.status === "contatado"
-                                   ? "bg-blue-50 text-blue-700 border-blue-200"
-                                   : "bg-red-50 text-red-700 border-red-200"
-                               }`}
-                             >
-                               <option value="novo_lead">⏳ Novo Lead</option>
-                               <option value="contatado">📞 1º Contato</option>
-                               <option value="proposta_enviada">📄 Proposta Enviada</option>
-                               <option value="negociando">💬 Em Negociação</option>
-                               <option value="fechamento">✍️ Em Fechamento</option>
-                               <option value="ganho">🤝 Mover p/ Ganhos</option>
-                               <option value="perdido">❌ Mover p/ Perdidos</option>
-                             </select>
+                              value={lead.status}
+                              onChange={(e) => handleStatusChangeRequest(lead.id, e.target.value)}
+                              className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border outline-none cursor-pointer transition-all ${
+                                lead.status === "ganho"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : lead.status === "perdido"
+                                  ? "bg-slate-50 text-slate-650 border-slate-200"
+                                  : lead.status === "fechamento"
+                                  ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                  : lead.status === "follow_up"
+                                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                                  : lead.status === "negociando"
+                                  ? "bg-purple-50 text-purple-700 border-purple-200"
+                                  : lead.status === "contatado"
+                                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                                  : "bg-red-50 text-red-700 border-red-200"
+                              }`}
+                            >
+                              <option value="novo_lead">⏳ Novo Lead</option>
+                              <option value="contatado">📞 1º Contato</option>
+                              <option value="negociando">💬 Em Negociação</option>
+                              <option value="follow_up">🔔 Follow Up</option>
+                              <option value="fechamento">✍️ Em Fechamento</option>
+                              <option value="ganho">🤝 Mover p/ Ganhos</option>
+                              <option value="perdido">❌ Mover p/ Perdidos</option>
+                            </select>
 
                             {/* WhatsApp Shortcut */}
                             <button

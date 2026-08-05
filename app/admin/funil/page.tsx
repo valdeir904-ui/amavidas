@@ -30,6 +30,8 @@ interface FunnelData {
       novo_lead: number;
       em_contato: number;
       negociando: number;
+      follow_up?: number;
+      fechamento?: number;
     };
     descartePorAtendente: {
       id: string;
@@ -402,13 +404,23 @@ export default function FunilPage() {
                   </div>
                   {/* Em Contato */}
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-bold text-zinc-700">📞 Em Contato</span>
+                    <span className="font-bold text-zinc-700">📞 Primeiro Contato</span>
                     <span className="font-bold text-zinc-900">{data.performance.tempoMedioEtapasHoras.em_contato} h</span>
                   </div>
                   {/* Negociando */}
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-zinc-700">💬 Negociando</span>
                     <span className="font-bold text-zinc-900">{data.performance.tempoMedioEtapasHoras.negociando} h</span>
+                  </div>
+                  {/* Follow Up */}
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-bold text-zinc-700">🔔 Follow Up</span>
+                    <span className="font-bold text-zinc-900">{data.performance.tempoMedioEtapasHoras.follow_up ?? 0} h</span>
+                  </div>
+                  {/* Em Fechamento */}
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-bold text-zinc-700">✍️ Em Fechamento</span>
+                    <span className="font-bold text-zinc-900">{data.performance.tempoMedioEtapasHoras.fechamento ?? 0} h</span>
                   </div>
                 </div>
               </div>
