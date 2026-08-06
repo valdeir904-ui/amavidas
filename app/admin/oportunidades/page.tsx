@@ -106,12 +106,25 @@ export default function OportunidadesPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [abaPrincipal, setAbaPrincipal] = useState<"ativo" | "ganhos" | "perdidos">("ativo");
-  const [filtro, setFiltro] = useState<"todos" | "pendentes" | "contatados" | "negociando" | "follow_up" | "fechamento" | "ganhos" | "perdidos">("todos");
+  const [filtro, setFiltro] = useState<"todos" | "pendentes" | "parados_7d" | "contatados" | "negociando" | "follow_up" | "fechamento" | "ganhos" | "perdidos">("todos");
   const [showFiltersMenu, setShowFiltersMenu] = useState(false);
   const [filtrosCanais, setFiltrosCanais] = useState<string[]>([]);
   const [filtrosCampanhas, setFiltrosCampanhas] = useState<string[]>([]);
   const [filtrosInteresses, setFiltrosInteresses] = useState<string[]>([]);
   const [busca, setBusca] = useState("");
+
+  const aplicarFiltro = (f: "todos" | "pendentes" | "parados_7d" | "contatados" | "negociando" | "follow_up" | "fechamento" | "ganhos" | "perdidos") => {
+    if (f === "ganhos") {
+      setAbaPrincipal("ganhos");
+      setFiltro("todos");
+    } else if (f === "perdidos") {
+      setAbaPrincipal("perdidos");
+      setFiltro("todos");
+    } else {
+      setAbaPrincipal("ativo");
+      setFiltro(f);
+    }
+  };
 
   const toggleFiltroCanal = (val: string) => {
     setFiltrosCanais(prev =>
@@ -748,6 +761,7 @@ export default function OportunidadesPage() {
     .filter((l) => {
       const currentStatus = getEffectiveStatus(l, now);
       if (filtro === "pendentes") return currentStatus === "novo_lead";
+      if (filtro === "parados_7d") return getStatusSafe(l) !== "ganho" && getStatusSafe(l) !== "perdido" && (now.getTime() - new Date(l.criadoEm).getTime() >= 604800000);
       if (filtro === "contatados") return currentStatus === "contatado";
       if (filtro === "negociando") return currentStatus === "negociando";
       if (filtro === "follow_up") return currentStatus === "follow_up";
@@ -914,10 +928,14 @@ export default function OportunidadesPage() {
             </div>
           </div>
           <button
-            onClick={() => setFiltro("pendentes")}
+            onClick={() => {
+              limparFiltros();
+              setBusca("");
+              aplicarFiltro("parados_7d");
+            }}
             className="bg-white hover:bg-red-50 text-red-700 font-extrabold text-xs px-4 py-2 rounded-xl transition-all shadow-md shrink-0 cursor-pointer border border-red-200"
           >
-            Filtrar Leads Pendentes
+            🚨 Filtrar Leads Parados (+7d)
           </button>
         </div>
       )}
@@ -925,21 +943,28 @@ export default function OportunidadesPage() {
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-7">
         {[
-          { label: "Leads Ativos", value: stats.ativos, icon: "⚡", color: "text-slate-900", bg: "bg-slate-50 border-slate-100" },
-          { label: "Novos Leads", value: stats.pendentes, icon: "⏳", color: "text-red-650", bg: "bg-red-50/50 border-red-100" },
-          { label: "1º Contato", value: stats.contatados, icon: "📞", color: "text-blue-650", bg: "bg-blue-50/50 border-blue-100" },
-          { label: "Follow Up", value: stats.followUp, icon: "🔔", color: "text-amber-650", bg: "bg-amber-50/50 border-amber-100" },
-          { label: "Negociando", value: stats.negociando, icon: "💬", color: "text-purple-650", bg: "bg-purple-50/50 border-purple-100" },
-          { label: "Fechamento", value: stats.fechamento, icon: "✍️", color: "text-indigo-650", bg: "bg-indigo-50/50 border-indigo-100" },
-          { label: "Ganhos / Perdidos", value: `${stats.ganhos} / ${stats.perdidos}`, icon: "🏁", color: "text-emerald-700", bg: "bg-emerald-50/40 border-emerald-100" },
+          { id: "todos", label: "Leads Ativos", value: stats.ativos, icon: "⚡", color: "text-slate-900", bg: "bg-slate-50 border-slate-100" },
+          { id: "pendentes", label: "Novos Leads", value: stats.pendentes, icon: "⏳", color: "text-red-650", bg: "bg-red-50/50 border-red-100" },
+          { id: "contatados", label: "1º Contato", value: stats.contatados, icon: "📞", color: "text-blue-650", bg: "bg-blue-50/50 border-blue-100" },
+          { id: "follow_up", label: "Follow Up", value: stats.followUp, icon: "🔔", color: "text-amber-650", bg: "bg-amber-50/50 border-amber-100" },
+          { id: "negociando", label: "Negociando", value: stats.negociando, icon: "💬", color: "text-purple-650", bg: "bg-purple-50/50 border-purple-100" },
+          { id: "fechamento", label: "Fechamento", value: stats.fechamento, icon: "✍️", color: "text-indigo-650", bg: "bg-indigo-50/50 border-indigo-100" },
+          { id: "ganhos", label: "Ganhos / Perdidos", value: `${stats.ganhos} / ${stats.perdidos}`, icon: "🏁", color: "text-emerald-700", bg: "bg-emerald-50/40 border-emerald-100" },
         ].map((s) => (
-          <div key={s.label} className={`bg-white rounded-2xl border p-3.5 shadow-sm transition-all hover:shadow-md ${s.bg}`}>
+          <button
+            key={s.label}
+            type="button"
+            onClick={() => aplicarFiltro(s.id as any)}
+            className={`bg-white rounded-2xl border p-3.5 shadow-sm transition-all hover:shadow-md text-left cursor-pointer ${s.bg} ${
+              (filtro === s.id && (s.id !== "ganhos" || abaPrincipal === "ganhos")) ? "ring-2 ring-slate-900 border-slate-900" : ""
+            }`}
+          >
             <div className="flex items-start justify-between mb-1">
               <span className="text-base">{s.icon}</span>
             </div>
             <p className={`text-xl font-black tracking-tight ${s.color}`}>{s.value}</p>
             <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mt-0.5">{s.label}</p>
-          </div>
+          </button>
         ))}
       </div>
 
