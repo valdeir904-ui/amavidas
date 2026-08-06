@@ -76,6 +76,12 @@ interface Lead {
   nomePet?: string | null;
   portePet?: string | null;
   idadePet?: string | null;
+  nomeCompletoContrato?: string | null;
+  numeroDependentes?: string | null;
+  planoContratado?: string | null;
+  contratoAssinado?: boolean | null;
+  valorAdesao?: string | null;
+  valorPlano?: string | null;
 }
 
 const MOTIVOS_LABELS: Record<string, string> = {
@@ -113,13 +119,14 @@ export default function OportunidadesPage() {
   const [filtrosInteresses, setFiltrosInteresses] = useState<string[]>([]);
   const [busca, setBusca] = useState("");
 
+  const [showPerdidosModal, setShowPerdidosModal] = useState(false);
+  const [showGanhosModal, setShowGanhosModal] = useState(false);
+
   const aplicarFiltro = (f: "todos" | "pendentes" | "parados_7d" | "contatados" | "negociando" | "follow_up" | "fechamento" | "ganhos" | "perdidos") => {
     if (f === "ganhos") {
-      setAbaPrincipal("ganhos");
-      setFiltro("todos");
+      setShowGanhosModal(true);
     } else if (f === "perdidos") {
-      setAbaPrincipal("perdidos");
-      setFiltro("todos");
+      setShowPerdidosModal(true);
     } else {
       setAbaPrincipal("ativo");
       setFiltro(f);
@@ -852,12 +859,8 @@ export default function OportunidadesPage() {
             </button>
 
             <button
-              onClick={() => { setAbaPrincipal("ganhos"); setFiltro("todos"); }}
-              className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
-                abaPrincipal === "ganhos"
-                  ? "bg-emerald-600 text-white shadow-md"
-                  : "text-emerald-700 hover:bg-emerald-100/60"
-              }`}
+              onClick={() => setShowGanhosModal(true)}
+              className="px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 text-emerald-700 bg-white hover:bg-emerald-50 border border-emerald-200 shadow-sm"
             >
               <span>🤝 Ganhos (Clientes)</span>
               <span className="bg-emerald-700 text-white px-2 py-0.5 rounded-full text-[10px] font-black">
@@ -866,15 +869,11 @@ export default function OportunidadesPage() {
             </button>
 
             <button
-              onClick={() => { setAbaPrincipal("perdidos"); setFiltro("todos"); }}
-              className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
-                abaPrincipal === "perdidos"
-                  ? "bg-slate-700 text-white shadow-md"
-                  : "text-slate-600 hover:bg-slate-200/60"
-              }`}
+              onClick={() => setShowPerdidosModal(true)}
+              className="px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-sm"
             >
               <span>❌ Perdidos & Descartados</span>
-              <span className="bg-slate-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black">
+              <span className="bg-slate-700 text-white px-2 py-0.5 rounded-full text-[10px] font-black">
                 {stats.perdidos}
               </span>
             </button>
@@ -1519,16 +1518,18 @@ export default function OportunidadesPage() {
                               </svg>
                             </button>
 
-                            {/* Deletar Shortcut */}
-                            <button
-                              onClick={() => setDeletingLead(lead)}
-                              className="bg-red-50 hover:bg-red-100 text-red-650 p-1.5 rounded-lg border border-red-200 transition-colors flex items-center justify-center shadow-sm cursor-pointer"
-                              title="Excluir Lead"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
+                            {/* Deletar Shortcut (Master apenas) */}
+                            {currentUser?.perfil === "MASTER" && (
+                              <button
+                                onClick={() => setDeletingLead(lead)}
+                                className="bg-red-50 hover:bg-red-100 text-red-650 p-1.5 rounded-lg border border-red-200 transition-colors flex items-center justify-center shadow-sm cursor-pointer"
+                                title="Excluir Lead"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -2968,6 +2969,224 @@ export default function OportunidadesPage() {
                   Confirmar Venda
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal / Mini Tela de Leads Perdidos e Descartados */}
+      {showPerdidosModal && (
+        <div 
+          className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fadeIn"
+          onClick={() => setShowPerdidosModal(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl w-full max-w-5xl shadow-2xl border border-slate-100 overflow-hidden my-auto flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="bg-slate-900 text-white p-6 flex justify-between items-center shrink-0 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-2xl">
+                  ❌
+                </div>
+                <div>
+                  <h3 className="text-xl font-extrabold text-white tracking-tight">Leads Perdidos & Descartados</h3>
+                  <p className="text-xs text-slate-400 mt-0.5 font-medium">
+                    Total de {stats.perdidos} lead(s) marcado(s) como perdido(s).
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPerdidosModal(false)}
+                className="text-slate-400 hover:text-white p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all cursor-pointer"
+                title="Fechar"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            {/* Body / Table */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1 bg-slate-50/50">
+              {leads.filter(l => getStatusSafe(l) === "perdido").length === 0 ? (
+                <div className="text-center py-16 text-slate-400">
+                  <p className="text-4xl mb-2">🎉</p>
+                  <p className="font-bold text-slate-700">Nenhum lead descartado ou perdido.</p>
+                  <p className="text-xs text-slate-400 mt-1">Todos os seus leads estão em andamento ou finalizados com sucesso.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+                        <th className="text-left px-4 py-3">Lead</th>
+                        <th className="text-left px-4 py-3">Motivo da Perda</th>
+                        <th className="text-left px-4 py-3">Observações</th>
+                        <th className="text-left px-4 py-3">Responsável</th>
+                        <th className="text-right px-4 py-3">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {leads.filter(l => getStatusSafe(l) === "perdido").map((lead) => (
+                        <tr key={lead.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="px-4 py-3 font-bold text-slate-800">
+                            <div>{lead.nome}</div>
+                            <div className="text-[10px] text-slate-400 font-normal">{lead.telefone}</div>
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-red-700">
+                            <span className="bg-red-50 border border-red-200 px-2 py-0.5 rounded-md">
+                              {MOTIVOS_LABELS[lead.motivoDescarte || ""] || lead.motivoDescarte || "Não informado"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-600 italic max-w-[200px] truncate" title={lead.descarteObservacao || ""}>
+                            {lead.descarteObservacao || "Sem observação"}
+                          </td>
+                          <td className="px-4 py-3 text-slate-700 font-medium">
+                            {lead.responsavel?.nome.split(" ")[0] || "Sem dono"}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => { setShowPerdidosModal(false); setSelectedLead(lead); }}
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg font-bold text-[10px] transition-colors cursor-pointer"
+                              >
+                                👁️ Ficha
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (confirm(`Reativar o lead "${lead.nome}" e trazê-lo de volta para o 1º Contato?`)) {
+                                    await updateLeadStatus(lead.id, "contatado");
+                                    fetchLeads(false);
+                                  }
+                                }}
+                                className="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg font-bold text-[10px] transition-colors cursor-pointer"
+                              >
+                                🔄 Reativar
+                              </button>
+                              {currentUser?.perfil === "MASTER" && (
+                                <button
+                                  type="button"
+                                  onClick={() => { setDeletingLead(lead); }}
+                                  className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 p-1 rounded-lg text-[10px] transition-colors cursor-pointer"
+                                  title="Excluir Lead (Apenas Master)"
+                                >
+                                  🗑️
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal / Mini Tela de Clientes e Vendas Ganhas */}
+      {showGanhosModal && (
+        <div 
+          className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fadeIn"
+          onClick={() => setShowGanhosModal(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl w-full max-w-5xl shadow-2xl border border-slate-100 overflow-hidden my-auto flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="bg-slate-900 text-white p-6 flex justify-between items-center shrink-0 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-2xl">
+                  🤝
+                </div>
+                <div>
+                  <h3 className="text-xl font-extrabold text-white tracking-tight">Clientes & Vendas Ganhas</h3>
+                  <p className="text-xs text-slate-400 mt-0.5 font-medium">
+                    Total de {stats.ganhos} contrato(s) fechado(s).
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowGanhosModal(false)}
+                className="text-slate-400 hover:text-white p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all cursor-pointer"
+                title="Fechar"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            {/* Body / Table */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1 bg-slate-50/50">
+              {leads.filter(l => getStatusSafe(l) === "ganho").length === 0 ? (
+                <div className="text-center py-16 text-slate-400">
+                  <p className="text-4xl mb-2">📭</p>
+                  <p className="font-bold text-slate-700">Nenhum contrato fechado ainda.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+                        <th className="text-left px-4 py-3">Cliente / Contrato</th>
+                        <th className="text-left px-4 py-3">Plano Contratado</th>
+                        <th className="text-left px-4 py-3">Valores</th>
+                        <th className="text-left px-4 py-3">Responsável</th>
+                        <th className="text-right px-4 py-3">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {leads.filter(l => getStatusSafe(l) === "ganho").map((lead) => (
+                        <tr key={lead.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="px-4 py-3 font-bold text-slate-800">
+                            <div>{lead.nomeCompletoContrato || lead.nome}</div>
+                            <div className="text-[10px] text-slate-400 font-normal">{lead.telefone}</div>
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-emerald-800">
+                            <span className="bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                              {PLANO_LABEL[lead.planoContratado || lead.planoRecomendado]?.label || lead.planoContratado || lead.planoRecomendado}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-700 font-medium">
+                            <div>Adesão: {lead.valorAdesao || "R$ 0"}</div>
+                            <div className="text-[10px] text-slate-400">Plano: {lead.valorPlano || "Sob consulta"}</div>
+                          </td>
+                          <td className="px-4 py-3 text-slate-700 font-medium">
+                            {lead.responsavel?.nome.split(" ")[0] || "Sem dono"}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => { setShowGanhosModal(false); setSelectedLead(lead); }}
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg font-bold text-[10px] transition-colors cursor-pointer"
+                              >
+                                👁️ Ficha
+                              </button>
+                              {currentUser?.perfil === "MASTER" && (
+                                <button
+                                  type="button"
+                                  onClick={() => { setDeletingLead(lead); }}
+                                  className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 p-1 rounded-lg text-[10px] transition-colors cursor-pointer"
+                                  title="Excluir Lead (Apenas Master)"
+                                >
+                                  🗑️
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         </div>
