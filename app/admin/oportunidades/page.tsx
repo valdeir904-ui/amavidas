@@ -121,6 +121,17 @@ export default function OportunidadesPage() {
 
   const [showPerdidosModal, setShowPerdidosModal] = useState(false);
   const [showGanhosModal, setShowGanhosModal] = useState(false);
+  const [openedFromModal, setOpenedFromModal] = useState<"perdidos" | "ganhos" | null>(null);
+
+  const fecharFichaLead = () => {
+    setSelectedLead(null);
+    if (openedFromModal === "perdidos") {
+      setShowPerdidosModal(true);
+    } else if (openedFromModal === "ganhos") {
+      setShowGanhosModal(true);
+    }
+    setOpenedFromModal(null);
+  };
 
   const aplicarFiltro = (f: "todos" | "pendentes" | "parados_7d" | "contatados" | "negociando" | "follow_up" | "fechamento" | "ganhos" | "perdidos") => {
     if (f === "ganhos") {
@@ -1736,7 +1747,7 @@ export default function OportunidadesPage() {
       {selectedLead && (
         <div 
           className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
-          onClick={() => setSelectedLead(null)}
+          onClick={fecharFichaLead}
         >
           <div 
             className="bg-white rounded-3xl w-full max-w-5xl shadow-2xl border border-slate-100 overflow-hidden my-auto flex flex-col max-h-[92vh]"
@@ -1790,6 +1801,17 @@ export default function OportunidadesPage() {
 
                 {/* Botões de Ação do Header */}
                 <div className="flex items-center gap-2 self-end md:self-center flex-wrap justify-end">
+                  {openedFromModal && (
+                    <button
+                      type="button"
+                      onClick={fecharFichaLead}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2.5 rounded-xl text-xs font-black transition-all shadow-lg flex items-center gap-1.5 cursor-pointer active:scale-95 border border-blue-400/30"
+                    >
+                      <span>⬅️</span>
+                      <span>Voltar para {openedFromModal === "perdidos" ? "Lista de Perdidos" : "Lista de Ganhos"}</span>
+                    </button>
+                  )}
+
                   {(selectedLead.status !== "novo_lead" || currentUser?.perfil === "MASTER") && (
                     <>
                       <button
@@ -1837,7 +1859,7 @@ export default function OportunidadesPage() {
 
                   <button 
                     type="button"
-                    onClick={() => setSelectedLead(null)}
+                    onClick={fecharFichaLead}
                     className="bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white p-2.5 rounded-xl transition-all border border-white/15 cursor-pointer ml-1"
                     title="Fechar Modal"
                   >
@@ -3049,7 +3071,7 @@ export default function OportunidadesPage() {
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 type="button"
-                                onClick={() => { setShowPerdidosModal(false); setSelectedLead(lead); }}
+                                onClick={() => { setOpenedFromModal("perdidos"); setShowPerdidosModal(false); setSelectedLead(lead); }}
                                 className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg font-bold text-[10px] transition-colors cursor-pointer"
                               >
                                 👁️ Ficha
@@ -3164,7 +3186,7 @@ export default function OportunidadesPage() {
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 type="button"
-                                onClick={() => { setShowGanhosModal(false); setSelectedLead(lead); }}
+                                onClick={() => { setOpenedFromModal("ganhos"); setShowGanhosModal(false); setSelectedLead(lead); }}
                                 className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg font-bold text-[10px] transition-colors cursor-pointer"
                               >
                                 👁️ Ficha
