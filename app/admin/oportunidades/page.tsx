@@ -82,6 +82,10 @@ interface Lead {
   contratoAssinado?: boolean | null;
   valorAdesao?: string | null;
   valorPlano?: string | null;
+  temperaturaVenda?: string | null;
+  resumoNegociacao?: string | null;
+  objecaoPrincipal?: string | null;
+  proximoContatoEm?: string | null;
 }
 
 const MOTIVOS_LABELS: Record<string, string> = {
@@ -95,6 +99,16 @@ const MOTIVOS_LABELS: Record<string, string> = {
   fora_area: "Fora da área de atendimento",
   dado_invalido: "Dado inválido (nome/telefone falso)",
   outro: "Outro",
+};
+
+const OBJECAO_LABELS: Record<string, string> = {
+  preco: "Preço / Orçamento apertado",
+  carencia: "Carência dos serviços",
+  dependentes: "Quantidade de dependentes",
+  concorrencia: "Possui outro plano",
+  familia: "Precisa consultar a família",
+  cobertura: "Dúvida sobre cobertura",
+  outro: "Outro motivo",
 };
 
 const COLUNAS = [
@@ -223,6 +237,14 @@ export default function OportunidadesPage() {
     valorAdesao: "",
     valorPlano: "",
     contratoAssinado: false
+  });
+
+  const [negociacaoModal, setNegociacaoModal] = useState<{ id: string, responsavelId?: string | null } | null>(null);
+  const [negociacaoDados, setNegociacaoDados] = useState({
+    temperaturaVenda: "quente",
+    resumoNegociacao: "",
+    objecaoPrincipal: "",
+    proximoContatoEm: "",
   });
 
   // Estados para Timeline de Notas
@@ -458,6 +480,14 @@ export default function OportunidadesPage() {
         contratoAssinado: false,
       });
       setGanhoModal({ id, responsavelId });
+    } else if (finalStatus === "negociando") {
+      setNegociacaoDados({
+        temperaturaVenda: targetLead?.temperaturaVenda || "quente",
+        resumoNegociacao: targetLead?.resumoNegociacao || "",
+        objecaoPrincipal: targetLead?.objecaoPrincipal || "",
+        proximoContatoEm: targetLead?.proximoContatoEm ? new Date(targetLead.proximoContatoEm).toISOString().slice(0, 16) : "",
+      });
+      setNegociacaoModal({ id, responsavelId });
     } else {
       updateLeadStatus(id, finalStatus, responsavelId);
     }
@@ -469,7 +499,8 @@ export default function OportunidadesPage() {
     responsavelId?: string | null,
     motivoDescarte?: string,
     descarteObservacao?: string,
-    extraGanhoDados?: any
+    extraGanhoDados?: any,
+    extraNegociacaoDados?: any
   ) => {
     // Atualização otimista no estado local
     setLeads((prev) => prev.map((l) => {
@@ -485,7 +516,11 @@ export default function OportunidadesPage() {
           responsavelId: responsavelId !== undefined ? responsavelId : l.responsavelId, 
           responsavel: novoResp,
           motivoDescarte: motivoDescarte !== undefined ? motivoDescarte : l.motivoDescarte,
-          descarteObservacao: descarteObservacao !== undefined ? descarteObservacao : l.descarteObservacao
+          descarteObservacao: descarteObservacao !== undefined ? descarteObservacao : l.descarteObservacao,
+          temperaturaVenda: extraNegociacaoDados?.temperaturaVenda !== undefined ? extraNegociacaoDados.temperaturaVenda : l.temperaturaVenda,
+          resumoNegociacao: extraNegociacaoDados?.resumoNegociacao !== undefined ? extraNegociacaoDados.resumoNegociacao : l.resumoNegociacao,
+          objecaoPrincipal: extraNegociacaoDados?.objecaoPrincipal !== undefined ? extraNegociacaoDados.objecaoPrincipal : l.objecaoPrincipal,
+          proximoContatoEm: extraNegociacaoDados?.proximoContatoEm !== undefined ? extraNegociacaoDados.proximoContatoEm : l.proximoContatoEm,
         };
       }
       return l;
@@ -498,6 +533,9 @@ export default function OportunidadesPage() {
       if (descarteObservacao !== undefined) payload.descarteObservacao = descarteObservacao;
       if (extraGanhoDados) {
         Object.assign(payload, extraGanhoDados);
+      }
+      if (extraNegociacaoDados) {
+        Object.assign(payload, extraNegociacaoDados);
       }
 
       const r = await fetch("/api/leads", {
@@ -2774,6 +2812,145 @@ export default function OportunidadesPage() {
                   className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors"
                 >
                   {isDeleting ? "Excluindo..." : "Sim, excluir"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Início de Negociação */}
+      {negociacaoModal && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setNegociacaoModal(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden transform scale-100 transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="w-14 h-14 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center mx-auto mb-4 text-purple-600 text-2xl">
+                💬
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 mb-1 text-center tracking-tight">Iniciar Negociação</h3>
+              <p className="text-xs text-slate-500 mb-5 text-center">
+                Preencha as informações sobre como está o andamento da conversa.
+              </p>
+              
+              <div className="space-y-4">
+                {/* 1. Temperatura da Venda (Obrigatório) */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">
+                    1. Temperatura da Venda *
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: "quente", label: "🔥 Quente", activeBg: "bg-red-500 text-white border-red-600 shadow-sm" },
+                      { id: "morno", label: "🟡 Morno", activeBg: "bg-amber-500 text-white border-amber-600 shadow-sm" },
+                      { id: "frio", label: "🧊 Frio", activeBg: "bg-cyan-600 text-white border-cyan-700 shadow-sm" },
+                    ].map((temp) => (
+                      <button
+                        key={temp.id}
+                        type="button"
+                        onClick={() => setNegociacaoDados({ ...negociacaoDados, temperaturaVenda: temp.id })}
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                          negociacaoDados.temperaturaVenda === temp.id
+                            ? temp.activeBg
+                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                        }`}
+                      >
+                        {temp.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Resumo / Diagnóstico da Conversa (Obrigatório) */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                      2. Resumo / Diagnóstico da Conversa *
+                    </label>
+                    <span className={`text-[10px] font-bold ${negociacaoDados.resumoNegociacao.trim().length < 5 ? "text-red-500" : "text-emerald-600"}`}>
+                      {negociacaoDados.resumoNegociacao.trim().length < 5 ? `Mín. 5 letras` : "✓ OK"}
+                    </span>
+                  </div>
+                  <textarea
+                    value={negociacaoDados.resumoNegociacao}
+                    onChange={(e) => setNegociacaoDados({ ...negociacaoDados, resumoNegociacao: e.target.value })}
+                    placeholder="Descreva o que o cliente falou, necessidades ou condições negociadas..."
+                    rows={3}
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 placeholder:text-slate-400 shadow-sm resize-none"
+                  />
+                </div>
+
+                {/* 3. Principal Objeção (Opcional) */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
+                    3. Principal Objeção (Opcional)
+                  </label>
+                  <select
+                    value={negociacaoDados.objecaoPrincipal}
+                    onChange={(e) => setNegociacaoDados({ ...negociacaoDados, objecaoPrincipal: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-xs bg-white text-slate-900 shadow-sm cursor-pointer"
+                  >
+                    <option value="">-- Nenhuma / Não informada --</option>
+                    {Object.entries(OBJECAO_LABELS).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 4. Próximo Contato / Follow-up (Opcional) */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
+                    4. Agendar Próximo Contato (Opcional)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={negociacaoDados.proximoContatoEm}
+                    onChange={(e) => setNegociacaoDados({ ...negociacaoDados, proximoContatoEm: e.target.value })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 shadow-sm cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 w-full mt-6">
+                <button
+                  type="button"
+                  onClick={() => setNegociacaoModal(null)}
+                  className="px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 flex-1 transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!negociacaoDados.temperaturaVenda || negociacaoDados.resumoNegociacao.trim().length < 5) return;
+                    await updateLeadStatus(negociacaoModal.id, "negociando", negociacaoModal.responsavelId, undefined, undefined, undefined, {
+                      temperaturaVenda: negociacaoDados.temperaturaVenda,
+                      resumoNegociacao: negociacaoDados.resumoNegociacao.trim(),
+                      objecaoPrincipal: negociacaoDados.objecaoPrincipal || null,
+                      proximoContatoEm: negociacaoDados.proximoContatoEm || null,
+                    });
+                    if (selectedLead?.id === negociacaoModal.id) {
+                      setSelectedLead((prev) => prev ? { 
+                        ...prev, 
+                        status: "negociando", 
+                        contatado: true,
+                        temperaturaVenda: negociacaoDados.temperaturaVenda,
+                        resumoNegociacao: negociacaoDados.resumoNegociacao.trim(),
+                        objecaoPrincipal: negociacaoDados.objecaoPrincipal,
+                        proximoContatoEm: negociacaoDados.proximoContatoEm || null,
+                      } : null);
+                    }
+                    setNegociacaoModal(null);
+                  }}
+                  disabled={!negociacaoDados.temperaturaVenda || negociacaoDados.resumoNegociacao.trim().length < 5}
+                  className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors shadow-sm cursor-pointer"
+                >
+                  Salvar Negociação
                 </button>
               </div>
             </div>

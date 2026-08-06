@@ -102,7 +102,11 @@ export async function PATCH(req: NextRequest) {
     contratoAssinado,
     valorAdesao,
     valorPlano,
-    registrarContato
+    registrarContato,
+    temperaturaVenda,
+    resumoNegociacao,
+    objecaoPrincipal,
+    proximoContatoEm
   } = body;
 
   if (!id) return Response.json({ error: "ID não fornecido" }, { status: 400 });
@@ -128,6 +132,20 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
+  // Trava Backend: Lead movido para negociando exige temperatura da venda e resumo
+  if (status === "negociando" && !temperaturaVenda && !currentLead.temperaturaVenda) {
+    return Response.json(
+      { error: "É obrigatório informar a temperatura da venda ao mover para Em Negociação." },
+      { status: 400 }
+    );
+  }
+  if (status === "negociando" && (!resumoNegociacao || resumoNegociacao.trim().length < 5) && (!currentLead.resumoNegociacao || currentLead.resumoNegociacao.trim().length < 5)) {
+    return Response.json(
+      { error: "É obrigatório informar um resumo da conversa (mín. 5 caracteres) ao mover para Em Negociação." },
+      { status: 400 }
+    );
+  }
+
   const updateData: any = {};
   if (contatado !== undefined) {
     updateData.contatado = contatado;
@@ -143,13 +161,15 @@ export async function PATCH(req: NextRequest) {
       updateData.contatado = false;
     }
 
-    historyLogs.push({
-      usuarioId: session.userId,
-      acao: "mudou_status",
-      statusAntes: currentLead.status,
-      statusDepois: status,
-      observacao: `Status alterado de "${currentLead.status}" para "${status}"`
-    });
+    if (status !== "negociando") {
+      historyLogs.push({
+        usuarioId: session.userId,
+        acao: "mudou_status",
+        statusAntes: currentLead.status,
+        statusDepois: status,
+        observacao: `Status alterado de "${currentLead.status}" para "${status}"`
+      });
+    }
   }
 
   if (motivoDescarte !== undefined && motivoDescarte !== currentLead.motivoDescarte) {
@@ -157,6 +177,22 @@ export async function PATCH(req: NextRequest) {
     updateData.motivoPerda = motivoDescarte; // Retrocompatibilidade
   }
   if (descarteObservacao !== undefined) updateData.descarteObservacao = descarteObservacao;
+
+  if (temperaturaVenda !== undefined) updateData.temperaturaVenda = temperaturaVenda;
+  if (resumoNegociacao !== undefined) updateData.resumoNegociacao = resumoNegociacao;
+  if (objecaoPrincipal !== undefined) updateData.objecaoPrincipal = objecaoPrincipal;
+  if (proximoContatoEm !== undefined) updateData.proximoContatoEm = proximoContatoEm ? new Date(proximoContatoEm) : null;
+
+  if (status === "negociando" && (temperaturaVenda || resumoNegociacao)) {
+    const tempLabel = temperaturaVenda === "quente" ? "🔥 Quente" : temperaturaVenda === "morno" ? "🟡 Morno" : temperaturaVenda === "frio" ? "🧊 Frio" : temperaturaVenda;
+    historyLogs.push({
+      usuarioId: session.userId,
+      acao: "iniciou_negociacao",
+      statusAntes: currentLead.status,
+      statusDepois: "negociando",
+      observacao: `Negociação iniciada. Temperatura: ${tempLabel || "Não informada"}.${resumoNegociacao ? ` Diagnóstico: "${resumoNegociacao.trim()}"` : ""}${objecaoPrincipal ? ` | Objeção: ${objecaoPrincipal}` : ""}`
+    });
+  }
 
   if (status === "perdido" && currentLead.status !== "perdido") {
     historyLogs.push({
