@@ -206,21 +206,23 @@ function LoginForm() {
         body: JSON.stringify({ email, password: senha }),
       });
 
-      const data = await resp.json();
+      const data = await resp.json().catch(() => null);
 
       if (!resp.ok) {
-        setErro(data.error || "E-mail ou senha incorretos.");
+        setErro(data?.error || `Erro do servidor (${resp.status}). Tente novamente.`);
         setLoading(false);
         return;
       }
 
       const redirect = searchParams.get("redirect") ?? "/admin/dashboard";
       window.location.href = redirect;
-    } catch {
-      setErro("Falha de conexão. Tente novamente.");
+    } catch (err: any) {
+      console.error("Erro na requisição de login:", err);
+      setErro("Falha de conexão com o servidor. Tente novamente em alguns segundos.");
       setLoading(false);
     }
   };
+
 
   return (
     <div

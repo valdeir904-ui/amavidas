@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+
 
 const PLANO_LABEL: Record<string, { label: string; cor: string }> = {
   essencial: { label: "Essencial", cor: "bg-slate-100 text-slate-700 border-slate-200" },
@@ -419,30 +420,34 @@ export default function OportunidadesPage() {
     }
   }, []);
 
+  const lastLeadIdRef = useRef<string | null>(null);
+
   const fetchLeads = useCallback(async (isPolling = false) => {
     if (!isPolling) setLoading(true);
     try {
       const resp = await fetch("/api/leads");
       if (!resp.ok) throw new Error("Erro ao carregar");
       const data = await resp.json();
-      
-      setLeads((prev) => {
-        if (isPolling && data.leads.length > 0) {
-          const newLatestId = data.leads[0].id;
-          const oldLatestId = prev.length > 0 ? prev[0].id : null;
-          
-          if (oldLatestId && newLatestId !== oldLatestId) {
-            playNotificationSound();
-          }
+      const fetchedLeads = data.leads || [];
+
+      if (isPolling && fetchedLeads.length > 0) {
+        const newLatestId = fetchedLeads[0].id;
+        if (lastLeadIdRef.current && newLatestId !== lastLeadIdRef.current) {
+          playNotificationSound();
         }
-        return data.leads;
-      });
+        lastLeadIdRef.current = newLatestId;
+      } else if (fetchedLeads.length > 0) {
+        lastLeadIdRef.current = fetchedLeads[0].id;
+      }
+
+      setLeads(fetchedLeads);
     } catch {
       if (!isPolling) setErro("Erro ao carregar os leads. Verifique a conexão com o banco de dados.");
     } finally {
       if (!isPolling) setLoading(false);
     }
   }, [playNotificationSound]);
+
 
   useEffect(() => { 
     fetchLeads(false); 

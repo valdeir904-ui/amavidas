@@ -7,18 +7,23 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? "amavidas-admin-2024";
 
 // Seed: cria o usuário admin padrão na primeira execução
 export async function ensureSeed() {
-  if ((await prisma.usuario.count()) === 0) {
-    await prisma.usuario.create({
-      data: {
-        nome: "Admin",
-        email: "admin@amavidas.com.br",
-        senhaHash: hashSenha(ADMIN_TOKEN),
-        ativo: true,
-        perfil: "MASTER", // Garante que o Admin raiz é Master
-      },
-    });
+  try {
+    if ((await prisma.usuario.count()) === 0) {
+      await prisma.usuario.create({
+        data: {
+          nome: "Admin",
+          email: "admin@amavidas.com.br",
+          senhaHash: hashSenha(ADMIN_TOKEN),
+          ativo: true,
+          perfil: "MASTER", // Garante que o Admin raiz é Master
+        },
+      });
+    }
+  } catch (e) {
+    console.error("Erro no ensureSeed:", e);
   }
 }
+
 
 function sanitize(u: { senhaHash?: string; [k: string]: unknown }) {
   // nunca expõe o hash
