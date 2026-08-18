@@ -1287,58 +1287,37 @@ export default function OportunidadesPage() {
                         <div
                           key={lead.id}
                           onClick={() => setSelectedLead(lead)}
-                          className="cursor-pointer bg-white border border-l-4 border-l-red-500 border-red-100 hover:border-red-200 rounded-xl p-2.5 sm:p-3 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-2 relative group overflow-hidden w-full shrink-0"
+                          className="cursor-pointer bg-white border border-l-4 border-l-red-500 hover:border-red-300 rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-2 relative group overflow-hidden w-full shrink-0"
                         >
-                          <div className="flex-1 min-w-0">
-                            {/* Badges de topo em linha única */}
-                            <div className="flex items-center justify-between gap-1 mb-1.5">
-                              <div className="flex flex-wrap items-center gap-1">
-                                {isParado7Dias && (
-                                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-black bg-red-600 text-white shadow-sm animate-pulse">🚨 +7d</span>
-                                )}
-                                {lead.intencao === "contratar_agora" && (
-                                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-red-100 text-red-700 border border-red-200">🔴 Quer contratar</span>
-                                )}
-                                {lead.intencao === "entender_melhor" && (
-                                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200">🟡 Quer entender</span>
-                                )}
-                                {lead.intencao === "pesquisando" && (
-                                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200">⚪ Pesquisando</span>
-                                )}
-                                {lead.origem === "whatsapp_direto" ? (
-                                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">🟢 WhatsApp</span>
-                                ) : lead.utmSource?.toLowerCase() === "google" ? (
-                                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">🔵 Google</span>
-                                ) : lead.utmSource?.toLowerCase() === "meta" ? (
-                                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">🟣 Meta</span>
-                                ) : (
-                                  <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-slate-50 text-slate-600 border border-slate-200">👥 Lead</span>
-                                )}
-                              </div>
-
-                              <span className={`inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase tracking-wider border shrink-0 ${planoInfo.cor}`}>
-                                {planoInfo.label}
-                              </span>
-                            </div>
-
-                            {/* Nome do Lead */}
-                            <h4 className="font-bold text-slate-900 text-xs truncate flex items-center gap-1.5" title={lead.nome}>
+                          {/* Linha 1: Nome + Plano */}
+                          <div className="flex items-start justify-between gap-2">
+                            <h4 className="font-extrabold text-slate-900 text-sm leading-snug truncate flex items-center gap-1.5" title={lead.nome}>
                               <span className="relative flex h-2 w-2 shrink-0">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                               </span>
                               <span className="truncate">{lead.nome}</span>
                             </h4>
-
-                            {/* Metadados compactos em linha */}
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1.5 text-[10.5px] text-slate-500 font-medium">
-                              <span className="truncate">📞 {lead.telefone}</span>
-                              {lead.cidade && <span className="truncate">📍 {lead.cidade}</span>}
-                              {lead.criadoEm && <span>📅 {new Date(lead.criadoEm).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>}
-                            </div>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0 ${planoInfo.cor}`}>
+                              {planoInfo.label}
+                            </span>
                           </div>
 
-                          <div className="pt-1.5 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
+                          {/* Linha 2: Telefone, Cidade e Intenção */}
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600 font-medium">
+                            <span className="font-semibold text-slate-800">📞 {lead.telefone}</span>
+                            {lead.cidade && <span className="text-slate-400">• {lead.cidade}</span>}
+                            
+                            {lead.intencao === "contratar_agora" && (
+                              <span className="text-[9px] font-bold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">🔥 Quer contratar</span>
+                            )}
+                            {lead.intencao === "entender_melhor" && (
+                              <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">💡 Quer entender</span>
+                            )}
+                          </div>
+
+                          {/* Botão de ação direta */}
+                          <div className="pt-2 border-t border-slate-100 mt-0.5" onClick={(e) => e.stopPropagation()}>
                             <button
                               onClick={async () => {
                                 if (currentUser) {
@@ -1346,9 +1325,9 @@ export default function OportunidadesPage() {
                                   fetchLeads(false);
                                 }
                               }}
-                              className="w-full text-center text-[11px] bg-slate-900 hover:bg-slate-800 text-white font-bold py-1.5 px-2.5 rounded-lg transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1 animate-pulse"
+                              className="w-full text-center text-xs bg-slate-900 hover:bg-slate-800 text-white font-bold py-1.5 px-3 rounded-lg transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5 animate-pulse"
                             >
-                              👋 Atribuir a mim
+                              👋 Assumir este Lead
                             </button>
                           </div>
                         </div>
@@ -1362,15 +1341,15 @@ export default function OportunidadesPage() {
                         onDragStart={(e) => handleDragStart(e, lead.id)}
                         onDragEnd={handleDragEnd}
                         onClick={() => setSelectedLead(lead)}
-                        className={`cursor-pointer border rounded-xl p-2.5 sm:p-3 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-2 relative group overflow-hidden w-full shrink-0 ${
+                        className={`cursor-pointer border rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-2 relative group overflow-hidden w-full shrink-0 ${
                           isDragging 
                             ? "opacity-40 border-dashed border-blue-400 bg-white" 
                             : isFollowUp24h
-                            ? "border-2 border-red-500 bg-red-50/30 shadow-red-100 animate-pulse"
+                            ? "border-2 border-red-500 bg-red-50/20 shadow-red-100"
                             : isParado7Dias
-                            ? "border-2 border-red-500 bg-red-50/20 shadow-red-100/50 animate-pulse"
+                            ? "border-2 border-red-500 bg-red-50/10 shadow-red-100/50"
                             : col.id === "novo_lead" 
-                              ? "border-l-4 border-l-red-500 border-red-100 hover:border-red-200 bg-white" 
+                              ? "border-l-4 border-l-red-500 border-slate-200 hover:border-slate-300 bg-white" 
                               : col.id === "contatado"
                               ? "border-l-4 border-l-blue-500 border-slate-200 hover:border-slate-300 bg-white"
                               : col.id === "negociando"
@@ -1380,89 +1359,60 @@ export default function OportunidadesPage() {
                               : "border-l-4 border-l-indigo-500 border-slate-200 hover:border-slate-300 bg-white"
                         }`}
                       >
-                        {/* Badges de topo em linha única */}
-                        <div className="flex items-center justify-between gap-1 mb-0.5">
-                          <div className="flex flex-wrap items-center gap-1">
-                            {isFollowUp24h && (
-                              <span className="px-1.5 py-0.5 rounded text-[8.5px] font-black bg-red-600 text-white shadow-sm animate-pulse">🚨 +24h</span>
-                            )}
-                            {isParado7Dias && (
-                              <span className="px-1.5 py-0.5 rounded text-[8.5px] font-black bg-red-600 text-white shadow-sm animate-pulse">🚨 +7d</span>
-                            )}
-                            {lead.intencao === "contratar_agora" && (
-                              <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-red-100 text-red-700 border border-red-200">🔴 Quer contratar</span>
-                            )}
-                            {lead.intencao === "entender_melhor" && (
-                              <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200">🟡 Quer entender</span>
-                            )}
-                            {lead.intencao === "pesquisando" && (
-                              <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-slate-100 text-slate-600 border border-slate-200">⚪ Pesquisando</span>
-                            )}
-                            {lead.origem === "whatsapp_direto" ? (
-                              <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">🟢 WhatsApp</span>
-                            ) : lead.utmSource?.toLowerCase() === "google" ? (
-                              <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">🔵 Google</span>
-                            ) : lead.utmSource?.toLowerCase() === "meta" ? (
-                              <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">🟣 Meta</span>
-                            ) : (
-                              <span className="px-1.5 py-0.5 rounded text-[8.5px] font-extrabold bg-slate-50 text-slate-600 border border-slate-200">👥 Lead</span>
-                            )}
-                          </div>
-
-                          <span className={`inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[8.5px] font-extrabold uppercase tracking-wider border shrink-0 ${planoInfo.cor}`}>
+                        {/* Linha 1: Nome + Plano */}
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-extrabold text-slate-900 text-sm leading-snug truncate" title={lead.nome}>
+                            {lead.nome}
+                          </h4>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border shrink-0 ${planoInfo.cor}`}>
                             {planoInfo.label}
                           </span>
                         </div>
 
-                        {/* Nome do Lead */}
-                        <h4 className="font-bold text-slate-900 text-xs truncate" title={lead.nome}>
-                          {lead.nome}
-                        </h4>
+                        {/* Linha 2: Telefone, Cidade e Alertas essenciais */}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600 font-medium">
+                          <span className="font-semibold text-slate-800">📞 {lead.telefone}</span>
+                          {lead.cidade && <span className="text-slate-400">• {lead.cidade}</span>}
 
-                        {/* Metadados compactos em linha */}
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10.5px] text-slate-500 font-medium">
-                          <span className="truncate">📞 {lead.telefone}</span>
-                          {lead.cidade && <span className="truncate">📍 {lead.cidade}</span>}
-                          {lead.criadoEm && <span>📅 {new Date(lead.criadoEm).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>}
-                          
-                          {lead.primeiroContatoEm ? (
-                            <span className="font-bold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded text-[9.5px]">
-                              SLA: {formatResponseTime(lead.criadoEm, lead.primeiroContatoEm)}
-                            </span>
-                          ) : (
-                            lead.status !== "ganho" && lead.status !== "perdido" && (
-                              <span className="font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded text-[9.5px] animate-pulse">
-                                Espera: {getTimeAgo(lead.criadoEm, now)}
-                              </span>
-                            )
+                          {isParado7Dias && (
+                            <span className="text-[9px] font-black bg-red-600 text-white px-1.5 py-0.5 rounded">🚨 +7d parado</span>
+                          )}
+                          {isFollowUp24h && (
+                            <span className="text-[9px] font-black bg-red-600 text-white px-1.5 py-0.5 rounded">🚨 +24h</span>
+                          )}
+                          {lead.intencao === "contratar_agora" && (
+                            <span className="text-[9px] font-bold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">🔥 Quer contratar</span>
+                          )}
+                          {lead.intencao === "entender_melhor" && (
+                            <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">💡 Quer entender</span>
                           )}
                         </div>
 
-                        {/* Barra de Ações do Rodapé do Card */}
-                        <div className="flex items-center justify-between border-t border-slate-100 pt-2 mt-0.5 gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        {/* Linha 3: Rodapé com Atendente, Status e WhatsApp */}
+                        <div className="flex items-center justify-between border-t border-slate-100 pt-2 mt-0.5 gap-2" onClick={(e) => e.stopPropagation()}>
                           <div>
                             {lead.responsavel ? (
-                              <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded-lg" title={lead.responsavel.nome}>
-                                <div className="w-3.5 h-3.5 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-[8.5px] font-bold text-blue-700">
+                              <div className="flex items-center gap-1.5" title={lead.responsavel.nome}>
+                                <div className="w-4 h-4 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-[9px] font-bold text-blue-700">
                                   {lead.responsavel.nome.charAt(0)}
                                 </div>
-                                <span className="text-[10px] font-semibold text-slate-700 truncate max-w-[60px]">{lead.responsavel.nome.split(" ")[0]}</span>
+                                <span className="text-xs font-semibold text-slate-700 truncate max-w-[70px]">{lead.responsavel.nome.split(" ")[0]}</span>
                               </div>
                             ) : currentUser?.perfil === "ATENDENTE" ? (
-                              <button onClick={() => handleStatusChangeRequest(lead.id, lead.status, currentUser.id)} className="text-[9.5px] bg-cyan-50 text-cyan-700 border border-cyan-200 hover:bg-cyan-100 px-1.5 py-0.5 rounded-lg font-bold transition-colors cursor-pointer">
+                              <button onClick={() => handleStatusChangeRequest(lead.id, lead.status, currentUser.id)} className="text-[10px] bg-cyan-50 text-cyan-700 border border-cyan-200 hover:bg-cyan-100 px-2 py-0.5 rounded-lg font-bold transition-colors cursor-pointer">
                                 👋 Assumir
                               </button>
                             ) : (
-                              <span className="text-[9px] bg-slate-50 border border-slate-200 text-slate-400 px-1.5 py-0.5 rounded italic">Sem dono</span>
+                              <span className="text-[10px] text-slate-400 italic">Sem dono</span>
                             )}
                           </div>
 
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5">
                             {/* Selector para mudança rápida de coluna */}
                             <select
                               value={lead.status}
                               onChange={(e) => handleStatusChangeRequest(lead.id, e.target.value)}
-                              className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border outline-none cursor-pointer transition-all ${
+                              className={`text-[10px] font-extrabold px-2 py-1 rounded-lg border outline-none cursor-pointer transition-all ${
                                 lead.status === "ganho"
                                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                   : lead.status === "perdido"
@@ -1490,7 +1440,7 @@ export default function OportunidadesPage() {
                             {/* WhatsApp Shortcut */}
                             <button
                               onClick={() => abrirWhatsAppModal(lead)}
-                              className="bg-green-500 hover:bg-green-600 text-white p-1 rounded transition-colors flex items-center justify-center shadow-sm cursor-pointer"
+                              className="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg transition-colors flex items-center justify-center shadow-sm cursor-pointer"
                               title="Conversar no WhatsApp"
                             >
                               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
