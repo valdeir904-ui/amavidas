@@ -48,6 +48,16 @@ const navItems = [
     ),
   },
   {
+    label: "Contratos",
+    href: "/admin/contratos",
+    soon: false,
+    icon: (
+      <svg className="w-5 h-5 text-[#06b6d4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+  },
+  {
     label: "Planos",
     href: "/admin/planos",
     soon: false,
@@ -128,7 +138,7 @@ export default function AdminSidebar() {
 
   const visibleNavItems = navItems.filter((item) => {
     if (currentUser?.perfil !== "MASTER") {
-      return item.label === "Dashboard" || item.label === "Oportunidades" || item.label === "Nota de Falecimento";
+      return item.label === "Dashboard" || item.label === "Oportunidades" || item.label === "Nota de Falecimento" || item.label === "Contratos";
     }
     return true;
   });
@@ -168,6 +178,8 @@ export default function AdminSidebar() {
         ) : (
           visibleNavItems.map((item) => {
             const active = isActive(item.href);
+            const isContratos = item.label === "Contratos";
+
             return (
               <Link
                 key={item.href}
@@ -175,7 +187,9 @@ export default function AdminSidebar() {
                 onClick={() => setMobileOpen(false)}
                 title={collapsed ? item.label : undefined}
                 className={`flex items-center gap-3 ${collapsed ? "justify-center px-0 py-3" : "px-3 py-2.5"} rounded-xl text-sm font-medium transition-all group relative ${
-                  active
+                  isContratos
+                    ? "border border-cyan-500/40 bg-gradient-to-r from-[#4f6ef7]/20 to-[#06b6d4]/20 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_20px_rgba(6,182,212,0.5)]"
+                    : active
                     ? "bg-white/10 text-white"
                     : item.soon
                     ? "text-white/30 cursor-not-allowed"
@@ -185,10 +199,15 @@ export default function AdminSidebar() {
                 {active && (
                   <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-gradient-to-b from-[#4f6ef7] to-[#06b6d4] rounded-full ${collapsed ? "ml-1" : ""}`} />
                 )}
-                <span className={active ? "text-white" : ""}>{item.icon}</span>
+                <span className={active || isContratos ? "text-cyan-300" : ""}>{item.icon}</span>
                 {!collapsed && (
                   <>
                     <span className="flex-1 whitespace-nowrap">{item.label}</span>
+                    {isContratos && (
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-[#4f6ef7] to-[#06b6d4] text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(6,182,212,0.8)] border border-white/20">
+                        ✨ NOVO
+                      </span>
+                    )}
                     {item.soon && (
                       <span className="text-[10px] font-semibold bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full">
                         Em breve
@@ -250,7 +269,7 @@ export default function AdminSidebar() {
       {/* Mobile toggle button */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center text-white shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center text-white shadow-lg print:hidden"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -260,14 +279,14 @@ export default function AdminSidebar() {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/60 z-40"
+          className="lg:hidden fixed inset-0 bg-black/60 z-40 print:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Mobile drawer */}
       <div
-        className={`lg:hidden fixed left-0 top-0 h-full w-60 bg-[#0f1729] z-50 transition-transform duration-300 ${
+        className={`lg:hidden fixed left-0 top-0 h-full w-60 bg-[#0f1729] z-50 transition-transform duration-300 print:hidden ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -283,13 +302,13 @@ export default function AdminSidebar() {
       </div>
 
       {/* Desktop sidebar */}
-      <aside className={`hidden lg:flex flex-col min-h-screen bg-[#0f1729] flex-shrink-0 sticky top-0 h-screen transition-all duration-300 relative z-20 ${isCollapsed ? "w-20" : "w-60"}`}>
+      <aside className={`hidden lg:flex flex-col min-h-screen bg-[#0f1729] flex-shrink-0 sticky top-0 h-screen transition-all duration-300 relative z-20 print:hidden ${isCollapsed ? "w-20" : "w-60"}`}>
         <SidebarContent collapsed={isCollapsed} />
         
         {/* Toggle Collapse Button */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3.5 top-8 w-7 h-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 hover:scale-105 shadow-md transition-all z-50 cursor-pointer"
+          className="absolute -right-3.5 top-8 w-7 h-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 hover:scale-105 shadow-md transition-all z-50 cursor-pointer print:hidden"
         >
           <svg className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />

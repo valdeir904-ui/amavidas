@@ -135,6 +135,7 @@ model Simulacao {
   atualizadoEm      DateTime        @updatedAt
   notas             SimulacaoNota[]
   historico         LeadHistorico[]
+  contratos         Contrato[]
 
   @@index([responsavelId], map: "simulacoes_responsavelId_fkey")
   @@index([utmSource])
@@ -237,5 +238,52 @@ model SimulacaoIncompleta {
 
   @@index([utmSource])
   @@map("simulacoes_incompletas")
+}
+
+model Contrato {
+  id                String   @id @default(cuid())
+  numeroContrato    String   @unique
+  tipoContratacao   String   @default("Nova contratação")
+  portabilidade     Boolean  @default(false)
+  natureza          String   @default("PF") // "PF" ou "PJ"
+  
+  // Plano
+  plano             String
+  valorAdesao       String?
+  valorMensalidade  String?
+  formaPagamento    String?
+  cidadeAssinatura  String   @default("Águas Lindas de Goiás - GO")
+  dataAssinatura    DateTime @default(now())
+
+  // Titular PF
+  titularNome       String
+  titularCpf        String
+  titularRg         String?
+  titularEndereco   String?
+  titularBairro     String?
+  titularCidade     String?
+  titularUf         String?
+  titularCep        String?
+  titularTelefone   String?
+  titularEmail      String?
+
+  // Titular PJ (se aplicável)
+  pjRazaoSocial     String?
+  pjCnpj            String?
+  pjRepresentante   String?
+  pjRepresentanteCpf String?
+  pjRepresentanteRg String?
+
+  // Beneficiários em formato JSON
+  beneficiarios     String?  @db.Text
+  observacoes       String?  @db.Text
+
+  simulacaoId       String?
+  simulacao         Simulacao? @relation(fields: [simulacaoId], references: [id], onDelete: SetNull)
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+
+  @@index([simulacaoId])
+  @@map("contratos")
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 
 
 const PLANO_LABEL: Record<string, { label: string; cor: string }> = {
@@ -1844,6 +1845,14 @@ export default function OportunidadesPage() {
 
                 {/* Botões de Ação do Header */}
                 <div className="flex items-center gap-2 self-end md:self-center flex-wrap justify-end">
+                  <Link
+                    href={`/admin/contratos/novo?leadId=${selectedLead.id}`}
+                    className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-3.5 py-2.5 rounded-xl text-xs font-black transition-all shadow-lg flex items-center gap-1.5 cursor-pointer active:scale-95 border border-white/20"
+                  >
+                    <span>📄</span>
+                    <span>Gerar Contrato</span>
+                  </Link>
+
                   {openedFromModal && (
                     <button
                       type="button"
