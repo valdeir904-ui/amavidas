@@ -830,17 +830,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             <button
               onClick={voltar}
               disabled={!!opcaoSelecionada}
-              className="flex items-center gap-1.5 text-[14px] font-bold text-[var(--ink-mute)] hover:text-[var(--royal)] transition-colors disabled:opacity-30 mt-2 cursor-pointer"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-              Voltar
-            </button>
-          </motion.div>
-        )}
-
-        {/* ── Contato (Etapa 8 — Captura de Lead) ── */}
+              className="flex items-center gap-1.5 text-[14        {/* ── Contato (Etapa 8 — Captura de Lead com Regras PUI) ── */}
         {fase === "contato" && (
           <motion.div
             key="contato"
@@ -848,79 +838,92 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             initial="hidden"
             animate="visible"
             exit="exit"
+            className="text-left"
           >
             <div className="text-center mb-6">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[var(--royal-soft)] text-[12px] font-bold uppercase tracking-wider text-[var(--royal)] border border-[var(--royal)]/15 shadow-sm mb-3">
-                ✨ Simulação Concluída!
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-50 text-[12px] font-bold text-emerald-800 border border-emerald-200 shadow-sm mb-3">
+                ✨ Simulação concluída!
               </span>
-              <h3 className="text-2xl font-black text-[var(--ink)] text-serif leading-tight">
+              <h3 className="text-2xl font-bold text-slate-900 leading-tight">
                 Para onde enviamos seu resultado?
               </h3>
-              <p className="text-sm text-[var(--ink-soft)] mt-1.5 leading-normal max-w-xs mx-auto">
-                Insira seus dados para ver o plano sugerido e receber o detalhamento completo sem compromisso.
+              <p className="text-sm text-slate-600 mt-1.5 leading-normal max-w-xs mx-auto">
+                Insira seus dados para ver a cotação recomendada sem compromisso.
               </p>
             </div>
 
             <form onSubmit={submeterContato} className="space-y-4 mb-5">
-              <div>
-                <label className="text-[11px] font-bold uppercase text-[var(--ink-soft)] tracking-wider block mb-1">Nome Completo</label>
+              {/* Campo 1: Nome Completo (Label acima do input - PUI) */}
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="simulador-nome" className="text-sm font-bold text-slate-800">
+                  Nome completo <span className="text-emerald-600">*</span>
+                </label>
                 <input
+                  id="simulador-nome"
                   type="text"
                   required
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  placeholder="Ex: Ana Maria Silva"
-                  className="w-full px-4 py-3.5 border border-[var(--line-strong)] rounded-2xl focus:border-[var(--royal)] focus:ring-4 focus:ring-[var(--royal-soft)]/50 focus:outline-none transition-all bg-white text-[var(--ink)] placeholder-[var(--ink-mute)]/40 font-medium text-[15px]"
+                  placeholder="Digite seu nome"
+                  autoComplete="name"
+                  className="h-12 w-full px-4 border border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none transition-all bg-white text-slate-900 font-medium text-base"
                 />
               </div>
 
-              <div>
-                <label className="text-[11px] font-bold uppercase text-[var(--ink-soft)] tracking-wider block mb-1">Seu WhatsApp</label>
+              {/* Campo 2: WhatsApp (Label acima do input - PUI) */}
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="simulador-tel" className="text-sm font-bold text-slate-800">
+                  Seu WhatsApp com DDD <span className="text-emerald-600">*</span>
+                </label>
                 <input
+                  id="simulador-tel"
                   type="tel"
                   required
                   value={telefone}
                   onChange={(e) => setTelefone(mascaraTelefone(e.target.value))}
-                  placeholder="Ex: (61) 99999-9999"
-                  className="w-full px-4 py-3.5 border border-[var(--line-strong)] rounded-2xl focus:border-[var(--royal)] focus:ring-4 focus:ring-[var(--royal-soft)]/50 focus:outline-none transition-all bg-white text-[var(--ink)] placeholder-[var(--ink-mute)]/40 font-medium text-[15px]"
+                  placeholder="(61) 99999-9999"
+                  autoComplete="tel"
+                  className="h-12 w-full px-4 border border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none transition-all bg-white text-slate-900 font-mono text-base"
                 />
               </div>
 
-              <label className="flex items-start gap-3 p-3 bg-[var(--bg-alt)] border border-[var(--line)] rounded-2xl cursor-pointer hover:border-[var(--line-strong)] transition-all">
+              {/* Consentimento transparente */}
+              <label className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:border-slate-300 transition-all">
                 <input
                   type="checkbox"
                   required
                   checked={consentimento}
                   onChange={(e) => setConsentimento(e.target.checked)}
-                  className="w-5 h-5 rounded text-[var(--royal)] border-[var(--line-strong)] focus:ring-[var(--royal-soft)] mt-0.5 cursor-pointer"
+                  className="w-4.5 h-4.5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500 mt-0.5 cursor-pointer"
                 />
-                <span className="text-[13px] font-semibold text-[var(--ink-soft)] leading-snug">
-                  Autorizo a AmaVidas a entrar em contato comigo pelo WhatsApp.
+                <span className="text-xs font-medium text-slate-600 leading-snug">
+                  Concordo em receber a cotação sem compromisso via WhatsApp.
                 </span>
               </label>
 
               {erro && (
-                <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-[14px] font-semibold flex items-center gap-2">
+                <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3.5 text-sm font-semibold flex items-center gap-2">
                   <span>⚠️</span> {erro}
                 </div>
               )}
 
+              {/* Botão de envio primário em Sentence case, target 52px */}
               <button
                 type="submit"
                 disabled={enviando}
-                className="w-full bg-[var(--royal)] hover:bg-[var(--royal)]/95 hover:shadow-lg active:scale-[0.99] text-white text-[15px] font-bold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2.5 min-h-[56px] disabled:opacity-60 cursor-pointer"
+                className="w-full h-13 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-base font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
               >
                 {enviando ? (
                   <>
-                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Processando simulação...
+                    <span>Processando simulação...</span>
                   </>
                 ) : (
                   <>
-                    Ver Meu Plano Recomendado
+                    <span>Ver meu plano recomendado</span>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                     </svg>
@@ -930,12 +933,12 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             </form>
 
             <div className="text-center">
-              <p className="text-[12px] text-[var(--ink-mute)] font-medium leading-relaxed mb-4">
-                🔒 Seus dados ficam seguros. Apenas um atendente da AmaVidas entrará em contato, sem compromisso comercial.
+              <p className="text-xs text-slate-500 font-medium leading-relaxed mb-3">
+                🔒 Seus dados estão seguros e protegidos pela AmaVidas.
               </p>
               <button
                 onClick={voltar}
-                className="text-[14px] font-bold text-[var(--ink-soft)] hover:text-[var(--royal)] transition-colors flex items-center gap-1.5 mx-auto cursor-pointer"
+                className="text-xs font-bold text-slate-600 hover:text-emerald-700 transition-colors flex items-center gap-1.5 mx-auto cursor-pointer"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -954,40 +957,40 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="flex flex-col py-6"
+            className="flex flex-col py-6 text-center"
           >
-            <div className="flex flex-col items-center justify-center mb-8 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-[var(--royal-soft)] flex items-center justify-center mb-4 relative shadow-sm border border-[var(--royal)]/15">
-                <div className="absolute inset-0 rounded-2xl border-2 border-[var(--royal)] border-t-transparent animate-spin" />
-                <svg className="w-6 h-6 text-[var(--royal)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <div className="flex flex-col items-center justify-center mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4 relative border border-emerald-200">
+                <div className="absolute inset-0 rounded-2xl border-2 border-emerald-600 border-t-transparent animate-spin" />
+                <svg className="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h4 className="text-xl font-bold text-[var(--ink)] text-serif">Analisando suas respostas...</h4>
-              <p className="text-sm text-[var(--ink-soft)] mt-1">Cruzando os melhores benefícios e custos para você.</p>
+              <h4 className="text-xl font-bold text-slate-900">Analisando suas respostas...</h4>
+              <p className="text-sm text-slate-600 mt-1">Cruzando coberturas e benefícios ideais para você.</p>
             </div>
 
-            <div className="bg-[var(--bg-alt)] border border-[var(--line)] rounded-2xl p-5 space-y-4 max-w-sm mx-auto w-full shadow-inner">
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4 max-w-sm mx-auto w-full text-left">
               {CALCULANDO_STEPS.map((stepText, idx) => {
                 const isCompleted = loadingStep > idx;
                 const isActive = loadingStep === idx;
                 return (
-                  <div key={idx} className="flex items-center gap-3.5 transition-all duration-300">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all">
+                  <div key={idx} className="flex items-center gap-3.5">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center">
                       {isCompleted ? (
-                        <div className="w-6 h-6 rounded-full bg-green-550 flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: "#22c55e" }}>
+                        <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white">
                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="3.5" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                           </svg>
                         </div>
                       ) : isActive ? (
-                        <div className="w-6 h-6 rounded-full border-2 border-[var(--royal)] border-t-transparent animate-spin" />
+                        <div className="w-6 h-6 rounded-full border-2 border-emerald-600 border-t-transparent animate-spin" />
                       ) : (
-                        <div className="w-6 h-6 rounded-full border border-[var(--line-strong)] bg-white" />
+                        <div className="w-6 h-6 rounded-full border border-slate-300 bg-white" />
                       )}
                     </div>
-                    <span className={`text-[14px] font-semibold transition-colors duration-300 ${
-                      isCompleted ? "text-[var(--ink-soft)] line-through opacity-70" : isActive ? "text-[var(--royal)] font-bold" : "text-[var(--ink-mute)]"
+                    <span className={`text-sm font-medium ${
+                      isCompleted ? "text-slate-500 line-through" : isActive ? "text-emerald-700 font-bold" : "text-slate-400"
                     }`}>
                       {stepText}
                     </span>
@@ -1006,87 +1009,75 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             initial="hidden"
             animate="visible"
             exit="exit"
+            className="text-left"
           >
             <div className="text-center mb-5">
               <div className="flex justify-center mb-3">
-                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-green-50 text-[12px] font-bold uppercase tracking-wider text-green-700 border border-green-200 shadow-sm animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-green-500" />
-                  Indicação Calculada com Sucesso!
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-50 text-xs font-bold text-emerald-800 border border-emerald-200">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Cotação calculada com sucesso!
                 </span>
               </div>
-              <h3 className="text-2xl font-bold leading-tight text-[var(--ink)] text-serif">
-                Seu Plano Recomendado
+              <h3 className="text-2xl font-bold leading-tight text-slate-900">
+                Seu plano recomendado
               </h3>
             </div>
 
-            <div className="bg-[var(--bg-alt)] border border-[var(--line)] rounded-xl px-4 py-2.5 mb-5 text-[13px] flex flex-wrap gap-x-4 gap-y-1.5 items-center justify-center shadow-inner">
-              <span className="text-[var(--ink-soft)] font-medium">
-                <strong>Para:</strong> {
-                  respostas.paraQuem === "so_eu" ? "Apenas você" :
-                  respostas.paraQuem === "conjuge" ? "Casal" :
-                  respostas.paraQuem === "familia" ? "Família" : "Pais ou Idosos"
-                }
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--line-strong)]" />
-              <span className="text-[var(--ink-soft)] font-medium">
-                <strong>Vidas:</strong> {respostas.quantidadePessoas === "5+" ? "5 ou mais" : respostas.quantidadePessoas}
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--line-strong)]" />
-              <span className="text-[var(--ink-soft)] font-medium">
-                <strong>Foco:</strong> {
-                  respostas.prioridade === "menor_preco" ? "Menor Preço" :
-                  respostas.prioridade === "equilibrio" ? "Custo-Benefício" : "Qualidade"
-                }
-              </span>
-            </div>
-
-            {/* Card do Plano */}
-            <div className="bg-white border-2 border-[var(--magenta)] rounded-[20px] shadow-md overflow-hidden mb-6 relative">
-              <div className="bg-gradient-to-r from-[var(--magenta)] to-[var(--magenta)]/90 text-white text-center py-2 px-4 text-[12px] font-extrabold uppercase tracking-widest shadow-sm">
-                ⭐ RECOMENDAÇÃO IDEAL
+            {/* Card do Plano Recomendado com nimbuu-ui-ux palette */}
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden mb-6 relative">
+              <div className="bg-slate-900 text-white text-center py-2.5 px-4 text-xs font-bold tracking-tight border-b border-slate-800 flex items-center justify-center gap-2">
+                <span className="text-emerald-400 font-bold">⭐</span>
+                <span>Recomendação ideal para seu perfil</span>
               </div>
               
-              <div className="text-center p-6 bg-gradient-to-b from-[var(--magenta-soft)]/20 to-transparent border-b border-[var(--line)]">
-                <h4 className="text-2xl font-black text-[var(--ink)]">{planoAtual.nome}</h4>
-                <p className="text-[13px] text-[var(--ink-soft)] max-w-xs mx-auto mt-1 leading-normal">
+              <div className="text-center p-6 bg-slate-50 border-b border-slate-200">
+                <h4 className="text-2xl font-extrabold text-slate-900">{planoAtual.nome}</h4>
+                <p className="text-xs text-slate-600 max-w-xs mx-auto mt-1 leading-relaxed">
                   {planoAtual.tagline}
                 </p>
                 <div className="flex items-baseline justify-center gap-1 mt-4">
-                  <span className="text-sm font-semibold text-[var(--ink-soft)]">R$</span>
-                  <span className="text-5xl font-black tracking-tight text-[var(--ink)]">{Math.floor(planoAtual.preco)}</span>
-                  <span className="text-lg font-bold text-[var(--ink-soft)]">,{String((planoAtual.preco % 1).toFixed(2)).split(".")[1]}</span>
-                  <span className="text-xs text-[var(--ink-mute)] font-semibold ml-1">/mês</span>
+                  <span className="text-sm font-semibold text-slate-600">R$</span>
+                  <span className="text-5xl font-extrabold tracking-tight text-slate-900">{Math.floor(planoAtual.preco)}</span>
+                  <span className="text-lg font-bold text-slate-600">,{String((planoAtual.preco % 1).toFixed(2)).split(".")[1]}</span>
+                  <span className="text-xs text-slate-500 font-medium ml-1">/mês</span>
                 </div>
               </div>
 
               <div className="p-6 bg-white space-y-3">
                 {planoAtual.beneficios.map((b) => (
                   <div key={b} className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-50 flex items-center justify-center mt-0.5 border border-green-200">
-                      <svg className="w-3.5 h-3.5 text-green-650" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24" style={{ color: "#16a34a" }}>
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center mt-0.5 border border-emerald-200">
+                      <svg className="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
                     </div>
-                    <span className="text-[14px] text-[var(--ink-soft)] font-semibold leading-tight">{b}</span>
+                    <span className="text-sm text-slate-700 font-medium leading-relaxed">{b}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* CTAs */}
+            {/* CTAs com peso primário e alvos de 52px */}
             <div className="space-y-3">
               <button
                 onClick={abrirWhatsApp}
-                className="w-full flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#128C7E] text-white text-[15px] font-bold py-4 px-6 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.99] min-h-[54px] cursor-pointer"
+                className="w-full flex items-center justify-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-base font-bold h-13 px-6 rounded-xl transition-all shadow-md cursor-pointer"
               >
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                 </svg>
-                Falar com Atendente no WhatsApp
+                <span>Falar com atendente no WhatsApp</span>
               </button>
 
               <a
                 href={`tel:${(configs.telefone || configs.whatsapp || "5561985825621").replace(/\D/g, "")}`}
+                className="w-full h-12 flex items-center justify-center gap-2 border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-bold rounded-xl transition-all bg-white"
+              >
+                Falar por ligação telefônica
+              </a>
+            </div>
+          </motion.div>
+        )}ref={`tel:${(configs.telefone || configs.whatsapp || "5561985825621").replace(/\D/g, "")}`}
                 className="w-full flex items-center justify-center gap-2 border border-[var(--line-strong)] text-[var(--ink-soft)] hover:border-[var(--royal)] hover:text-[var(--royal)] text-[14px] font-bold py-3.5 rounded-xl transition-all min-h-[50px] bg-white hover:shadow-sm"
               >
                 Falar por ligação telefônica

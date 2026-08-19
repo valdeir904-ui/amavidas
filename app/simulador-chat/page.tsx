@@ -8,9 +8,9 @@ export const metadata: Metadata = {
 
 export default function SimuladorChatPage() {
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center sm:py-6">
-      {/* Container que no mobile ocupa 100vh e no desktop simula um celular */}
-      <div className="w-full h-[100dvh] sm:h-[85vh] sm:max-h-[800px] sm:max-w-md sm:rounded-[40px] sm:overflow-hidden sm:border-8 sm:border-slate-800 relative bg-white shadow-2xl flex flex-col">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center sm:py-6 selection:bg-emerald-100 selection:text-emerald-900">
+      {/* Container que no mobile ocupa 100vh e no desktop simula um celular elegante */}
+      <div className="w-full h-[100dvh] sm:h-[85vh] sm:max-h-[820px] sm:max-w-md sm:rounded-[36px] sm:overflow-hidden sm:border-[6px] sm:border-slate-800 relative bg-white shadow-2xl shadow-emerald-950/30 flex flex-col">
         <ChatSimulador />
       </div>
     </div>

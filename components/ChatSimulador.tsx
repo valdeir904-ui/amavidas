@@ -591,29 +591,27 @@ export default function ChatSimulador() {
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#F0F2F5] relative overflow-hidden font-sans">
-      {/* Header */}
-      <header className="bg-[#008ba3] text-white px-4 py-3.5 flex items-center gap-3 shadow-md z-10">
-        <div className="relative w-10 h-10 rounded-full bg-white overflow-hidden flex items-center justify-center flex-shrink-0 border border-white/20 shadow-inner">
-          <Image src="/icon.png" alt="AmaVidas" width={28} height={28} className="object-contain" />
-        </div>
-        <div>
-          <h1 className="font-extrabold text-[16px] leading-tight tracking-tight">AmaVidas</h1>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <p className="text-[10px] text-white/80 font-bold uppercase tracking-wider">Atendente Virtual</p>
+    <div className="flex flex-col h-full w-full bg-slate-100 relative overflow-hidden font-sans">
+      {/* Header com contraste garantido e estilo nimbuu-ui-ux */}
+      <header className="bg-slate-900 text-white px-4 py-3.5 flex items-center justify-between shadow-md z-10 border-b border-slate-800">
+        <div className="flex items-center gap-3">
+          <div className="relative w-10 h-10 rounded-full bg-white overflow-hidden flex items-center justify-center flex-shrink-0 border border-slate-700 shadow-inner">
+            <Image src="/icon.png" alt="AmaVidas" width={26} height={26} className="object-contain" />
+          </div>
+          <div>
+            <h1 className="font-bold text-base leading-tight tracking-tight text-white">AmaVidas</h1>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="text-xs text-slate-300 font-medium">Atendente virtual 24h</p>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Message Area */}
+      {/* Message Area com área de conversa limpa */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4"
-        style={{
-          backgroundImage: "radial-gradient(circle at 10% 20%, rgba(216, 241, 230, 0.46) 0.1%, rgba(233, 226, 226, 0.28) 90.1%)",
-          backgroundSize: "cover",
-        }}
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/80"
       >
         <AnimatePresence initial={false}>
           {mensagens.map((msg) => (
@@ -632,10 +630,10 @@ export default function ChatSimulador() {
               <div className={`max-w-[85%] ${msg.tipo === "opcoes" ? "w-full pl-10" : ""}`}>
                 {msg.tipo === "texto" && (
                   <div
-                    className={`p-3.5 rounded-2xl text-[14px] leading-relaxed shadow-sm whitespace-pre-wrap font-medium ${
+                    className={`p-4 rounded-2xl text-[15px] leading-relaxed shadow-sm whitespace-pre-wrap font-medium ${
                       msg.role === "bot"
-                        ? "bg-white text-slate-800 rounded-tl-sm border border-slate-100"
-                        : "bg-[#DCF8C6] text-slate-900 rounded-tr-sm"
+                        ? "bg-white text-slate-800 rounded-tl-sm border border-slate-200/90"
+                        : "bg-emerald-100 text-emerald-950 rounded-tr-sm border border-emerald-200/80 font-bold"
                     }`}
                   >
                     {msg.conteudo}
@@ -643,109 +641,131 @@ export default function ChatSimulador() {
                 )}
 
                 {msg.tipo === "digitando" && (
-                  <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm inline-flex items-center gap-1.5 border border-slate-100 mt-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#008ba3]/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#008ba3]/60 animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#008ba3] animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm inline-flex items-center gap-1.5 border border-slate-200 mt-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 )}
 
+                {/* Opções de resposta com Touch Target mínimo de 48px e sentence case */}
                 {msg.tipo === "opcoes" && msg.opcoes && (
-                  <div className="flex flex-wrap gap-2 mt-1.5">
+                  <div className="flex flex-col gap-2.5 mt-2">
                     {msg.opcoes.map((opt) => (
                       <button
                         key={opt.value}
                         onClick={() => handleRespostaUser(opt.value, `${opt.emoji} ${opt.label}`)}
-                        className="bg-white border border-slate-200 text-[#008ba3] hover:bg-slate-50 px-4 py-2.5 rounded-full text-xs font-extrabold shadow-sm active:scale-[0.97] transition-all flex items-center gap-2 cursor-pointer border-b-2 border-b-slate-300"
+                        className="min-h-[48px] bg-white hover:bg-slate-50 border border-slate-300 text-slate-900 active:scale-[0.98] transition-all px-4 py-3 rounded-xl text-sm font-bold shadow-sm flex items-center justify-between gap-3 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
                       >
-                        {opt.emoji && <span className="text-sm">{opt.emoji}</span>}
-                        <span>{opt.label}</span>
+                        <div className="flex items-center gap-2.5">
+                          {opt.emoji && <span className="text-base">{opt.emoji}</span>}
+                          <span className="leading-snug">{opt.label}</span>
+                        </div>
+                        <div className="w-6 h-6 rounded-full border border-slate-300 flex items-center justify-center flex-shrink-0 text-slate-400 group-hover:text-emerald-600">
+                          <span className="text-xs">➔</span>
+                        </div>
                       </button>
                     ))}
                   </div>
                 )}
 
+                {/* Form de contato com Rótulos ACIMA dos inputs (Regra PUI) e Touch Target 48px */}
                 {msg.tipo === "contato_form" && (
-                  <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-md mt-2 w-full max-w-sm flex flex-col gap-4">
-                    <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">📋 Seus Dados de Contato</h3>
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-lg mt-2 w-full max-w-sm flex flex-col gap-4 text-left">
+                    <h3 className="font-bold text-base text-slate-900 border-b border-slate-100 pb-2">
+                      Seus dados para receber a cotação
+                    </h3>
                     
                     <form onSubmit={handleContatoSubmit} className="space-y-4">
                       {erroContato && (
-                        <p className="text-[11px] font-bold text-red-650 bg-red-50 border border-red-100 p-2.5 rounded-xl leading-relaxed">
+                        <p className="text-xs font-bold text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl leading-relaxed">
                           ⚠️ {erroContato}
                         </p>
                       )}
 
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Nome Completo</label>
+                      {/* Campo 1: Nome Completo (Label acima do input) */}
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor="chat-nome" className="text-sm font-bold text-slate-800">
+                          Nome completo <span className="text-emerald-600">*</span>
+                        </label>
                         <input
+                          id="chat-nome"
                           type="text"
                           required
                           value={nomeContato}
                           onChange={(e) => setNomeContato(e.target.value)}
-                          placeholder="Digite seu nome..."
-                          className="w-full bg-slate-50 px-3.5 py-2.5 rounded-xl text-slate-800 text-xs font-semibold border border-slate-200 focus:outline-none focus:border-[#00B4C8]"
+                          placeholder="Digite seu nome"
+                          autoComplete="name"
+                          className="h-12 w-full bg-white px-4 rounded-xl text-slate-900 text-sm font-medium border border-slate-300 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
                         />
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">WhatsApp</label>
+                      {/* Campo 2: WhatsApp (Label acima do input) */}
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor="chat-tel" className="text-sm font-bold text-slate-800">
+                          WhatsApp com DDD <span className="text-emerald-600">*</span>
+                        </label>
                         <input
+                          id="chat-tel"
                           type="tel"
                           required
                           value={telefoneContato}
                           onChange={(e) => setTelefoneContato(mascaraTelefone(e.target.value))}
-                          placeholder="(00) 90000-0000"
-                          className="w-full bg-slate-50 px-3.5 py-2.5 rounded-xl text-slate-800 text-xs font-semibold border border-slate-200 focus:outline-none focus:border-[#00B4C8]"
+                          placeholder="(61) 99999-9999"
+                          autoComplete="tel"
+                          className="h-12 w-full bg-white px-4 rounded-xl text-slate-900 text-sm font-mono border border-slate-300 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
                         />
                       </div>
 
-                      <label className="flex items-start gap-2.5 select-none cursor-pointer pt-2">
+                      {/* Consentimento transparente */}
+                      <label className="flex items-start gap-2.5 cursor-pointer pt-1">
                         <input
                           type="checkbox"
                           checked={consentimentoContato}
                           onChange={(e) => setConsentimentoContato(e.target.checked)}
-                          className="w-4 h-4 rounded text-[#008ba3] border-slate-300 focus:ring-[#00B4C8] mt-0.5"
+                          className="w-4 h-4 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500 mt-0.5"
                         />
-                        <span className="text-[10px] text-slate-500 font-semibold leading-normal">
-                          Autorizo a equipe AmaVidas a entrar em contato via WhatsApp ou ligação telefônica para apresentar a cotação.
+                        <span className="text-xs text-slate-600 font-medium leading-snug">
+                          Concordo em receber a cotação sem compromisso via WhatsApp.
                         </span>
                       </label>
 
+                      {/* Botão de envio em Sentence Case, peso primário, target 52px */}
                       <button
                         type="submit"
                         disabled={submetendo}
-                        className="w-full bg-[#008ba3] hover:bg-[#00768b] disabled:opacity-50 text-white font-extrabold text-xs py-3.5 px-4 rounded-xl shadow-md transition-colors cursor-pointer text-center uppercase tracking-wider border-b-4 border-b-[#006072]"
+                        className="w-full h-13 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-sm px-4 rounded-xl shadow-md transition-colors cursor-pointer text-center flex items-center justify-center gap-2"
                       >
-                        {submetendo ? "Processando..." : "Ver meu plano recomendado ➔"}
+                        {submetendo ? "Processando cotação..." : "Ver meu plano recomendado ➔"}
                       </button>
                     </form>
                   </div>
                 )}
 
+                {/* Card de resultado de plano recomendado */}
                 {msg.tipo === "resultado" && msg.planoRecomendado && (
-                  <div className="bg-white border-2 border-[#2B3DA8] rounded-3xl overflow-hidden shadow-xl mt-2 w-full max-w-sm">
-                    <div className="bg-gradient-to-r from-[#2B3DA8] to-[#008ba3] p-5 text-white">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-blue-100 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" /> Plano Indicado
+                  <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xl mt-2 w-full max-w-sm text-left">
+                    <div className="bg-slate-900 p-5 text-white">
+                      <p className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Plano recomendado
                       </p>
                       <h3 className="font-extrabold text-2xl mt-1 tracking-tight">{msg.planoRecomendado.nome}</h3>
                     </div>
                     <div className="p-5">
                       <div className="mb-4">
-                        <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider block">Mensalidade</span>
+                        <span className="text-xs text-slate-500 font-medium block">Mensalidade acessível</span>
                         <div className="flex items-end gap-1 mt-0.5">
-                          <span className="text-3xl font-black text-slate-900 leading-none">
+                          <span className="text-3xl font-extrabold text-slate-900 leading-none">
                             R$ {msg.planoRecomendado.preco.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                           </span>
-                          <span className="text-slate-500 text-xs font-semibold mb-0.5">/mês</span>
+                          <span className="text-slate-500 text-xs font-medium mb-0.5">/mês</span>
                         </div>
                       </div>
 
-                      <div className="space-y-2.5 mb-6 pt-2 border-t border-slate-100">
+                      <div className="space-y-2.5 mb-6 pt-3 border-t border-slate-100">
                         {msg.planoRecomendado.beneficios.map((b, i) => (
-                          <div key={i} className="flex items-start gap-2.5 text-xs text-slate-650 font-medium leading-relaxed">
-                            <span className="text-emerald-500 font-bold shrink-0 mt-0.5">✔</span>
+                          <div key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                             <span>{b}</span>
                           </div>
                         ))}
@@ -757,12 +777,12 @@ export default function ChatSimulador() {
                         )}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-xs py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-center uppercase tracking-wider border-b-4 border-b-green-700"
+                        className="w-full h-13 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-center"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
                         </svg>
-                        Falar com Consultor no WhatsApp
+                        Falar com consultor no WhatsApp
                       </a>
                     </div>
                   </div>
