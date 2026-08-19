@@ -1086,13 +1086,6 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
               </a>
             </div>
           </motion.div>
-        )}ref={`tel:${(configs.telefone || configs.whatsapp || "5561985825621").replace(/\D/g, "")}`}
-                className="w-full flex items-center justify-center gap-2 border border-[var(--line-strong)] text-[var(--ink-soft)] hover:border-[var(--royal)] hover:text-[var(--royal)] text-[14px] font-bold py-3.5 rounded-xl transition-all min-h-[50px] bg-white hover:shadow-sm"
-              >
-                Falar por ligação telefônica
-              </a>
-            </div>
-          </motion.div>
         )}
 
         {/* ── Confirmado ── */}
