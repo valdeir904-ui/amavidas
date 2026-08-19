@@ -639,7 +639,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     <div className="w-full max-w-lg mx-auto">
       <AnimatePresence mode="wait">
 
-        {/* ── Introdução ── */}
+        {/* ── Introdução (Estilo nimbuu-ui-ux) ── */}
         {fase === "introducao" && (
           <motion.div
             key="introducao"
@@ -649,23 +649,23 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             exit="exit"
             className="text-center py-4"
           >
-            <div className="mb-6 relative w-20 h-20 mx-auto rounded-2xl bg-[var(--royal-soft)] flex items-center justify-center border border-[var(--royal)]/15 shadow-sm">
+            <div className="mb-6 relative w-20 h-20 mx-auto rounded-2xl bg-emerald-50 flex items-center justify-center border border-emerald-200 shadow-sm">
               <span className="text-4xl">🎯</span>
             </div>
-            <h2 className="text-2xl font-black mb-3 text-[var(--ink)] text-serif leading-tight">
+            <h2 className="text-2xl font-extrabold mb-3 text-slate-900 leading-tight">
               Descubra o plano ideal para sua família
             </h2>
-            <p className="text-sm text-[var(--ink-soft)] leading-relaxed mb-8 max-w-xs mx-auto">
-              Descubra em instantes a cobertura funerária sob medida para proteger quem você ama. São 7 perguntas rápidas. Sem compromisso.
+            <p className="text-base text-slate-600 leading-relaxed mb-8 max-w-xs mx-auto">
+              Cotação rápida e sob medida para proteger quem você ama em instantes. 7 perguntas rápidas, sem compromisso.
             </p>
             <button
               onClick={() => {
                 setFase("quiz");
                 setPasso(0);
               }}
-              className="w-full bg-[var(--royal)] hover:bg-[var(--royal)]/90 active:scale-[0.99] text-white text-[15px] font-bold py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-13 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-base font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
-              Começar agora
+              <span>Começar agora</span>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
@@ -673,7 +673,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
           </motion.div>
         )}
 
-        {/* ── Quiz (Perguntas 1 a 7) ── */}
+        {/* ── Quiz (Perguntas 1 a 7 com Estilo nimbuu-ui-ux) ── */}
         {fase === "quiz" && (
           <motion.div
             key={`quiz-${perguntaAtual?.campo}`}
@@ -681,25 +681,25 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             initial="hidden"
             animate="visible"
             exit="exit"
+            className="text-left"
           >
-            {/* Progresso */}
+            {/* Barra de Progresso */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[12px] font-bold uppercase tracking-wider text-[var(--royal)]">
+                <span className="text-xs font-bold text-emerald-700">
                   {perguntaAtual.campo === "paraQuem" || perguntaAtual.campo === "quantidadePessoas"
-                    ? "Fase 1: Perfil Familiar"
+                    ? "Fase 1: Perfil familiar"
                     : perguntaAtual.campo === "faixaEtaria" || perguntaAtual.campo === "cidade"
                     ? "Fase 2: Detalhes"
                     : "Fase 3: Preferências"}
                 </span>
-                <span className="text-sm font-semibold text-[var(--ink-soft)]">
+                <span className="text-xs font-semibold text-slate-500">
                   Pergunta {passo + 1} de {perguntasAtivas.length}
                 </span>
               </div>
-              <div className="relative w-full h-2 bg-[var(--bg-alt)] border border-[var(--line)] rounded-full overflow-hidden">
+              <div className="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                 <motion.div
-                  className="absolute top-0 left-0 h-full rounded-full"
-                  style={{ background: "linear-gradient(90deg, var(--royal) 0%, var(--magenta) 100%)" }}
+                  className="absolute top-0 left-0 h-full rounded-full bg-emerald-600"
                   animate={{ width: `${((passo + 1) / perguntasAtivas.length) * 100}%` }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
                 />
@@ -707,11 +707,11 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             </div>
 
             {/* Pergunta */}
-            <p className="text-xl font-bold mb-6 leading-snug text-[var(--ink)] text-serif">
+            <p className="text-xl font-extrabold mb-6 leading-snug text-slate-900">
               {obterTexto(perguntaAtual)}
             </p>
 
-            {/* Opções */}
+            {/* Opções (Touch target mínimo 48px, contraste garantido) */}
             {obterOpcoes(perguntaAtual) !== null ? (
               mostrarInputCidade ? (
                 <div className="space-y-4">
@@ -721,8 +721,9 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
                     value={cidadeOutros}
                     onChange={(e) => setCidadeOutros(e.target.value)}
                     placeholder="Digite o nome da sua cidade"
-                    className="w-full px-5 py-4 border border-[var(--line-strong)] rounded-2xl focus:border-[var(--royal)] focus:ring-4 focus:ring-[var(--royal-soft)]/50 focus:outline-none transition-all bg-white text-[var(--ink)] placeholder-[var(--ink-mute)]/50 font-medium text-[15px]"
+                    className="w-full h-12 px-4 border border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none transition-all bg-white text-slate-900 font-medium text-base"
                     onKeyDown={(e) => { if (e.key === "Enter" && cidadeOutros.trim()) confirmarCidadeOutros(); }}
+                    autoFocus
                   />
                   <div className="flex gap-3">
                     <button
@@ -730,21 +731,21 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
                         setMostrarInputCidade(false);
                         setOpcaoSelecionada(null);
                       }}
-                      className="px-4 py-3 rounded-xl border border-[var(--line-strong)] text-[14px] font-bold text-[var(--ink-soft)] bg-white hover:bg-[var(--bg-alt)] cursor-pointer"
+                      className="h-12 px-5 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 bg-white hover:bg-slate-100 cursor-pointer"
                     >
                       Voltar
                     </button>
                     <button
                       disabled={!cidadeOutros.trim()}
                       onClick={confirmarCidadeOutros}
-                      className="flex-1 bg-[var(--royal)] hover:bg-[var(--royal)]/90 active:scale-[0.99] text-white text-[15px] font-bold py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-base font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                     >
-                      Confirmar Cidade
+                      Confirmar cidade
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2.5 mb-6">
+                <div className="space-y-3 mb-6">
                   {obterOpcoes(perguntaAtual)!.map((opcao) => {
                     const selecionada = opcaoSelecionada === opcao.value;
                     return (
@@ -752,26 +753,26 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
                         key={opcao.value}
                         onClick={() => responder(opcao.value)}
                         disabled={!!opcaoSelecionada}
-                        className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl border text-left transition-all min-h-[62px] text-[15px] font-semibold cursor-pointer ${
+                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border text-left transition-all min-h-[52px] text-base font-semibold cursor-pointer ${
                           selecionada
-                            ? "border-[var(--magenta)] bg-[var(--magenta-soft)]/45 text-[var(--ink)] shadow-sm"
+                            ? "border-emerald-600 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-600/20 font-bold shadow-sm"
                             : opcaoSelecionada
-                            ? "border-[var(--line)] bg-[var(--bg-alt)]/50 text-[var(--ink-mute)] opacity-40 cursor-default"
-                            : "border-[var(--line)] bg-white text-[var(--ink)] hover:border-[var(--royal)]/60 hover:bg-[var(--royal-soft)]/20 active:scale-[0.99] shadow-sm hover:shadow"
+                            ? "border-slate-200 bg-slate-50 text-slate-400 opacity-40 cursor-default"
+                            : "border-slate-300 bg-white text-slate-900 hover:border-emerald-600/60 hover:bg-emerald-50/40 active:scale-[0.99] shadow-sm"
                         }`}
                       >
                         {opcao.emoji && (
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 transition-all ${
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 transition-all ${
                             selecionada 
-                              ? "bg-white shadow-sm border border-[var(--magenta)]/20" 
-                              : "bg-[var(--bg-alt)] border border-[var(--line)]"
+                              ? "bg-white shadow-sm border border-emerald-200" 
+                              : "bg-slate-100 border border-slate-200"
                           }`}>
                             {opcao.emoji}
                           </div>
                         )}
                         <span className="flex-1 leading-snug">{opcao.label}</span>
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-all ${
-                          selecionada ? "border-[var(--magenta)] bg-[var(--magenta)]" : "border-[var(--line-strong)] bg-white"
+                          selecionada ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-300 bg-white"
                         }`}>
                           {selecionada && (
                             <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -792,14 +793,14 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
                   value={nomePetInput}
                   onChange={(e) => setNomePetInput(e.target.value)}
                   placeholder="Digite o nome do seu pet (ex: Thor, Mel)..."
-                  className="w-full px-5 py-4 border border-[var(--line-strong)] rounded-2xl focus:border-[var(--royal)] focus:ring-4 focus:ring-[var(--royal-soft)]/50 focus:outline-none transition-all bg-white text-[var(--ink)] placeholder-[var(--ink-mute)]/50 font-medium text-[15px]"
+                  className="w-full h-12 px-4 border border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none transition-all bg-white text-slate-900 font-medium text-base"
                   onKeyDown={(e) => { if (e.key === "Enter" && nomePetInput.trim()) confirmarNomePet(); }}
                   autoFocus
                 />
                 <button
                   disabled={!nomePetInput.trim()}
                   onClick={confirmarNomePet}
-                  className="w-full bg-[var(--royal)] hover:bg-[var(--royal)]/90 active:scale-[0.99] text-white text-[15px] font-bold py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-base font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   <span>Continuar</span>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -816,10 +817,10 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="bg-[var(--royal-soft)]/75 border border-[var(--royal)]/10 rounded-2xl px-5 py-3.5 mb-5 flex items-center justify-center gap-2.5"
+                  className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-5 flex items-center justify-center gap-2.5"
                 >
                   <span className="text-lg">💡</span>
-                  <p className="text-[14px] text-[var(--royal-deep)] font-semibold text-center leading-normal">
+                  <p className="text-sm text-emerald-900 font-semibold text-center leading-normal">
                     {mensagemEmpatica}
                   </p>
                 </motion.div>
@@ -830,7 +831,15 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             <button
               onClick={voltar}
               disabled={!!opcaoSelecionada}
-              className="flex items-center gap-1.5 text-[14        {/* ── Contato (Etapa 8 — Captura de Lead com Regras PUI) ── */}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-emerald-700 transition-colors disabled:opacity-30 mt-2 cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+              <span>Voltar</span>
+            </button>
+          </motion.div>
+        )}
         {fase === "contato" && (
           <motion.div
             key="contato"
