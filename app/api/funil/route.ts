@@ -12,24 +12,35 @@ export async function GET(req: NextRequest) {
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
-  const now = new Date();
-  
-  let startDate = new Date(now);
-  startDate.setDate(startDate.getDate() - 29); // padrão: últimos 30 dias
-  startDate.setHours(0, 0, 0, 0);
+  const formatBRT = (date: Date) => {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+  };
 
-  let endDate = new Date(now);
-  endDate.setHours(23, 59, 59, 999);
+  const todayBRT = formatBRT(new Date());
 
-  if (fromParam) {
-    const [y, m, d] = fromParam.split("-").map(Number);
-    if (y && m && d) startDate = new Date(y, m - 1, d, 0, 0, 0, 0);
+  let fromStr = fromParam;
+  let toStr = toParam;
+
+  if (!fromStr && !toStr) {
+    const [y, m, d] = todayBRT.split('-').map(Number);
+    const endRef = new Date(y, m - 1, d);
+    const startRef = new Date(endRef);
+    startRef.setDate(startRef.getDate() - 29);
+    fromStr = formatBRT(startRef);
+    toStr = todayBRT;
+  } else if (!fromStr) {
+    fromStr = toStr;
+  } else if (!toStr) {
+    toStr = fromStr;
   }
 
-  if (toParam) {
-    const [y, m, d] = toParam.split("-").map(Number);
-    if (y && m && d) endDate = new Date(y, m - 1, d, 23, 59, 59, 999);
-  }
+  let startDate = new Date(`${fromStr}T00:00:00.000-03:00`);
+  let endDate = new Date(`${toStr}T23:59:59.999-03:00`);
 
   if (startDate > endDate) {
     const temp = startDate;

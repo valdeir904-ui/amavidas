@@ -23,23 +23,36 @@ export async function GET(req: NextRequest) {
   const toParam = searchParams.get("to");
 
   const now = new Date();
-  
-  let startDate = new Date(now);
-  startDate.setDate(startDate.getDate() - 6);
-  startDate.setHours(0, 0, 0, 0);
 
-  let endDate = new Date(now);
-  endDate.setHours(23, 59, 59, 999);
+  const formatBRT = (date: Date) => {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+  };
 
-  if (fromParam) {
-    const [y, m, d] = fromParam.split("-").map(Number);
-    if (y && m && d) startDate = new Date(y, m - 1, d, 0, 0, 0, 0);
+  const todayBRT = formatBRT(now);
+
+  let fromStr = fromParam;
+  let toStr = toParam;
+
+  if (!fromStr && !toStr) {
+    const [y, m, d] = todayBRT.split('-').map(Number);
+    const endRef = new Date(y, m - 1, d);
+    const startRef = new Date(endRef);
+    startRef.setDate(startRef.getDate() - 6);
+    fromStr = formatBRT(startRef);
+    toStr = todayBRT;
+  } else if (!fromStr) {
+    fromStr = toStr;
+  } else if (!toStr) {
+    toStr = fromStr;
   }
 
-  if (toParam) {
-    const [y, m, d] = toParam.split("-").map(Number);
-    if (y && m && d) endDate = new Date(y, m - 1, d, 23, 59, 59, 999);
-  }
+  let startDate = new Date(`${fromStr}T00:00:00.000-03:00`);
+  let endDate = new Date(`${toStr}T23:59:59.999-03:00`);
 
   if (startDate > endDate) {
     const temp = startDate;
@@ -47,9 +60,12 @@ export async function GET(req: NextRequest) {
     endDate = temp;
   }
 
-  const startOfWeek = new Date(endDate);
-  startOfWeek.setDate(startOfWeek.getDate() - 6);
-  startOfWeek.setHours(0, 0, 0, 0);
+  const [ey, em, ed] = toStr!.split('-').map(Number);
+  const endRef = new Date(ey, em - 1, ed);
+  const startOfWeekRef = new Date(endRef);
+  startOfWeekRef.setDate(startOfWeekRef.getDate() - 6);
+  const startOfWeekStr = formatBRT(startOfWeekRef);
+  const startOfWeek = new Date(`${startOfWeekStr}T00:00:00.000-03:00`);
 
   const [leads, eventos, planos, usuarios, leadsAtribuidos] = await Promise.all([
     prisma.simulacao.findMany({
@@ -116,17 +132,12 @@ export async function GET(req: NextRequest) {
   
   const leadsPorDia: Record<string, number> = {};
   for (let i = 0; i < diffDays; i++) {
-    const d = new Date(startDate);
-    d.setDate(d.getDate() + i);
-    
-    const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
-    const dia = String(d.getUTCDate()).padStart(2, '0');
-    const key = `${d.getUTCFullYear()}-${mes}-${dia}`;
-    
+    const d = new Date(startDate.getTime() + i * 86400000);
+    const key = formatBRT(d);
     leadsPorDia[key] = 0;
   }
   for (const l of leads) {
-    const key = l.criadoEm.toISOString().slice(0, 10);
+    const key = formatBRT(l.criadoEm);
     if (key in leadsPorDia) leadsPorDia[key]++;
   }
   const leadsPorDiaArr = Object.entries(leadsPorDia).map(([data, total]) => ({
@@ -144,7 +155,7 @@ export async function GET(req: NextRequest) {
     whatsappPorDia[key] = 0;
   }
   for (const e of eventos) {
-    const key = e.criadoEm.toISOString().slice(0, 10);
+    const key = formatBRT(e.criadoEm);
     if (!(key in visitasPorDia)) continue;
     if (e.tipo === "visita") visitasPorDia[key]++;
     if (e.tipo === "simulacao_iniciada") simsPorDia[key]++;

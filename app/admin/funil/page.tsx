@@ -93,12 +93,19 @@ export default function FunilPage() {
 
   // Definir data inicial padrão (últimos 30 dias)
   useEffect(() => {
+    const getLocalDateStr = (d: Date) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
     const agora = new Date();
     const trintaDiasAtras = new Date(agora);
     trintaDiasAtras.setDate(agora.getDate() - 29);
 
-    setDataInicio(trintaDiasAtras.toISOString().slice(0, 10));
-    setDataFim(agora.toISOString().slice(0, 10));
+    setDataInicio(getLocalDateStr(trintaDiasAtras));
+    setDataFim(getLocalDateStr(agora));
   }, []);
 
   const fetchData = useCallback(async () => {

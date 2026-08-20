@@ -424,24 +424,31 @@ export default function DashboardPage() {
       let to = "";
       const now = new Date();
       
+      const getLocalDateStr = (d: Date) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
       if (periodo === "hoje") {
-        from = now.toISOString().slice(0, 10);
+        from = getLocalDateStr(now);
         to = from;
       } else if (periodo === "ontem") {
         const ontem = new Date(now);
         ontem.setDate(now.getDate() - 1);
-        from = ontem.toISOString().slice(0, 10);
+        from = getLocalDateStr(ontem);
         to = from;
       } else if (periodo === "7dias") {
         const d = new Date(now);
         d.setDate(now.getDate() - 6);
-        from = d.toISOString().slice(0, 10);
-        to = now.toISOString().slice(0, 10);
+        from = getLocalDateStr(d);
+        to = getLocalDateStr(now);
       } else if (periodo === "30dias") {
         const d = new Date(now);
         d.setDate(now.getDate() - 29);
-        from = d.toISOString().slice(0, 10);
-        to = now.toISOString().slice(0, 10);
+        from = getLocalDateStr(d);
+        to = getLocalDateStr(now);
       } else if (periodo === "personalizado" && dataInicio && dataFim) {
         from = dataInicio;
         to = dataFim;
