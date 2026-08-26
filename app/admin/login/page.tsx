@@ -316,8 +316,9 @@ function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
-                  tabIndex={-1}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/90 p-1 rounded-lg transition-colors cursor-pointer"
+                  title={showPass ? "Ocultar senha" : "Mostrar senha"}
+                  aria-label={showPass ? "Ocultar senha" : "Mostrar senha"}
                 >
                   {showPass ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">

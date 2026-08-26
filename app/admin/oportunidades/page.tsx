@@ -122,7 +122,7 @@ const COLUNAS = [
 ] as const;
 
 export default function OportunidadesPage() {
-  const [currentUser, setCurrentUser] = useState<{ id: string; email: string; perfil: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; email: string; perfil: string; nome?: string } | null>(null);
   const [atendentes, setAtendentes] = useState<{ id: string; nome: string }[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -247,6 +247,15 @@ export default function OportunidadesPage() {
     resumoNegociacao: "",
     objecaoPrincipal: "",
     proximoContatoEm: "",
+  });
+
+  const [followUpModal, setFollowUpModal] = useState<{ id: string, responsavelId?: string | null } | null>(null);
+  const [followUpDados, setFollowUpDados] = useState({
+    teveContato: "sim",
+    meioContato: "whatsapp",
+    retornoObtido: "",
+    proximoContatoEm: "",
+    followUpObservacao: "",
   });
 
   // Estados para Timeline de Notas
@@ -494,6 +503,24 @@ export default function OportunidadesPage() {
         proximoContatoEm: targetLead?.proximoContatoEm ? new Date(targetLead.proximoContatoEm).toISOString().slice(0, 16) : "",
       });
       setNegociacaoModal({ id, responsavelId });
+    } else if (finalStatus === "follow_up") {
+      const defaultDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      defaultDate.setHours(10, 0, 0, 0);
+      const toLocalISO = (d: Date) => {
+        const tzOffset = d.getTimezoneOffset() * 60000;
+        return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+      };
+
+      setFollowUpDados({
+        teveContato: "sim",
+        meioContato: "whatsapp",
+        retornoObtido: "",
+        proximoContatoEm: targetLead?.proximoContatoEm
+          ? toLocalISO(new Date(targetLead.proximoContatoEm))
+          : toLocalISO(defaultDate),
+        followUpObservacao: "",
+      });
+      setFollowUpModal({ id, responsavelId });
     } else {
       updateLeadStatus(id, finalStatus, responsavelId);
     }
@@ -506,7 +533,8 @@ export default function OportunidadesPage() {
     motivoDescarte?: string,
     descarteObservacao?: string,
     extraGanhoDados?: any,
-    extraNegociacaoDados?: any
+    extraNegociacaoDados?: any,
+    extraFollowUpDados?: any
   ) => {
     // Atualização otimista no estado local
     setLeads((prev) => prev.map((l) => {
@@ -526,7 +554,11 @@ export default function OportunidadesPage() {
           temperaturaVenda: extraNegociacaoDados?.temperaturaVenda !== undefined ? extraNegociacaoDados.temperaturaVenda : l.temperaturaVenda,
           resumoNegociacao: extraNegociacaoDados?.resumoNegociacao !== undefined ? extraNegociacaoDados.resumoNegociacao : l.resumoNegociacao,
           objecaoPrincipal: extraNegociacaoDados?.objecaoPrincipal !== undefined ? extraNegociacaoDados.objecaoPrincipal : l.objecaoPrincipal,
-          proximoContatoEm: extraNegociacaoDados?.proximoContatoEm !== undefined ? extraNegociacaoDados.proximoContatoEm : l.proximoContatoEm,
+          proximoContatoEm: extraFollowUpDados?.proximoContatoEm !== undefined 
+            ? extraFollowUpDados.proximoContatoEm 
+            : extraNegociacaoDados?.proximoContatoEm !== undefined 
+            ? extraNegociacaoDados.proximoContatoEm 
+            : l.proximoContatoEm,
         };
       }
       return l;
@@ -542,6 +574,9 @@ export default function OportunidadesPage() {
       }
       if (extraNegociacaoDados) {
         Object.assign(payload, extraNegociacaoDados);
+      }
+      if (extraFollowUpDados) {
+        Object.assign(payload, extraFollowUpDados);
       }
 
       const r = await fetch("/api/leads", {
@@ -622,6 +657,10 @@ export default function OportunidadesPage() {
             desc = `Lead atribuído a ${h.usuario?.nome || "outro atendente"}.`;
           } else if (h.acao === "primeiro_contato") {
             desc = `Primeiro contato comercial realizado.`;
+          } else if (h.acao === "agendou_follow_up") {
+            desc = `🔔 ${h.observacao || "Follow-up agendado."}`;
+          } else if (h.acao === "iniciou_negociacao") {
+            desc = `💬 ${h.observacao || "Negociação iniciada."}`;
           } else if (h.acao === "contato_ligacao") {
             desc = `Tentativa de contato via Ligação.`;
           } else if (h.acao === "contato_whatsapp") {
@@ -876,6 +915,21 @@ export default function OportunidadesPage() {
 
   const leadsParados7DiasCount = leadsParados7Dias.length;
 
+  const meusFollowUpsHoje = leads.filter((l) => {
+    if (!l.proximoContatoEm) return false;
+    if (l.responsavelId !== currentUser?.id) return false;
+    const rawStatus = getStatusSafe(l);
+    if (rawStatus === "ganho" || rawStatus === "perdido") return false;
+
+    const dt = new Date(l.proximoContatoEm);
+    const hojeFim = new Date();
+    hojeFim.setHours(23, 59, 59, 999);
+
+    return dt <= hojeFim;
+  });
+
+  const meusFollowUpsHojeCount = meusFollowUpsHoje.length;
+
   const paradosPorAtendente = (() => {
     const map: Record<string, number> = {};
     for (const lead of leadsParados7Dias) {
@@ -952,6 +1006,41 @@ export default function OportunidadesPage() {
           </div>
         </div>
       </div>
+
+      {/* Alerta Notificação de Follow-Up Agendado para Hoje */}
+      {meusFollowUpsHojeCount > 0 && (
+        <div className="mb-7 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white p-4.5 rounded-2xl shadow-xl border border-amber-600/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fadeIn">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+              🔔
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-black text-sm uppercase tracking-wider text-white">
+                  Notificação de Follow-Up
+                </h3>
+                <span className="bg-white text-amber-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shadow-sm">
+                  {meusFollowUpsHojeCount} {meusFollowUpsHojeCount === 1 ? "Retorno Hoje" : "Retornos Hoje"}
+                </span>
+              </div>
+              <p className="text-xs text-white/95 font-semibold">
+                Olá, <span className="font-black text-white">{currentUser?.nome ? currentUser.nome.split(" ")[0] : "Atendente"}</span>! Você tem <strong className="underline underline-offset-2 font-black">{meusFollowUpsHojeCount} follow-up(s)</strong> agendado(s) para hoje!
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              limparFiltros();
+              setBusca("");
+              setAbaPrincipal("ativo");
+              setFiltro("follow_up");
+            }}
+            className="bg-white hover:bg-amber-50 text-amber-900 font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer border border-amber-200 flex items-center gap-1.5 active:scale-95"
+          >
+            <span>🔍 Ver Meus Follow-ups</span>
+          </button>
+        </div>
+      )}
 
       {/* Alerta de Leads Parados > 7 Dias */}
       {leadsParados7DiasCount > 0 && (
@@ -1385,6 +1474,16 @@ export default function OportunidadesPage() {
                           )}
                           {lead.intencao === "entender_melhor" && (
                             <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">💡 Quer entender</span>
+                          )}
+                          {lead.proximoContatoEm && (
+                            <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border flex items-center gap-1 ${
+                              new Date(lead.proximoContatoEm) < now
+                                ? "bg-red-100 text-red-800 border-red-200 animate-pulse"
+                                : "bg-amber-100 text-amber-900 border-amber-200"
+                            }`}>
+                              <span>{new Date(lead.proximoContatoEm) < now ? "🚨 Retorno Atrasado:" : "🔔 Retorno:"}</span>
+                              <span>{new Date(lead.proximoContatoEm).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} {new Date(lead.proximoContatoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+                            </span>
                           )}
                         </div>
 
@@ -2841,6 +2940,309 @@ export default function OportunidadesPage() {
                 >
                   Salvar Negociação
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Agendamento de Follow-Up */}
+      {followUpModal && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fadeIn overflow-y-auto"
+          onClick={() => setFollowUpModal(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden transform scale-100 transition-all my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto mb-4 text-amber-600 text-2xl">
+                🔔
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 mb-1 text-center tracking-tight">Agendar Follow-Up</h3>
+              <p className="text-xs text-slate-500 mb-5 text-center">
+                Verificação de contato e agendamento de retorno comercial.
+              </p>
+              
+              <div className="space-y-4">
+                {/* 1. Conseguiu contato com o lead? */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">
+                    1. Conseguiu contato com o lead? *
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFollowUpDados({ ...followUpDados, teveContato: "sim" })}
+                      className={`py-2.5 px-3 rounded-xl border text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        followUpDados.teveContato === "sim"
+                          ? "bg-emerald-600 text-white border-emerald-700 shadow-sm"
+                          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span>✅ Sim, teve contato</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFollowUpDados({ ...followUpDados, teveContato: "nao" })}
+                      className={`py-2.5 px-3 rounded-xl border text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        followUpDados.teveContato === "nao"
+                          ? "bg-red-600 text-white border-red-700 shadow-sm"
+                          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span>❌ Não teve contato</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* SE TEVE CONTATO = SIM */}
+                {followUpDados.teveContato === "sim" && (
+                  <>
+                    {/* 2. Meio de contato */}
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">
+                        2. Por qual meio foi feito o contato? *
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setFollowUpDados({ ...followUpDados, meioContato: "whatsapp" })}
+                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                            followUpDados.meioContato === "whatsapp"
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-300 ring-2 ring-emerald-500/20"
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          <span>💬 WhatsApp</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFollowUpDados({ ...followUpDados, meioContato: "ligacao" })}
+                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                            followUpDados.meioContato === "ligacao"
+                              ? "bg-blue-50 text-blue-800 border-blue-300 ring-2 ring-blue-500/20"
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          <span>📞 Ligação</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 3. Qual o retorno obteve com o lead? */}
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                          3. Qual o retorno obteve com o lead? *
+                        </label>
+                        <span className={`text-[10px] font-bold ${followUpDados.retornoObtido.trim().length < 5 ? "text-red-500" : "text-emerald-600"}`}>
+                          {followUpDados.retornoObtido.trim().length < 5 ? `Mín. 5 letras` : "✓ OK"}
+                        </span>
+                      </div>
+                      <textarea
+                        value={followUpDados.retornoObtido}
+                        onChange={(e) => setFollowUpDados({ ...followUpDados, retornoObtido: e.target.value })}
+                        placeholder="Ex: Cliente analisou a proposta, gostou da cobertura do plano família mas pediu para retornar na próxima semana..."
+                        rows={3}
+                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 placeholder:text-slate-400 shadow-sm resize-none"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* SE NÃO TEVE CONTATO = NAO */}
+                {followUpDados.teveContato === "nao" && (
+                  <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-2.5 animate-fadeIn">
+                    <div className="flex items-center gap-2 text-amber-900 font-extrabold text-xs">
+                      <span>⚠️</span>
+                      <span>Orientação de Processo Comercial</span>
+                    </div>
+                    <p className="text-xs text-amber-900 leading-relaxed font-medium">
+                      Como não houve contato, o mais indicado é <strong>manter o lead em 1º Contato</strong> e realizar a tentativa novamente mais tarde.
+                    </p>
+                    <p className="text-xs font-black text-amber-950 pt-1 border-t border-amber-200/80">
+                      🗓️ Deseja agendar um horário para uma nova tentativa?
+                    </p>
+                  </div>
+                )}
+
+                {/* Data e Hora do Agendamento (Obrigatório) */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
+                    {followUpDados.teveContato === "sim" ? "Data e Hora do Retorno (Follow-Up) *" : "Data e Hora da Nova Tentativa *"}
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={followUpDados.proximoContatoEm}
+                    onChange={(e) => setFollowUpDados({ ...followUpDados, proximoContatoEm: e.target.value })}
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 shadow-sm cursor-pointer font-medium"
+                  />
+                </div>
+
+                {/* Atalhos Rápidos */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">
+                    ⚡ Atalhos Rápidos de Agendamento
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(10, 0, 0, 0);
+                        const tzOffset = d.getTimezoneOffset() * 60000;
+                        setFollowUpDados(prev => ({ ...prev, proximoContatoEm: new Date(d.getTime() - tzOffset).toISOString().slice(0, 16) }));
+                      }}
+                      className="py-2 px-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 text-slate-700 hover:text-amber-900 rounded-xl text-[11px] font-bold transition-all text-center cursor-pointer shadow-2xs"
+                    >
+                      📅 Amanhã 10:00
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(10, 0, 0, 0);
+                        const tzOffset = d.getTimezoneOffset() * 60000;
+                        setFollowUpDados(prev => ({ ...prev, proximoContatoEm: new Date(d.getTime() - tzOffset).toISOString().slice(0, 16) }));
+                      }}
+                      className="py-2 px-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 text-slate-700 hover:text-amber-900 rounded-xl text-[11px] font-bold transition-all text-center cursor-pointer shadow-2xs"
+                    >
+                      📆 +2 Dias (10:00)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(10, 0, 0, 0);
+                        const tzOffset = d.getTimezoneOffset() * 60000;
+                        setFollowUpDados(prev => ({ ...prev, proximoContatoEm: new Date(d.getTime() - tzOffset).toISOString().slice(0, 16) }));
+                      }}
+                      className="py-2 px-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 text-slate-700 hover:text-amber-900 rounded-xl text-[11px] font-bold transition-all text-center cursor-pointer shadow-2xs"
+                    >
+                      📆 +3 Dias (10:00)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date();
+                        d.setDate(d.getDate() + ((7 - d.getDay() + 1) % 7 || 7));
+                        d.setHours(9, 0, 0, 0);
+                        const tzOffset = d.getTimezoneOffset() * 60000;
+                        setFollowUpDados(prev => ({ ...prev, proximoContatoEm: new Date(d.getTime() - tzOffset).toISOString().slice(0, 16) }));
+                      }}
+                      className="py-2 px-2.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 text-slate-700 hover:text-amber-900 rounded-xl text-[11px] font-bold transition-all text-center cursor-pointer shadow-2xs"
+                    >
+                      🗓️ Próx. Segunda 09:00
+                    </button>
+                  </div>
+                </div>
+
+                {/* Observações Adicionais */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
+                    Observações Internas (Opcional)
+                  </label>
+                  <textarea
+                    value={followUpDados.followUpObservacao}
+                    onChange={(e) => setFollowUpDados({ ...followUpDados, followUpObservacao: e.target.value })}
+                    placeholder={followUpDados.teveContato === "sim" ? "Anotações adicionais do atendimento..." : "Ex: WhatsApp não entregue / Ligação não atendida..."}
+                    rows={2}
+                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:border-slate-350 outline-none bg-white text-slate-900 placeholder:text-slate-400 shadow-sm resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 w-full mt-6">
+                <button
+                  type="button"
+                  onClick={() => setFollowUpModal(null)}
+                  className="px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 flex-1 transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+
+                {followUpDados.teveContato === "sim" ? (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!followUpDados.proximoContatoEm) {
+                        alert("É obrigatório informar a data e horário do próximo contato.");
+                        return;
+                      }
+                      if (followUpDados.retornoObtido.trim().length < 5) {
+                        alert("Por favor, descreva qual retorno obteve com o lead (mínimo 5 caracteres).");
+                        return;
+                      }
+                      await updateLeadStatus(
+                        followUpModal.id,
+                        "follow_up",
+                        followUpModal.responsavelId,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          proximoContatoEm: followUpDados.proximoContatoEm,
+                          meioContato: followUpDados.meioContato,
+                          retornoObtido: followUpDados.retornoObtido.trim(),
+                          followUpObservacao: followUpDados.followUpObservacao.trim(),
+                          registrarContato: followUpDados.meioContato,
+                        }
+                      );
+                      if (selectedLead?.id === followUpModal.id) {
+                        setSelectedLead((prev) => prev ? { 
+                          ...prev, 
+                          status: "follow_up", 
+                          contatado: true,
+                          proximoContatoEm: followUpDados.proximoContatoEm,
+                        } : null);
+                      }
+                      setFollowUpModal(null);
+                    }}
+                    disabled={!followUpDados.proximoContatoEm || followUpDados.retornoObtido.trim().length < 5}
+                    className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors shadow-sm cursor-pointer"
+                  >
+                    Avançar para Follow Up
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!followUpDados.proximoContatoEm) {
+                        alert("É obrigatório informar a data e horário da nova tentativa.");
+                        return;
+                      }
+                      const targetLead = leads.find((l) => l.id === followUpModal.id);
+                      const currentStatus = targetLead ? getStatusSafe(targetLead) : "contatado";
+
+                      await updateLeadStatus(
+                        followUpModal.id,
+                        currentStatus, // MANTÉM NA COLUNA ATUAL (NÃO AVANÇA PARA FOLLOW UP)
+                        followUpModal.responsavelId,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          proximoContatoEm: followUpDados.proximoContatoEm,
+                          followUpObservacao: followUpDados.followUpObservacao.trim(),
+                          tentativaSemSucesso: true,
+                        }
+                      );
+                      if (selectedLead?.id === followUpModal.id) {
+                        setSelectedLead((prev) => prev ? { 
+                          ...prev, 
+                          proximoContatoEm: followUpDados.proximoContatoEm,
+                        } : null);
+                      }
+                      alert("Nova tentativa agendada! O lead foi mantido na coluna de 1º Contato.");
+                      setFollowUpModal(null);
+                    }}
+                    disabled={!followUpDados.proximoContatoEm}
+                    className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors shadow-sm cursor-pointer"
+                  >
+                    Agendar Tentativa (Manter 1º Contato)
+                  </button>
+                )}
               </div>
             </div>
           </div>

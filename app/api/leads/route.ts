@@ -146,6 +146,14 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
+  // Trava Backend: Lead movido para follow_up exige data do próximo contato
+  if (status === "follow_up" && !proximoContatoEm && !currentLead.proximoContatoEm) {
+    return Response.json(
+      { error: "É obrigatório informar a data e hora do próximo contato ao mover para Follow Up." },
+      { status: 400 }
+    );
+  }
+
   const updateData: any = {};
   if (contatado !== undefined) {
     updateData.contatado = contatado;
@@ -161,7 +169,7 @@ export async function PATCH(req: NextRequest) {
       updateData.contatado = false;
     }
 
-    if (status !== "negociando") {
+    if (status !== "negociando" && status !== "follow_up") {
       historyLogs.push({
         usuarioId: session.userId,
         acao: "mudou_status",
@@ -191,6 +199,56 @@ export async function PATCH(req: NextRequest) {
       statusAntes: currentLead.status,
       statusDepois: "negociando",
       observacao: `Negociação iniciada. Temperatura: ${tempLabel || "Não informada"}.${resumoNegociacao ? ` Diagnóstico: "${resumoNegociacao.trim()}"` : ""}${objecaoPrincipal ? ` | Objeção: ${objecaoPrincipal}` : ""}`
+    });
+  }
+
+  if (status === "follow_up" && (proximoContatoEm || body.followUpObservacao || body.retornoObtido)) {
+    const dtSource = proximoContatoEm || currentLead.proximoContatoEm;
+    const dataObj = dtSource ? new Date(dtSource) : null;
+    const dataFormatada = dataObj && !isNaN(dataObj.getTime())
+      ? dataObj.toLocaleString("pt-BR", {
+          timeZone: "America/Sao_Paulo",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "Data não especificada";
+    const meioTexto = body.meioContato === "whatsapp" ? "WhatsApp" : body.meioContato === "ligacao" ? "Ligação" : null;
+    const obsTotal = [
+      `Follow-up agendado para ${dataFormatada}`,
+      meioTexto ? `Via: ${meioTexto}` : null,
+      body.retornoObtido ? `Retorno: "${body.retornoObtido.trim()}"` : null,
+      body.followUpObservacao ? `Obs: "${body.followUpObservacao.trim()}"` : null,
+    ].filter(Boolean).join(" | ");
+
+    historyLogs.push({
+      usuarioId: session.userId,
+      acao: "agendou_follow_up",
+      statusAntes: currentLead.status,
+      statusDepois: "follow_up",
+      observacao: obsTotal
+    });
+  }
+
+  if (body.tentativaSemSucesso) {
+    const dtSource = proximoContatoEm || currentLead.proximoContatoEm;
+    const dataObj = dtSource ? new Date(dtSource) : null;
+    const dataFormatada = dataObj && !isNaN(dataObj.getTime())
+      ? dataObj.toLocaleString("pt-BR", {
+          timeZone: "America/Sao_Paulo",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
+    historyLogs.push({
+      usuarioId: session.userId,
+      acao: "tentativa_sem_sucesso",
+      observacao: `Tentativa de 1º contato sem sucesso.${dataFormatada ? ` Nova tentativa agendada para ${dataFormatada}.` : ""}${body.followUpObservacao ? ` Obs: "${body.followUpObservacao.trim()}"` : ""}`
     });
   }
 
