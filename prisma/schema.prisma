@@ -287,3 +287,15 @@ model Contrato {
   @@map("contratos")
 }
 
+model InvestimentoMarketing {
+  id                   String   @id @default(cuid())
+  mesAno               String   @unique // Formato "YYYY-MM" (ex: "2026-09")
+  investimentoLeads    Float    @default(0) // R$ em campanha de geração de leads
+  investimentoBranding Float    @default(0) // R$ em fortalecimento de marca / Instagram
+  observacoes          String?  @db.Text
+  criadoEm             DateTime @default(now())
+  atualizadoEm         DateTime @updatedAt
+
+  @@map("investimentos_marketing")
+}
+

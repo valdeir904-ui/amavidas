@@ -7,8 +7,11 @@ import {
 import { 
   Users, Calendar, CheckCircle2, Award, RefreshCw, TrendingUp,
   DollarSign, Percent, Briefcase, MousePointerClick, BarChart3,
-  Clock, ChevronDown, ChevronUp
+  Clock, ChevronDown, ChevronUp, FileText, Megaphone, AlertTriangle,
+  CalendarCheck, Edit3, Printer, Target, PieChart as PieChartIcon
 } from "lucide-react";
+import ModalInvestimentoAgencia from "@/components/admin/ModalInvestimentoAgencia";
+import RelatorioAgenciaModal from "@/components/admin/RelatorioAgenciaModal";
 
 const PLAN_COLORS: Record<string, string> = {
   essencial: "#00B4C8", // Teal
@@ -84,7 +87,24 @@ interface DashData {
     ticketMedio: number;
     previsaoReceita: number;
     taxaConversaoGeral: number;
+    slaMedioMinutos?: number;
+    slaFormatado?: string;
+    leadsParados48h?: number;
+    leadsParados7dias?: number;
+    agendamentosCount?: number;
   };
+  agencia?: {
+    mesAno: string;
+    investimentoLeads: number;
+    investimentoBranding: number;
+    investimentoTotal: number;
+    observacoes: string;
+    cplLeads: number;
+    cplTotal: number;
+    custoPorVenda: number;
+    investimentosHistorico?: any[];
+  };
+  motivosPerda?: { motivo: string; total: number; percentual: number }[];
   planoCounts: Record<string, number>;
   leadsPorDia: { data: string; total: number }[];
   faixaEtaria: { faixa: string; total: number }[];
@@ -390,6 +410,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  const [isAgenciaModalOpen, setIsAgenciaModalOpen] = useState(false);
+  const [isRelatorioModalOpen, setIsRelatorioModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchMe = async () => {
@@ -407,6 +429,7 @@ export default function DashboardPage() {
   const [periodo, setPeriodo] = useState("7dias");
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
+  const [mesSelecionado, setMesSelecionado] = useState(new Date().toISOString().slice(0, 7));
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -449,6 +472,22 @@ export default function DashboardPage() {
         d.setDate(now.getDate() - 29);
         from = getLocalDateStr(d);
         to = getLocalDateStr(now);
+      } else if (periodo === "mes_atual") {
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        from = getLocalDateStr(firstDay);
+        to = getLocalDateStr(lastDay);
+      } else if (periodo === "mes_passado") {
+        const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+        from = getLocalDateStr(firstDay);
+        to = getLocalDateStr(lastDay);
+      } else if (periodo === "selecionar_mes" && mesSelecionado) {
+        const [y, m] = mesSelecionado.split("-").map(Number);
+        const firstDay = new Date(y, m - 1, 1);
+        const lastDay = new Date(y, m, 0);
+        from = getLocalDateStr(firstDay);
+        to = getLocalDateStr(lastDay);
       } else if (periodo === "personalizado" && dataInicio && dataFim) {
         from = dataInicio;
         to = dataFim;
@@ -540,7 +579,25 @@ export default function DashboardPage() {
           <p className="text-zinc-500 text-sm mt-2 font-medium">Métricas financeiras e de conversão em tempo real.</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start sm:self-auto">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start sm:self-auto flex-wrap">
+          {(currentUser?.perfil === "AGENCIA" || currentUser?.perfil === "MASTER") && (
+            <button
+              onClick={() => setIsAgenciaModalOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white transition-all shadow-md text-xs font-bold cursor-pointer"
+            >
+              <Megaphone className="w-4 h-4" />
+              Lançar Anúncios (Agência)
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsRelatorioModalOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-zinc-300 bg-white hover:bg-zinc-50 text-zinc-800 transition-all shadow-sm text-xs font-bold cursor-pointer"
+          >
+            <Printer className="w-4 h-4 text-teal-600" />
+            Relatório da Agência (PDF)
+          </button>
+
           <select 
             value={periodo} 
             onChange={(e) => setPeriodo(e.target.value)}
@@ -550,8 +607,20 @@ export default function DashboardPage() {
             <option value="ontem">Ontem</option>
             <option value="7dias">Últimos 7 dias</option>
             <option value="30dias">Últimos 30 dias</option>
+            <option value="mes_atual">Mês Atual</option>
+            <option value="mes_passado">Mês Passado</option>
+            <option value="selecionar_mes">Selecionar Mês...</option>
             <option value="personalizado">Personalizado</option>
           </select>
+
+          {periodo === "selecionar_mes" && (
+            <input 
+              type="month" 
+              value={mesSelecionado} 
+              onChange={(e) => setMesSelecionado(e.target.value)}
+              className="px-3 py-2.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/5"
+            />
+          )}
 
           {periodo === "personalizado" && (
             <div className="flex items-center gap-2">
@@ -583,6 +652,215 @@ export default function DashboardPage() {
 
       <div className="space-y-12 max-w-[1600px] mx-auto">
         
+        {/* SEÇÃO 1: GERENCIADOR DE ANÚNCIOS & TRÁFEGO PAGO (MENSAL DA AGÊNCIA) */}
+        <section className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-black text-white p-8 rounded-3xl shadow-xl border border-zinc-800 relative overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+              <div className="flex items-center gap-2.5 mb-2 flex-wrap">
+                <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                  Gerenciador de Anúncios da Agência
+                </span>
+                <span className="px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30 capitalize">
+                  Ref: {
+                    (() => {
+                      const m = data.agencia?.mesAno || "2026-09";
+                      const [y, mm] = m.split("-");
+                      const mName = new Date(parseInt(y), parseInt(mm) - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+                      if (periodo === "7dias") return `Últimos 7 dias (${mName})`;
+                      if (periodo === "30dias") return `Últimos 30 dias (${mName})`;
+                      if (periodo === "hoje") return `Hoje (${mName})`;
+                      if (periodo === "ontem") return `Ontem (${mName})`;
+                      if (periodo === "mes_atual") return `Mês Atual (${mName})`;
+                      if (periodo === "mes_passado") return `Mês Passado (${mName})`;
+                      if (periodo === "selecionar_mes") return `Mês de ${mName}`;
+                      return `Período (${mName})`;
+                    })()
+                  }
+                </span>
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight">Performance dos Investimentos em Tráfego</h2>
+            </div>
+            {(currentUser?.perfil === "AGENCIA" || currentUser?.perfil === "MASTER") && (
+              <button
+                onClick={() => setIsAgenciaModalOpen(true)}
+                className="flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg transition-all cursor-pointer self-start md:self-auto"
+              >
+                <Edit3 className="w-4 h-4" />
+                Lançar / Editar Anúncios do Mês
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Card Campanha 1: Geração de Leads */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-teal-400 mb-1">
+                🚀 Geração de Leads
+              </p>
+              <p className="text-2xl font-black text-white">
+                R$ {(data.agencia?.investimentoLeads || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-zinc-400 mt-2 flex justify-between">
+                <span>CPL Efetivo:</span>
+                <strong className="text-teal-300">R$ {(data.agencia?.cplLeads || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>
+              </p>
+            </div>
+
+            {/* Card Campanha 2: Fortalecimento da Marca */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-purple-400 mb-1">
+                ✨ Fortalecimento da Marca
+              </p>
+              <p className="text-2xl font-black text-white">
+                R$ {(data.agencia?.investimentoBranding || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-zinc-400 mt-2">
+                Tráfego direcionado para visitar o Instagram
+              </p>
+            </div>
+
+            {/* Total Investido */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-400 mb-1">
+                💰 Investimento Total
+              </p>
+              <p className="text-2xl font-black text-white">
+                R$ {(data.agencia?.investimentoTotal || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-zinc-400 mt-2 flex justify-between">
+                <span>CPL Global:</span>
+                <strong className="text-amber-300">R$ {(data.agencia?.cplTotal || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>
+              </p>
+            </div>
+
+            {/* CAC / Custo por Venda */}
+            <div className="bg-gradient-to-br from-teal-600/30 to-emerald-600/30 border border-teal-500/30 rounded-2xl p-5 backdrop-blur-sm">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 mb-1">
+                🏆 Custo por Contrato Fechado
+              </p>
+              <p className="text-2xl font-black text-white">
+                R$ {(data.agencia?.custoPorVenda || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-emerald-200 mt-2">
+                Investimento necessário por venda realizada
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* SEÇÃO 2: OPERACIONAL COMERCIAL, SLA & LEADS PARADOS */}
+        <section>
+          <SectionTitle title="Eficiência Comercial e SLA de Atendimento" subtitle="Controle do tempo de resposta comercial e leads com ação pendente." />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* SLA Médio */}
+            <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-4">
+                <span className="p-2.5 rounded-xl bg-teal-50 text-teal-700 font-bold border border-teal-100 flex items-center gap-1.5 text-xs">
+                  <Clock className="w-4 h-4" />
+                  SLA de Resposta
+                </span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                  (kpi.slaMedioMinutos || 0) <= 30
+                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                    : (kpi.slaMedioMinutos || 0) <= 120
+                    ? "bg-amber-100 text-amber-800 border border-amber-200"
+                    : "bg-red-100 text-red-800 border border-red-200"
+                }`}>
+                  {(kpi.slaMedioMinutos || 0) <= 30 ? "⚡ Ótimo" : (kpi.slaMedioMinutos || 0) <= 120 ? "⚠️ Atenção" : "🚨 Crítico"}
+                </span>
+              </div>
+              <div>
+                <p className="text-4xl font-black text-zinc-900 tracking-tight">{kpi.slaFormatado || "0 min"}</p>
+                <p className="text-xs text-zinc-500 font-medium mt-2">
+                  Tempo médio entre o recebimento do lead e o primeiro contato comercial.
+                </p>
+              </div>
+            </div>
+
+            {/* Leads Parados */}
+            <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-4">
+                <span className="p-2.5 rounded-xl bg-red-50 text-red-700 font-bold border border-red-100 flex items-center gap-1.5 text-xs">
+                  <AlertTriangle className="w-4 h-4" />
+                  Leads Parados
+                </span>
+                {(kpi.leadsParados48h || 0) > 0 && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-red-500 text-white animate-pulse">
+                    Ação Necessária
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-4xl font-black text-red-600 tracking-tight">{kpi.leadsParados48h || 0}</p>
+                <p className="text-xs text-zinc-500 font-medium mt-2">
+                  Leads no funil ativo sem qualquer atualização há mais de 48 horas.
+                </p>
+              </div>
+            </div>
+
+            {/* Agendamentos Pendentes */}
+            <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-4">
+                <span className="p-2.5 rounded-xl bg-amber-50 text-amber-700 font-bold border border-amber-100 flex items-center gap-1.5 text-xs">
+                  <CalendarCheck className="w-4 h-4" />
+                  Follow-ups Programados
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-200">
+                  Próximos Contatos
+                </span>
+              </div>
+              <div>
+                <p className="text-4xl font-black text-amber-600 tracking-tight">{kpi.agendamentosCount || 0}</p>
+                <p className="text-xs text-zinc-500 font-medium mt-2">
+                  Leads com data e horário definidos para novo contato comercial.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* SEÇÃO 3: ANÁLISE DE MOTIVOS DE PERDA (BREAKDOWN DE DESCARTE) */}
+        {data.motivosPerda && data.motivosPerda.length > 0 && (
+          <section className="bg-white border border-zinc-200/80 rounded-3xl p-8 shadow-sm">
+            <SectionTitle
+              title="Análise de Motivos de Perda"
+              subtitle="Principais objeções e razões informadas no descarte de oportunidades."
+            />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-7 space-y-4">
+                {data.motivosPerda.map((item, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex justify-between text-xs font-bold text-zinc-800">
+                      <span>{item.motivo}</span>
+                      <span className="text-zinc-500">{item.total} lead(s) ({item.percentual}%)</span>
+                    </div>
+                    <div className="w-full bg-zinc-100 rounded-full h-2.5 overflow-hidden">
+                      <div
+                        className="bg-zinc-900 h-full rounded-full transition-all"
+                        style={{ width: `${Math.max(5, item.percentual)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="lg:col-span-5 bg-zinc-50 p-6 rounded-2xl border border-zinc-200/80 flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-2 text-zinc-900 font-bold text-sm">
+                  <PieChartIcon className="w-4 h-4 text-teal-600" />
+                  <span>Insight Comercial</span>
+                </div>
+                <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+                  {data.motivosPerda[0]
+                    ? `A principal causa de descarte no período é "${data.motivosPerda[0].motivo}", representando ${data.motivosPerda[0].percentual}% de todas as oportunidades perdidas.`
+                    : "Analise as objeções para ajustar a abordagem de vendas e scripts de atendimento."}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* MARKETING ROW (NEW HERO METRICS) */}
         <section>
           <SectionTitle title="Captação e Engajamento" subtitle="Métricas principais de atração e geração de contatos." />
@@ -929,6 +1207,62 @@ export default function DashboardPage() {
         </section>
 
       </div>
+
+      {/* Modais da Agência */}
+      <ModalInvestimentoAgencia
+        isOpen={isAgenciaModalOpen}
+        onClose={() => setIsAgenciaModalOpen(false)}
+        onSuccess={() => {
+          fetchData();
+        }}
+        currentMesAno={data?.agencia?.mesAno}
+        initialInvestimentoLeads={data?.agencia?.investimentoLeads || 0}
+        initialInvestimentoBranding={data?.agencia?.investimentoBranding || 0}
+        initialObservacoes={data?.agencia?.observacoes || ""}
+      />
+
+      {data?.agencia && (
+        <RelatorioAgenciaModal
+          isOpen={isRelatorioModalOpen}
+          onClose={() => setIsRelatorioModalOpen(false)}
+          agenciaData={{
+            mesAno: data.agencia.mesAno,
+            investimentoLeads: data.agencia.investimentoLeads,
+            investimentoBranding: data.agencia.investimentoBranding,
+            investimentoTotal: data.agencia.investimentoTotal,
+            observacoes: data.agencia.observacoes,
+            cplLeads: data.agencia.cplLeads,
+            cplTotal: data.agencia.cplTotal,
+            custoPorVenda: data.agencia.custoPorVenda,
+          }}
+          kpiData={{
+            totalLeads: kpi.totalLeads,
+            leadsThisWeek: kpi.leadsThisWeek || 0,
+            totalContratados: kpi.totalContratados,
+            mrr: kpi.mrr,
+            ticketMedio: kpi.ticketMedio || 0,
+            previsaoReceita: kpi.previsaoReceita || 0,
+            taxaConversaoGeral: kpi.taxaConversaoGeral,
+            slaFormatado: kpi.slaFormatado || "0 min",
+            slaMedioMinutos: kpi.slaMedioMinutos || 0,
+            leadsParados48h: kpi.leadsParados48h || 0,
+            agendamentosCount: kpi.agendamentosCount || 0,
+            totalVisitas: kpi.totalVisitas || 0,
+            totalSims: kpi.totalSims || 0,
+            totalWhatsapp: kpi.totalWhatsapp || 0,
+            totalIniciouScroll: kpi.totalIniciouScroll || 0,
+            totalChegouFim: kpi.totalChegouFim || 0,
+            topPlano: kpi.topPlano || "essencial",
+            totalObito: kpi.totalObito || 0,
+          }}
+          motivosPerda={data.motivosPerda}
+          leadsPorDia={data.leadsPorDia}
+          faixaEtaria={data.faixaEtaria}
+          orcamento={data.orcamento}
+          paraQuem={data.paraQuem}
+          atendentesPerformance={data.atendentesPerformance}
+        />
+      )}
     </main>
   );
 }

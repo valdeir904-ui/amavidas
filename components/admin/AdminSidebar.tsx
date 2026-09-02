@@ -137,6 +137,9 @@ export default function AdminSidebar() {
   }, []);
 
   const visibleNavItems = navItems.filter((item) => {
+    if (currentUser?.perfil === "AGENCIA") {
+      return item.label === "Dashboard" || item.label === "Análise de Funil" || item.label === "Análise por Canal" || item.label === "Oportunidades" || item.label === "Contratos";
+    }
     if (currentUser?.perfil !== "MASTER") {
       return item.label === "Dashboard" || item.label === "Oportunidades" || item.label === "Nota de Falecimento" || item.label === "Contratos";
     }
@@ -255,7 +258,7 @@ export default function AdminSidebar() {
                 {currentUser?.email?.split("@")[0] || "Usuário"}
               </p>
               <p className="text-white/30 text-xs truncate">
-                {currentUser?.perfil === "MASTER" ? "Admin Master" : "Atendente"}
+                {currentUser?.perfil === "MASTER" ? "Admin Master" : currentUser?.perfil === "AGENCIA" ? "Agência de Mkt" : "Atendente"}
               </p>
             </div>
           </div>

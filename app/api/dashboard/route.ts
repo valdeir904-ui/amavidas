@@ -67,9 +67,15 @@ export async function GET(req: NextRequest) {
   const startOfWeekStr = formatBRT(startOfWeekRef);
   const startOfWeek = new Date(`${startOfWeekStr}T00:00:00.000-03:00`);
 
-  const [leads, eventos, planos, usuarios, leadsAtribuidos] = await Promise.all([
+  const [leads, eventos, planos, usuarios, leadsAtribuidos, investimentosMarketing] = await Promise.all([
     prisma.simulacao.findMany({
       where: { criadoEm: { gte: startDate, lte: endDate } },
+      include: {
+        historico: {
+          orderBy: { criadoEm: "asc" },
+          select: { acao: true, criadoEm: true, statusDepois: true }
+        }
+      },
       orderBy: { criadoEm: "asc" }
     }),
     prisma.evento.findMany({
@@ -89,6 +95,9 @@ export async function GET(req: NextRequest) {
           select: { acao: true, usuarioId: true, criadoEm: true }
         }
       }
+    }),
+    prisma.investimentoMarketing.findMany({
+      orderBy: { mesAno: "desc" }
     })
   ]);
 
@@ -111,6 +120,126 @@ export async function GET(req: NextRequest) {
   const contatados = leads.filter((l) => l.contatado).length;
   const taxaContato = totalLeads > 0 ? Math.round((contatados / totalLeads) * 100) : 0;
   const totalContratados = leads.filter((l) => l.status === "ganho").length;
+
+  // Helper para calcular minutos no horário comercial (08:00 às 17:30)
+  const calcularMinutosUteisComercial = (start: Date, end: Date) => {
+    if (start >= end) return 0;
+
+    let totalMinutos = 0;
+    const curr = new Date(start);
+
+    while (curr < end) {
+      const windowStart = new Date(curr);
+      windowStart.setHours(8, 0, 0, 0);
+
+      const windowEnd = new Date(curr);
+      windowEnd.setHours(17, 30, 0, 0);
+
+      const overlapStart = new Date(Math.max(start.getTime(), windowStart.getTime()));
+      const overlapEnd = new Date(Math.min(end.getTime(), windowEnd.getTime()));
+
+      if (overlapStart < overlapEnd) {
+        totalMinutos += Math.floor((overlapEnd.getTime() - overlapStart.getTime()) / 60000);
+      }
+
+      curr.setDate(curr.getDate() + 1);
+      curr.setHours(0, 0, 0, 0);
+    }
+
+    return totalMinutos;
+  };
+
+  // SLA Calculation (Tempo médio útil de primeiro contato em minutos)
+  const leadsComContato = leads.filter((l) => {
+    if (l.primeiroContatoEm) return true;
+    return l.historico.some((h) => h.acao === "primeiro_contato" || h.acao === "mudou_status");
+  });
+
+  let totalSlaMinutos = 0;
+  let countSla = 0;
+
+  for (const l of leadsComContato) {
+    let dataContato = l.primeiroContatoEm;
+    if (!dataContato) {
+      const hContato = l.historico.find((h) => h.acao === "primeiro_contato" || h.statusDepois === "contatado");
+      if (hContato) dataContato = hContato.criadoEm;
+    }
+
+    if (dataContato) {
+      const mins = calcularMinutosUteisComercial(new Date(l.criadoEm), new Date(dataContato));
+      totalSlaMinutos += mins;
+      countSla++;
+    }
+  }
+
+  const slaMedioMinutos = countSla > 0 ? Math.round(totalSlaMinutos / countSla) : 0;
+  const formatSlaText = (mins: number) => {
+    if (mins === 0) return "Sem dados";
+    if (mins < 60) return `${mins} min`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  };
+  const slaFormatado = formatSlaText(slaMedioMinutos);
+
+  // Leads Parados (> 48h sem interação) e Agendamentos Futuros
+  const leadsAtivos = leads.filter((l) => l.status !== "ganho" && l.status !== "perdido");
+  const leadsParados48h = leadsAtivos.filter((l) => {
+    const diffMs = now.getTime() - new Date(l.atualizadoEm || l.criadoEm).getTime();
+    return diffMs >= 48 * 3600 * 1000;
+  }).length;
+
+  const leadsParados7dias = leadsAtivos.filter((l) => {
+    const diffMs = now.getTime() - new Date(l.atualizadoEm || l.criadoEm).getTime();
+    return diffMs >= 7 * 24 * 3600 * 1000;
+  }).length;
+
+  const agendamentosCount = leadsAtivos.filter((l) => l.proximoContatoEm && new Date(l.proximoContatoEm) >= now).length;
+
+  // Breakdown de Motivos de Perda
+  const MOTIVOS_MAP: Record<string, string> = {
+    numero_errado: "Número incorreto / inexistente",
+    nao_atende: "Não atendeu ligações",
+    nao_respondeu: "Não respondeu mensagens",
+    sem_interesse: "Sem interesse real",
+    achou_caro: "Achou caro / sem orçamento",
+    vai_pensar: "Vai pensar / avaliar depois",
+    ja_tem_plano: "Já possui outro plano",
+    fora_area: "Fora da área de cobertura",
+    dado_invalido: "Dado inválido / fake",
+    outro: "Outro motivo",
+  };
+
+  const motivosCounts: Record<string, number> = {};
+  const leadsPerdidos = leads.filter((l) => l.status === "perdido");
+  for (const l of leadsPerdidos) {
+    const rawMotivo = l.motivoPerda || l.motivoDescarte || "outro";
+    const label = MOTIVOS_MAP[rawMotivo] || rawMotivo;
+    motivosCounts[label] = (motivosCounts[label] ?? 0) + 1;
+  }
+  const motivosPerdaArr = Object.entries(motivosCounts)
+    .map(([motivo, total]) => ({
+      motivo,
+      total,
+      percentual: leadsPerdidos.length > 0 ? Math.round((total / leadsPerdidos.length) * 100) : 0,
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  // Dados da Agência (Investimentos e CPL)
+  // Obter o mês de referência a partir da data de início do filtro
+  const targetMesAno = (fromStr || todayBRT).slice(0, 7); // Formato "YYYY-MM"
+  
+  // Buscar o investimento cadastrado especificamente para o mês do filtro
+  const invDoMes = investimentosMarketing.find((i) => i.mesAno === targetMesAno);
+
+  const invLeadsEfetivo = invDoMes ? invDoMes.investimentoLeads : 0;
+  const invBrandingEfetivo = invDoMes ? invDoMes.investimentoBranding : 0;
+  const totalInvestimentoPeriodo = invLeadsEfetivo + invBrandingEfetivo;
+  const observacoesAgencia = invDoMes ? (invDoMes.observacoes || "") : "";
+
+  const cplLeads = totalLeads > 0 ? (invLeadsEfetivo / totalLeads) : 0;
+  const cplTotal = totalLeads > 0 ? (totalInvestimentoPeriodo / totalLeads) : 0;
+  const custoPorVenda = totalContratados > 0 ? (totalInvestimentoPeriodo / totalContratados) : 0;
 
   // Financial calculations
   const mrr = leads.filter((l) => l.status === "ganho").reduce((acc, l) => acc + getPrecoPlano(l.planoRecomendado), 0);
@@ -286,7 +415,25 @@ export async function GET(req: NextRequest) {
       ticketMedio,
       previsaoReceita,
       taxaConversaoGeral,
+      // Novas métricas ricas
+      slaMedioMinutos,
+      slaFormatado,
+      leadsParados48h,
+      leadsParados7dias,
+      agendamentosCount,
     },
+    agencia: {
+      mesAno: targetMesAno,
+      investimentoLeads: invLeadsEfetivo,
+      investimentoBranding: invBrandingEfetivo,
+      investimentoTotal: totalInvestimentoPeriodo,
+      observacoes: observacoesAgencia,
+      cplLeads,
+      cplTotal,
+      custoPorVenda,
+      investimentosHistorico: investimentosMarketing,
+    },
+    motivosPerda: motivosPerdaArr,
     planoCounts,
     leadsPorDia: leadsPorDiaArr,
     faixaEtaria: Object.entries(faixaEtaria).map(([k, v]) => ({ faixa: k, total: v })),
@@ -303,3 +450,4 @@ export async function GET(req: NextRequest) {
     atendentesPerformance,
   });
 }
+
