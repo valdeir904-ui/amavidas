@@ -82,10 +82,52 @@ export default function RelatorioAgenciaModal({
     : 0;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center overflow-y-auto print:p-0 print:bg-white print:static print:overflow-visible selection:bg-purple-500 selection:text-white">
+    <div id="relatorio-agencia-modal-container" className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center overflow-y-auto print:p-0 print:bg-white print:static print:overflow-visible selection:bg-purple-500 selection:text-white">
       
+      {/* REGRAS DE IMPRESSÃO CSS PARA PRESERVAR LAYOUT, PURPLE GRADIENT E A4 PAGES */}
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 0mm;
+          }
+          html, body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          .print-hide {
+            display: none !important;
+          }
+          #relatorio-agencia-pdf {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .pdf-page-block {
+            width: 100% !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            box-sizing: border-box !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+        }
+      `}</style>
+
       {/* BARRA FIXA DE AÇÕES (OCULTA NA IMPRESSÃO) */}
-      <div className="sticky top-0 z-50 w-full bg-zinc-950/90 border-b border-zinc-800 px-6 py-4 text-white flex justify-between items-center print:hidden shadow-2xl backdrop-blur-md">
+      <div className="sticky top-0 z-50 w-full bg-zinc-950/90 border-b border-zinc-800 px-6 py-4 text-white flex justify-between items-center print-hide print:hidden shadow-2xl backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="relative w-24 h-8">
             <Image src="/logo-agencia.png" alt="Ascend Agência" fill className="object-contain" />
@@ -115,10 +157,10 @@ export default function RelatorioAgenciaModal({
       </div>
 
       {/* DOCUMENTO IMPRIMÍVEL DE 6 PÁGINAS */}
-      <div className="w-full max-w-4xl space-y-8 my-8 print:my-0 print:p-0 print:w-full print:max-w-none">
+      <div id="relatorio-agencia-pdf" className="w-full max-w-4xl space-y-8 my-8 print:my-0 print:p-0 print:w-full print:max-w-none">
 
         {/* ── PÁGINA 1: CAPA CONFIDENCIAL ── */}
-        <div className="bg-gradient-to-br from-purple-900 via-purple-950 to-black text-white p-12 lg:p-16 rounded-3xl min-h-[1050px] flex flex-col justify-between relative overflow-hidden shadow-2xl print:rounded-none print:shadow-none print:min-h-[1100px] print:break-after-page">
+        <div className="pdf-page-block bg-gradient-to-br from-purple-900 via-purple-950 to-black text-white p-12 lg:p-16 rounded-3xl min-h-[1050px] flex flex-col justify-between relative overflow-hidden shadow-2xl print:rounded-none print:shadow-none print:p-12">
           {/* Efeitos Visuais de Fundo */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
@@ -195,7 +237,7 @@ export default function RelatorioAgenciaModal({
         </div>
 
         {/* ── PÁGINA 2: SUMÁRIO EXECUTIVO ── */}
-        <div className="bg-white text-zinc-900 p-10 lg:p-12 rounded-3xl min-h-[1050px] flex flex-col justify-between shadow-2xl border border-zinc-200 print:rounded-none print:shadow-none print:min-h-[1100px] print:break-after-page">
+        <div className="pdf-page-block bg-white text-zinc-900 p-10 lg:p-12 rounded-3xl min-h-[1050px] flex flex-col justify-between shadow-2xl border border-zinc-200 print:rounded-none print:shadow-none print:p-10">
           <div>
             {/* Header de Página */}
             <div className="flex justify-between items-center border-b border-zinc-200 pb-4 mb-8">
@@ -334,7 +376,7 @@ export default function RelatorioAgenciaModal({
         </div>
 
         {/* ── PÁGINA 3: PERFORMANCE DE TRÁFEGO PAGO & FUNIL ── */}
-        <div className="bg-white text-zinc-900 p-10 lg:p-12 rounded-3xl min-h-[1050px] flex flex-col justify-between shadow-2xl border border-zinc-200 print:rounded-none print:shadow-none print:min-h-[1100px] print:break-after-page">
+        <div className="pdf-page-block bg-white text-zinc-900 p-10 lg:p-12 rounded-3xl min-h-[1050px] flex flex-col justify-between shadow-2xl border border-zinc-200 print:rounded-none print:shadow-none print:p-10">
           <div>
             <div className="flex justify-between items-center border-b border-zinc-200 pb-4 mb-8">
               <div>
@@ -442,7 +484,7 @@ export default function RelatorioAgenciaModal({
         </div>
 
         {/* ── PÁGINA 4: EFICIÊNCIA COMERCIAL & ATENDIMENTO ── */}
-        <div className="bg-white text-zinc-900 p-10 lg:p-12 rounded-3xl min-h-[1050px] flex flex-col justify-between shadow-2xl border border-zinc-200 print:rounded-none print:shadow-none print:min-h-[1100px] print:break-after-page">
+        <div className="pdf-page-block bg-white text-zinc-900 p-10 lg:p-12 rounded-3xl min-h-[1050px] flex flex-col justify-between shadow-2xl border border-zinc-200 print:rounded-none print:shadow-none print:p-10">
           <div>
             <div className="flex justify-between items-center border-b border-zinc-200 pb-4 mb-8">
               <div>
@@ -542,7 +584,7 @@ export default function RelatorioAgenciaModal({
         </div>
 
         {/* ── PÁGINA 5: PERFIL DO PÚBLICO & TENDÊNCIA ── */}
-        <div className="bg-white text-zinc-900 p-10 lg:p-12 rounded-3xl min-h-[1050px] flex flex-col justify-between shadow-2xl border border-zinc-200 print:rounded-none print:shadow-none print:min-h-[1100px] print:break-after-page">
+        <div className="pdf-page-block bg-white text-zinc-900 p-10 lg:p-12 rounded-3xl min-h-[1050px] flex flex-col justify-between shadow-2xl border border-zinc-200 print:rounded-none print:shadow-none print:p-10">
           <div>
             <div className="flex justify-between items-center border-b border-zinc-200 pb-4 mb-8">
               <div>
@@ -631,7 +673,7 @@ export default function RelatorioAgenciaModal({
         </div>
 
         {/* ── PÁGINA 6: DIAGNÓSTICO & PLANO DE AÇÃO ── */}
-        <div className="bg-white text-zinc-900 p-10 lg:p-12 rounded-3xl min-h-[1050px] flex flex-col justify-between shadow-2xl border border-zinc-200 print:rounded-none print:shadow-none print:min-h-[1100px] print:break-after-page">
+        <div className="pdf-page-block bg-white text-zinc-900 p-10 lg:p-12 rounded-3xl min-h-[1050px] flex flex-col justify-between shadow-2xl border border-zinc-200 print:rounded-none print:shadow-none print:p-10">
           <div>
             <div className="flex justify-between items-center border-b border-zinc-200 pb-4 mb-8">
               <div>
