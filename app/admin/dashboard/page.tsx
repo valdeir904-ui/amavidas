@@ -571,7 +571,7 @@ export default function DashboardPage() {
   const familiaPct = 100 - individualPct;
 
   return (
-    <main className="flex-1 p-6 lg:p-10 bg-[#FAFAFA] min-h-screen font-sans selection:bg-zinc-200">
+    <main className="flex-1 p-6 lg:p-10 bg-[#FAFAFA] min-h-screen font-sans selection:bg-zinc-200 print:hidden">
       {/* Header */}
       <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6 lg:pl-0 pl-12">
         <div>

@@ -169,7 +169,7 @@ export default function RelatorioAgenciaModal({
   return (
     <div id="relatorio-agencia-modal-container" className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center overflow-y-auto print:p-0 print:bg-white print:static print:overflow-visible selection:bg-purple-500 selection:text-white">
       
-      {/* REGRAS DE IMPRESSÃO CSS PARA PRESERVAR LAYOUT, PURPLE GRADIENT E A4 PAGES */}
+      {/* REGRAS DE IMPRESSÃO CSS PARA PRESERVAR LAYOUT, PURPLE GRADIENT E 6 PÁGINAS A4 EXACT */}
       <style>{`
         @media print {
           @page {
@@ -184,8 +184,20 @@ export default function RelatorioAgenciaModal({
             print-color-adjust: exact !important;
             color-adjust: exact !important;
           }
-          .print-hide {
+          /* Ocultar estritamente o Dashboard e navegações de fundo */
+          main, aside, nav, header, footer, button, .print-hide, .print\\:hidden {
             display: none !important;
+          }
+          #relatorio-agencia-modal-container {
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            background: white !important;
+            overflow: visible !important;
+            z-index: 999999 !important;
           }
           #relatorio-agencia-pdf {
             width: 100% !important;
