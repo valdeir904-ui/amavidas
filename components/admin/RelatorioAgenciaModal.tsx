@@ -1,6 +1,7 @@
 "use client";
 
-import { Printer, X, TrendingUp, Users, DollarSign, Award, Clock, AlertTriangle, CheckCircle2, ChevronRight, PieChart as PieIcon, Shield, PhoneCall } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Printer, X, TrendingUp, Users, DollarSign, Award, Clock, AlertTriangle, CheckCircle2, ChevronRight, PieChart as PieIcon, Shield, PhoneCall, Calendar, RefreshCw } from "lucide-react";
 import Image from "next/image";
 
 interface RelatorioAgenciaModalProps {
@@ -47,15 +48,91 @@ interface RelatorioAgenciaModalProps {
 export default function RelatorioAgenciaModal({
   isOpen,
   onClose,
-  agenciaData,
-  kpiData,
-  motivosPerda = [],
-  leadsPorDia = [],
-  faixaEtaria = [],
-  orcamento = [],
-  paraQuem = [],
-  atendentesPerformance = [],
+  agenciaData: initialAgenciaData,
+  kpiData: initialKpiData,
+  motivosPerda: initialMotivosPerda = [],
+  leadsPorDia: initialLeadsPorDia = [],
+  faixaEtaria: initialFaixaEtaria = [],
+  orcamento: initialOrcamento = [],
+  paraQuem: initialParaQuem = [],
+  atendentesPerformance: initialAtendentes = [],
 }: RelatorioAgenciaModalProps) {
+  const defaultMonth = initialAgenciaData?.mesAno || new Date().toISOString().slice(0, 7);
+  const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
+  const [loading, setLoading] = useState(false);
+
+  const [agenciaData, setAgenciaData] = useState(initialAgenciaData);
+  const [kpiData, setKpiData] = useState(initialKpiData);
+  const [motivosPerda, setMotivosPerda] = useState(initialMotivosPerda);
+  const [faixaEtaria, setFaixaEtaria] = useState(initialFaixaEtaria);
+  const [orcamento, setOrcamento] = useState(initialOrcamento);
+  const [paraQuem, setParaQuem] = useState(initialParaQuem);
+  const [atendentesPerformance, setAtendentesPerformance] = useState(initialAtendentes);
+
+  // Buscar dados estritamente para o mês fechado completo (01 ao último dia)
+  const fetchFullMonthData = async (mesAno: string) => {
+    setLoading(true);
+    try {
+      const [yStr, mStr] = mesAno.split("-");
+      const year = parseInt(yStr, 10);
+      const month = parseInt(mStr, 10);
+
+      const firstDayStr = `${mesAno}-01`;
+      const lastDayNum = new Date(year, month, 0).getDate();
+      const lastDayStr = `${mesAno}-${String(lastDayNum).padStart(2, "0")}`;
+
+      const resp = await fetch(`/api/dashboard?from=${firstDayStr}&to=${lastDayStr}`);
+      if (resp.ok) {
+        const res = await resp.json();
+        if (res.agencia) setAgenciaData(res.agencia);
+        if (res.kpi) {
+          setKpiData({
+            totalLeads: res.kpi.totalLeads || 0,
+            leadsThisWeek: res.kpi.leadsThisWeek || 0,
+            totalContratados: res.kpi.totalContratados || 0,
+            mrr: res.kpi.mrr || 0,
+            ticketMedio: res.kpi.ticketMedio || 0,
+            previsaoReceita: res.kpi.previsaoReceita || 0,
+            taxaConversaoGeral: res.kpi.taxaConversaoGeral || 0,
+            slaFormatado: res.kpi.slaFormatado || "0 min",
+            slaMedioMinutos: res.kpi.slaMedioMinutos || 0,
+            leadsParados48h: res.kpi.leadsParados48h || 0,
+            agendamentosCount: res.kpi.agendamentosCount || 0,
+            totalVisitas: res.kpi.totalVisitas || 0,
+            totalSims: res.kpi.totalSims || 0,
+            totalWhatsapp: res.kpi.totalWhatsapp || 0,
+            totalIniciouScroll: res.kpi.totalIniciouScroll || 0,
+            totalChegouFim: res.kpi.totalChegouFim || 0,
+            topPlano: res.kpi.topPlano || "essencial",
+            totalObito: res.kpi.totalObito || 0,
+          });
+        }
+        if (res.motivosPerda) setMotivosPerda(res.motivosPerda);
+        if (res.faixaEtaria) setFaixaEtaria(res.faixaEtaria);
+        if (res.orcamento) setOrcamento(res.orcamento);
+        if (res.paraQuem) setParaQuem(res.paraQuem);
+        if (res.atendentesPerformance) setAtendentesPerformance(res.atendentesPerformance);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar relatório fechado do mês:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      const initMes = initialAgenciaData?.mesAno || new Date().toISOString().slice(0, 7);
+      setSelectedMonth(initMes);
+      fetchFullMonthData(initMes);
+    }
+  }, [isOpen, initialAgenciaData?.mesAno]);
+
+  const handleMonthChange = (newMonth: string) => {
+    setSelectedMonth(newMonth);
+    fetchFullMonthData(newMonth);
+  };
+
   if (!isOpen) return null;
 
   const handlePrint = () => {
@@ -63,11 +140,19 @@ export default function RelatorioAgenciaModal({
   };
 
   const formatCurrency = (val: number) =>
-    `R$ ${val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    `R$ ${(val || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  const [ano, mes] = (agenciaData.mesAno || "2026-09").split("-");
-  const dataRef = new Date(parseInt(ano), parseInt(mes) - 1, 1);
-  const nomeMesStr = dataRef.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  // Cálculo de datas e strings do Mês Fechado Completo
+  const [anoNum, mesNum] = (selectedMonth || "2026-08").split("-").map(Number);
+  const dataRef = new Date(anoNum, mesNum - 1, 1);
+  const lastDayNum = new Date(anoNum, mesNum, 0).getDate();
+
+  const nomeMesExtenso = dataRef.toLocaleDateString("pt-BR", { month: "long" });
+  const nomeMesCapitalized = nomeMesExtenso.charAt(0).toUpperCase() + nomeMesExtenso.slice(1);
+  
+  // Exemplo: "01 a 31 de Agosto de 2026"
+  const periodoFechadoText = `01 a ${String(lastDayNum).padStart(2, "0")} de ${nomeMesCapitalized} de ${anoNum}`;
+  const mesAnoHeader = `${nomeMesCapitalized} / ${anoNum}`;
   const dataEmissao = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 
   const totalLeadsBase = kpiData.totalLeads || 1;
@@ -134,19 +219,34 @@ export default function RelatorioAgenciaModal({
           </div>
           <span className="text-zinc-600">|</span>
           <div>
-            <h3 className="text-xs font-bold tracking-tight text-purple-400 uppercase">Relatório Mensal de Performance</h3>
-            <p className="text-[11px] text-zinc-400 font-medium">AmaVidas — Planos Funerários ({nomeMesStr})</p>
+            <h3 className="text-xs font-bold tracking-tight text-purple-400 uppercase">Relatório Mensal de Performance (Mês Fechado)</h3>
+            <p className="text-[11px] text-zinc-400 font-medium">AmaVidas — Planos Funerários ({periodoFechadoText})</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Seletor de Mês Fechado Completo */}
+          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
+            <Calendar className="w-4 h-4 text-purple-300" />
+            <span className="text-xs font-semibold text-purple-200">Mês Fechado:</span>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => handleMonthChange(e.target.value)}
+              className="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer"
+            />
+            {loading && <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-400 ml-1" />}
+          </div>
+
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-purple-900/30 cursor-pointer"
+            disabled={loading}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-purple-900/30 cursor-pointer disabled:opacity-50"
           >
             <Printer className="w-4 h-4" />
             Imprimir / Salvar PDF (6 Páginas)
           </button>
+
           <button
             onClick={onClose}
             className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors"
@@ -197,15 +297,15 @@ export default function RelatorioAgenciaModal({
               </div>
               <div>
                 <p className="text-[10px] text-purple-300 font-bold uppercase tracking-wider">PRAÇA DE ATUAÇÃO</p>
-                <p className="font-bold text-white mt-1">Águas Lindas (GO) & DF</p>
+                <p className="font-bold text-white mt-1">Águas Lindas de Goiás (GO) & Distrito Federal</p>
               </div>
               <div>
-                <p className="text-[10px] text-purple-300 font-bold uppercase tracking-wider">PERÍODO</p>
-                <p className="font-bold text-white mt-1 capitalize">{nomeMesStr}</p>
+                <p className="text-[10px] text-purple-300 font-bold uppercase tracking-wider">PERÍODO DE REFERÊNCIA</p>
+                <p className="font-bold text-white mt-1 capitalize">{periodoFechadoText}</p>
               </div>
               <div>
                 <p className="text-[10px] text-purple-300 font-bold uppercase tracking-wider">EMITIDO EM</p>
-                <p className="font-bold text-white mt-1">{dataEmissao}</p>
+                <p className="font-bold text-white mt-1">{dataEmissao} · Ref. {selectedMonth}</p>
               </div>
             </div>
 
@@ -251,7 +351,7 @@ export default function RelatorioAgenciaModal({
                 </div>
               </div>
               <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-full capitalize">
-                {nomeMesStr}
+                {mesAnoHeader}
               </span>
             </div>
 
@@ -259,7 +359,7 @@ export default function RelatorioAgenciaModal({
             <div className="mb-8">
               <h3 className="text-sm font-bold uppercase tracking-wider text-purple-900 mb-2">● Panorama do mês</h3>
               <p className="text-xs text-zinc-600 font-medium leading-relaxed">
-                Visão consolidada do investimento em tráfego pago, geração de leads e retorno comercial da AmaVidas. Os indicadores abaixo resumem a saúde geral da operação de aquisição.
+                Visão consolidada do investimento em tráfego pago, geração de leads e retorno comercial da AmaVidas entre {periodoFechadoText}. Os indicadores abaixo resumem a saúde geral da operação de aquisição.
               </p>
             </div>
 
@@ -268,13 +368,13 @@ export default function RelatorioAgenciaModal({
               <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-2xl">
                 <p className="text-[10px] font-bold text-zinc-400 uppercase">INVESTIMENTO TOTAL</p>
                 <p className="text-xl font-black text-zinc-900 mt-1">{formatCurrency(agenciaData.investimentoTotal)}</p>
-                <p className="text-[11px] text-zinc-500 mt-1">Verba aplicada em mídia</p>
+                <p className="text-[11px] text-zinc-500 mt-1">Verba aplicada em mídia no mês</p>
               </div>
 
               <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-2xl">
                 <p className="text-[10px] font-bold text-zinc-400 uppercase">LEADS GERADOS</p>
                 <p className="text-2xl font-black text-purple-700 mt-1">{kpiData.totalLeads}</p>
-                <p className="text-[11px] text-zinc-500 mt-1">{kpiData.leadsThisWeek} na última semana</p>
+                <p className="text-[11px] text-zinc-500 mt-1">Oportunidades no período</p>
               </div>
 
               <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-2xl">
@@ -371,7 +471,7 @@ export default function RelatorioAgenciaModal({
 
           <div className="pt-6 border-t border-zinc-200 flex justify-between items-center text-[11px] text-zinc-400 font-medium">
             <p>Ascend · Relatório de Performance — AmaVidas</p>
-            <p>Confidencial · Ref. {agenciaData.mesAno} — Página 2 / 6</p>
+            <p>Confidencial · Ref. {selectedMonth} — Página 2 / 6</p>
           </div>
         </div>
 
@@ -383,7 +483,7 @@ export default function RelatorioAgenciaModal({
                 <h2 className="text-xl font-black text-zinc-900 tracking-tight">Performance de Tráfego Pago</h2>
                 <p className="text-xs text-zinc-500">Funil de aquisição e detalhamento de investimento por campanha</p>
               </div>
-              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-full capitalize">{nomeMesStr}</span>
+              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-full capitalize">{mesAnoHeader}</span>
             </div>
 
             {/* Funil de Aquisição */}
@@ -479,7 +579,7 @@ export default function RelatorioAgenciaModal({
 
           <div className="pt-6 border-t border-zinc-200 flex justify-between items-center text-[11px] text-zinc-400 font-medium">
             <p>Ascend · Relatório de Performance — AmaVidas</p>
-            <p>Confidencial · Ref. {agenciaData.mesAno} — Página 3 / 6</p>
+            <p>Confidencial · Ref. {selectedMonth} — Página 3 / 6</p>
           </div>
         </div>
 
@@ -491,7 +591,7 @@ export default function RelatorioAgenciaModal({
                 <h2 className="text-xl font-black text-zinc-900 tracking-tight">Eficiência Comercial & Atendimento</h2>
                 <p className="text-xs text-zinc-500">SLA comercial (Janela 08:00–17:30), gestão de atendentes e motivos de perda</p>
               </div>
-              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-full capitalize">{nomeMesStr}</span>
+              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-full capitalize">{mesAnoHeader}</span>
             </div>
 
             {/* SLA e Cards */}
@@ -579,7 +679,7 @@ export default function RelatorioAgenciaModal({
 
           <div className="pt-6 border-t border-zinc-200 flex justify-between items-center text-[11px] text-zinc-400 font-medium">
             <p>Ascend · Relatório de Performance — AmaVidas</p>
-            <p>Confidencial · Ref. {agenciaData.mesAno} — Página 4 / 6</p>
+            <p>Confidencial · Ref. {selectedMonth} — Página 4 / 6</p>
           </div>
         </div>
 
@@ -591,7 +691,7 @@ export default function RelatorioAgenciaModal({
                 <h2 className="text-xl font-black text-zinc-900 tracking-tight">Perfil do Público & Tendência</h2>
                 <p className="text-xs text-zinc-500">Demografia, preferências e volume declarados na simulação</p>
               </div>
-              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-full capitalize">{nomeMesStr}</span>
+              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-full capitalize">{mesAnoHeader}</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -668,7 +768,7 @@ export default function RelatorioAgenciaModal({
 
           <div className="pt-6 border-t border-zinc-200 flex justify-between items-center text-[11px] text-zinc-400 font-medium">
             <p>Ascend · Relatório de Performance — AmaVidas</p>
-            <p>Confidencial · Ref. {agenciaData.mesAno} — Página 5 / 6</p>
+            <p>Confidencial · Ref. {selectedMonth} — Página 5 / 6</p>
           </div>
         </div>
 
@@ -680,7 +780,7 @@ export default function RelatorioAgenciaModal({
                 <h2 className="text-xl font-black text-zinc-900 tracking-tight">Diagnóstico & Plano de Ação</h2>
                 <p className="text-xs text-zinc-500">Leitura estratégica Ascend e recomendações para o próximo ciclo</p>
               </div>
-              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-full capitalize">{nomeMesStr}</span>
+              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-full capitalize">{mesAnoHeader}</span>
             </div>
 
             {/* Pontos de Atenção */}
@@ -754,7 +854,7 @@ export default function RelatorioAgenciaModal({
 
           <div className="pt-6 border-t border-zinc-200 flex justify-between items-center text-[11px] text-zinc-400 font-medium">
             <p>Ascend · Relatório de Performance — AmaVidas</p>
-            <p>Confidencial · Ref. {agenciaData.mesAno} — Página 6 / 6</p>
+            <p>Confidencial · Ref. {selectedMonth} — Página 6 / 6</p>
           </div>
         </div>
 
