@@ -136,7 +136,107 @@ export default function RelatorioAgenciaModal({
   if (!isOpen) return null;
 
   const handlePrint = () => {
-    window.print();
+    const reportNode = document.getElementById("relatorio-agencia-pdf");
+    if (!reportNode) {
+      window.print();
+      return;
+    }
+
+    const printWin = window.open("", "_blank", "width=1100,height=900");
+    if (!printWin) {
+      window.print();
+      return;
+    }
+
+    const stylesHtml = Array.from(document.head.querySelectorAll("style, link[rel='stylesheet']"))
+      .map((el) => el.outerHTML)
+      .join("\n");
+
+    const htmlContent = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatorio_Ascend_AmaVidas_${selectedMonth}.pdf</title>
+  ${stylesHtml}
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0mm;
+    }
+    html, body {
+      background: #ffffff !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+    #relatorio-agencia-pdf {
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .pdf-page-block {
+      width: 210mm !important;
+      height: 297mm !important;
+      min-height: 297mm !important;
+      max-height: 297mm !important;
+      box-sizing: border-box !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      overflow: hidden !important;
+      margin: 0 auto !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+    .pdf-page-block:last-child {
+      page-break-after: auto !important;
+      break-after: auto !important;
+    }
+    @media screen {
+      body {
+        background: #09090b;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .pdf-page-block {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        margin-bottom: 24px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  ${reportNode.outerHTML}
+  <script>
+    window.onload = function() {
+      const images = Array.from(document.images);
+      const promises = images.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      });
+      Promise.all(promises).then(() => {
+        setTimeout(() => {
+          window.print();
+        }, 300);
+      });
+    };
+  </script>
+</body>
+</html>`;
+
+    printWin.document.open();
+    printWin.document.write(htmlContent);
+    printWin.document.close();
   };
 
   const formatCurrency = (val: number) =>
@@ -184,8 +284,17 @@ export default function RelatorioAgenciaModal({
             print-color-adjust: exact !important;
             color-adjust: exact !important;
           }
-          /* Ocultar estritamente o Dashboard e navegações de fundo */
-          main, aside, nav, header, footer, button, .print-hide, .print\\:hidden {
+          main {
+            display: block !important;
+            position: static !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+          }
+          main > *:not(#relatorio-agencia-modal-container) {
+            display: none !important;
+          }
+          aside, nav, header, footer, button, .print-hide, .print\\:hidden {
             display: none !important;
           }
           #relatorio-agencia-modal-container {
