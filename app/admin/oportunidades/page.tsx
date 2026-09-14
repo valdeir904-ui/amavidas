@@ -134,6 +134,7 @@ export default function OportunidadesPage() {
   const [filtrosCampanhas, setFiltrosCampanhas] = useState<string[]>([]);
   const [filtrosInteresses, setFiltrosInteresses] = useState<string[]>([]);
   const [busca, setBusca] = useState("");
+  const [filtroVendedor, setFiltroVendedor] = useState<string>("todos");
 
   const [showPerdidosModal, setShowPerdidosModal] = useState(false);
   const [showGanhosModal, setShowGanhosModal] = useState(false);
@@ -182,9 +183,10 @@ export default function OportunidadesPage() {
     setFiltrosCanais([]);
     setFiltrosCampanhas([]);
     setFiltrosInteresses([]);
+    setFiltroVendedor("todos");
   };
 
-  const totalFiltrosAtivos = filtrosCanais.length + filtrosCampanhas.length + filtrosInteresses.length;
+  const totalFiltrosAtivos = filtrosCanais.length + filtrosCampanhas.length + filtrosInteresses.length + (filtroVendedor !== "todos" ? 1 : 0);
   const [viewMode, setViewMode] = useState<"kanban" | "tabela">("kanban");
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -305,7 +307,7 @@ export default function OportunidadesPage() {
         if (resp.ok) {
           const data = await resp.json();
           setCurrentUser(data.user);
-          if (data.user.perfil === "MASTER") {
+          if (data.user.perfil === "MASTER" || data.user.perfil === "GERENTE") {
             const respUsuarios = await fetch("/api/admin/usuarios");
             if (respUsuarios.ok) {
               const uData = await respUsuarios.json();
@@ -889,6 +891,11 @@ export default function OportunidadesPage() {
       if (filtrosInteresses.length === 0) return true;
       return l.intencao && filtrosInteresses.includes(l.intencao);
     })
+    .filter((l) => {
+      if (filtroVendedor === "todos") return true;
+      if (filtroVendedor === "sem_responsavel") return !l.responsavelId;
+      return l.responsavelId === filtroVendedor;
+    })
     .filter((l) =>
       busca
         ? l.nome.toLowerCase().includes(busca.toLowerCase()) ||
@@ -1130,6 +1137,23 @@ export default function OportunidadesPage() {
                 className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 focus:border-slate-350 outline-none text-sm bg-white text-slate-900 placeholder:text-slate-400 shadow-sm"
               />
             </div>
+            {/* Seletor Auditoria por Vendedor (MASTER e GERENTE) */}
+            {(currentUser?.perfil === "MASTER" || currentUser?.perfil === "GERENTE") && (
+              <select
+                value={filtroVendedor}
+                onChange={(e) => setFiltroVendedor(e.target.value)}
+                className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-800 shadow-sm outline-none cursor-pointer h-[38px] flex-shrink-0"
+              >
+                <option value="todos">👥 Todos Vendedores (Auditoria)</option>
+                <option value="sem_responsavel">👤 Sem Responsável</option>
+                {atendentes.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    👤 {a.nome}
+                  </option>
+                ))}
+              </select>
+            )}
+
             <button
               onClick={() => fetchLeads()}
               className="px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors bg-white shadow-sm cursor-pointer h-[38px] w-[38px] flex items-center justify-center flex-shrink-0"
@@ -1496,6 +1520,28 @@ export default function OportunidadesPage() {
                                   {lead.responsavel.nome.charAt(0)}
                                 </div>
                                 <span className="text-xs font-semibold text-slate-700 truncate max-w-[70px]">{lead.responsavel.nome.split(" ")[0]}</span>
+                                { (currentUser?.perfil === "GERENTE" || currentUser?.perfil === "MASTER") && lead.responsavelId !== currentUser?.id && (
+                                  isParado7Dias ? (
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        if (confirm(`Resgatar e puxar o lead "${lead.nome}" do vendedor ${lead.responsavel?.nome || ""} para você?`)) {
+                                          await updateLeadStatus(lead.id, lead.status, currentUser?.id);
+                                          fetchLeads(false);
+                                        }
+                                      }}
+                                      className="text-[10px] bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold px-2 py-0.5 rounded-md shadow-md border border-orange-300 transition-all cursor-pointer shrink-0 flex items-center gap-1 animate-pulse"
+                                      title="Puxar lead parado há +7 dias para o Gerente"
+                                    >
+                                      <span>⚡</span>
+                                      <span>Puxar Lead (+7d)</span>
+                                    </button>
+                                  ) : (
+                                    <span className="text-[9px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded shrink-0" title="Apenas leads com +7 dias parados podem ser puxados">
+                                      🔒 &lt;7d
+                                    </span>
+                                  )
+                                )}
                               </div>
                             ) : currentUser?.perfil === "ATENDENTE" ? (
                               <button onClick={() => handleStatusChangeRequest(lead.id, lead.status, currentUser.id)} className="text-[10px] bg-cyan-50 text-cyan-700 border border-cyan-200 hover:bg-cyan-100 px-2 py-0.5 rounded-lg font-bold transition-colors cursor-pointer">
@@ -1835,6 +1881,50 @@ export default function OportunidadesPage() {
                     >
                       <span>⬅️</span>
                       <span>Voltar para {openedFromModal === "perdidos" ? "Lista de Perdidos" : "Lista de Ganhos"}</span>
+                    </button>
+                  )}
+
+                  {/* Botões de Gestão do Gerente: Resgatar Lead e Reativar Descartado */}
+                  {(currentUser?.perfil === "GERENTE" || currentUser?.perfil === "MASTER") && selectedLead.responsavelId && selectedLead.responsavelId !== currentUser?.id && (
+                    (now.getTime() - new Date(selectedLead.criadoEm).getTime() >= 604800000) ? (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (confirm(`Resgatar e puxar o lead "${selectedLead.nome}" do vendedor ${selectedLead.responsavel?.nome || ""} para você?`)) {
+                            await updateLeadStatus(selectedLead.id, selectedLead.status, currentUser.id);
+                            setSelectedLead(prev => prev ? { ...prev, responsavelId: currentUser.id, responsavel: { id: currentUser.id, nome: currentUser.nome || currentUser.email } } : null);
+                            fetchLeads(false);
+                          }
+                        }}
+                        className="bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-4 py-2.5 rounded-xl text-xs font-black transition-all shadow-xl shadow-orange-500/30 flex items-center gap-2 cursor-pointer active:scale-95 border border-orange-300 ring-2 ring-orange-400/40 animate-pulse"
+                        title="Puxar lead parado há 7+ dias para o Gerente"
+                      >
+                        <span className="text-sm">⚡</span>
+                        <span>Puxar Lead (+7d Parado)</span>
+                      </button>
+                    ) : (
+                      <div className="bg-slate-800/80 border border-slate-700 text-slate-400 px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5" title="Apenas leads com 7+ dias parados podem ser puxados">
+                        <span>🔒</span>
+                        <span>Com Vendedor (&lt; 7 dias)</span>
+                      </div>
+                    )
+                  )}
+
+                  {(currentUser?.perfil === "GERENTE" || currentUser?.perfil === "MASTER") && selectedLead.status === "perdido" && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (confirm(`Reativar o lead descartado "${selectedLead.nome}" e assumi-lo para retomar o contato?`)) {
+                          await updateLeadStatus(selectedLead.id, "contatado", currentUser.id);
+                          setSelectedLead(prev => prev ? { ...prev, status: "contatado", contatado: true, responsavelId: currentUser.id, responsavel: { id: currentUser.id, nome: currentUser.nome || currentUser.email } } : null);
+                          fetchLeads(false);
+                        }
+                      }}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2.5 rounded-xl text-xs font-black transition-all shadow-lg flex items-center gap-1.5 cursor-pointer active:scale-95 border border-indigo-400/30"
+                      title="Reativar Lead Descartado"
+                    >
+                      <span>🔄</span>
+                      <span>Retomar Contato & Reativar</span>
                     </button>
                   )}
 

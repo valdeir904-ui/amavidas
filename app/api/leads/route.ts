@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
     const whereClause: any = {};
     
-    if (session.perfil !== "MASTER") {
+    if (session.perfil !== "MASTER" && session.perfil !== "GERENTE") {
       // ATENDENTE só vê leads sem responsável ou os seus próprios
       whereClause.OR = [
         { responsavelId: null },
@@ -298,6 +298,20 @@ export async function PATCH(req: NextRequest) {
   let finalResponsavelId = currentLead.responsavelId;
   if (responsavelId !== undefined) {
     if (session.perfil === "MASTER") {
+      updateData.responsavelId = responsavelId;
+      finalResponsavelId = responsavelId;
+    } else if (session.perfil === "GERENTE") {
+      const diffMs = Date.now() - new Date(currentLead.criadoEm).getTime();
+      const isParado7d = diffMs >= 7 * 24 * 60 * 60 * 1000;
+      const isOutroVendedor = currentLead.responsavelId && currentLead.responsavelId !== session.userId;
+
+      if (isOutroVendedor && !isParado7d && currentLead.status !== "perdido") {
+        return Response.json(
+          { error: "Leads de outros vendedores com menos de 7 dias de inatividade não podem ser acessados pela gerência." },
+          { status: 403 }
+        );
+      }
+
       updateData.responsavelId = responsavelId;
       finalResponsavelId = responsavelId;
     } else {

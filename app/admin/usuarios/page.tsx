@@ -207,6 +207,7 @@ function ModalNovoUsuario({
               className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
             >
               <option value="ATENDENTE">Atendente</option>
+              <option value="GERENTE">Gerente</option>
               <option value="AGENCIA">Agência</option>
               <option value="MASTER">Master</option>
             </select>
@@ -311,6 +312,7 @@ function ModalEditar({
               className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
             >
               <option value="ATENDENTE">Atendente</option>
+              <option value="GERENTE">Gerente</option>
               <option value="AGENCIA">Agência</option>
               <option value="MASTER">Master</option>
             </select>
@@ -625,6 +627,8 @@ export default function UsuariosPage() {
                       <span className={`inline-block px-2 py-1 rounded text-[10px] font-bold tracking-wider ${
                         u.perfil === "MASTER" 
                           ? "bg-purple-100 text-purple-700" 
+                          : u.perfil === "GERENTE"
+                          ? "bg-indigo-100 text-indigo-800 border border-indigo-200"
                           : u.perfil === "AGENCIA" 
                           ? "bg-teal-100 text-teal-800 border border-teal-200" 
                           : "bg-slate-100 text-slate-600"

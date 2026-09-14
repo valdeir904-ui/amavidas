@@ -934,8 +934,8 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* ATENDENTES & TEMPO DOS LEADS (EXCLUSIVO MASTER) */}
-        {(currentUser?.perfil === "MASTER" || !currentUser) && data.atendentesPerformance && data.atendentesPerformance.length > 0 && (
+        {/* ATENDENTES & TEMPO DOS LEADS (EXCLUSIVO MASTER E GERENTE) */}
+        {(currentUser?.perfil === "MASTER" || currentUser?.perfil === "GERENTE" || !currentUser) && data.atendentesPerformance && data.atendentesPerformance.length > 0 && (
           <AtendentesPerformanceSection atendentes={data.atendentesPerformance} />
         )}
 

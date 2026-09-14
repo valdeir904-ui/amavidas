@@ -35,7 +35,7 @@ function sanitize(u: { senhaHash?: string; [k: string]: unknown }) {
 // ── GET — lista todos os usuários ─────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   const session = await verifySession();
-  if (!session || session.perfil !== "MASTER") {
+  if (!session || (session.perfil !== "MASTER" && session.perfil !== "GERENTE")) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

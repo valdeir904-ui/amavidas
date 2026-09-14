@@ -48,6 +48,16 @@ const navItems = [
     ),
   },
   {
+    label: "Leads Descartados",
+    href: "/admin/leads-descartados",
+    soon: false,
+    icon: (
+      <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      </svg>
+    ),
+  },
+  {
     label: "Contratos",
     href: "/admin/contratos",
     soon: false,
@@ -139,6 +149,9 @@ export default function AdminSidebar() {
   const visibleNavItems = navItems.filter((item) => {
     if (currentUser?.perfil === "AGENCIA") {
       return item.label === "Dashboard" || item.label === "Análise de Funil" || item.label === "Análise por Canal" || item.label === "Oportunidades" || item.label === "Contratos";
+    }
+    if (currentUser?.perfil === "GERENTE") {
+      return item.label === "Dashboard" || item.label === "Oportunidades" || item.label === "Leads Descartados" || item.label === "Contratos" || item.label === "Nota de Falecimento";
     }
     if (currentUser?.perfil !== "MASTER") {
       return item.label === "Dashboard" || item.label === "Oportunidades" || item.label === "Nota de Falecimento" || item.label === "Contratos";
@@ -258,7 +271,7 @@ export default function AdminSidebar() {
                 {currentUser?.email?.split("@")[0] || "Usuário"}
               </p>
               <p className="text-white/30 text-xs truncate">
-                {currentUser?.perfil === "MASTER" ? "Admin Master" : currentUser?.perfil === "AGENCIA" ? "Agência de Mkt" : "Atendente"}
+                {currentUser?.perfil === "MASTER" ? "Admin Master" : currentUser?.perfil === "GERENTE" ? "Gerente" : currentUser?.perfil === "AGENCIA" ? "Agência de Mkt" : "Atendente"}
               </p>
             </div>
           </div>
