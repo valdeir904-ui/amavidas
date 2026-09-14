@@ -222,7 +222,12 @@ const PERGUNTAS: Pergunta[] = [
 ];
 
 function mascaraTelefone(v: string): string {
-  const n = v.replace(/\D/g, "").slice(0, 11);
+  let n = v.replace(/\D/g, "");
+  if (n.startsWith("55") && (n.length > 11 || n.length === 12 || n.length === 13)) {
+    n = n.slice(2);
+  }
+  n = n.slice(0, 11);
+
   if (n.length === 0) return "";
   if (n.length <= 2) return `(${n}`;
   if (n.length <= 6) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
@@ -700,21 +705,27 @@ export default function ChatSimulador() {
                         />
                       </div>
 
-                      {/* Campo 2: WhatsApp (Label acima do input) */}
+                      {/* Campo 2: WhatsApp (Label acima do input com prefixo +55 e bandeira) */}
                       <div className="flex flex-col gap-1.5">
                         <label htmlFor="chat-tel" className="text-sm font-bold text-slate-800">
                           WhatsApp com DDD <span className="text-emerald-600">*</span>
                         </label>
-                        <input
-                          id="chat-tel"
-                          type="tel"
-                          required
-                          value={telefoneContato}
-                          onChange={(e) => setTelefoneContato(mascaraTelefone(e.target.value))}
-                          placeholder="(61) 99999-9999"
-                          autoComplete="tel"
-                          className="h-12 w-full bg-white px-4 rounded-xl text-slate-900 text-sm font-mono border border-slate-300 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
-                        />
+                        <div className="relative flex items-center w-full">
+                          <div className="absolute left-0 top-0 bottom-0 px-3 bg-slate-100 border-r border-slate-300 rounded-l-xl flex items-center gap-1.5 text-slate-700 text-xs sm:text-sm font-bold select-none z-10">
+                            <span className="text-base leading-none" role="img" aria-label="Brasil">🇧🇷</span>
+                            <span className="font-mono text-slate-900 font-extrabold">+55</span>
+                          </div>
+                          <input
+                            id="chat-tel"
+                            type="tel"
+                            required
+                            value={telefoneContato}
+                            onChange={(e) => setTelefoneContato(mascaraTelefone(e.target.value))}
+                            placeholder="(61) 99999-9999"
+                            autoComplete="tel"
+                            className="h-12 w-full bg-white pl-22 sm:pl-24 pr-4 rounded-xl text-slate-900 text-sm font-mono border border-slate-300 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+                          />
+                        </div>
                       </div>
 
                       {/* Consentimento transparente */}

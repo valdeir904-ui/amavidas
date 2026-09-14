@@ -26,13 +26,30 @@ function validarNome(nome: string): boolean {
 }
 
 function validarTelefone(tel: string): boolean {
-  const digitos = tel.replace(/\D/g, "");
+  let digitos = tel.replace(/\D/g, "");
+  if (digitos.startsWith("55") && (digitos.length === 12 || digitos.length === 13)) {
+    digitos = digitos.slice(2);
+  }
   if (digitos.length !== 10 && digitos.length !== 11) return false;
   
   const todosIguais = /^(\d)\1+$/.test(digitos);
   if (todosIguais) return false;
   
   return true;
+}
+
+function formatarTelefone(tel: string): string {
+  let digitos = tel.replace(/\D/g, "");
+  if (digitos.startsWith("55") && (digitos.length === 12 || digitos.length === 13)) {
+    digitos = digitos.slice(2);
+  }
+  if (digitos.length === 11) {
+    return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
+  }
+  if (digitos.length === 10) {
+    return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`;
+  }
+  return tel.trim();
 }
 
 export async function POST(req: NextRequest) {
@@ -91,7 +108,7 @@ export async function POST(req: NextRequest) {
     const simulacao = await prisma.simulacao.create({
       data: {
         nome: nome.trim(),
-        telefone: telefone.trim(),
+        telefone: formatarTelefone(telefone),
         paraQuem: paraQuem ?? "",
         quantidadePessoas: quantidadePessoas ?? "",
         faixaEtaria: faixaEtaria ?? "",
