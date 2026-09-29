@@ -27,7 +27,7 @@ export default function ImpactoFinanceiro() {
   }
 
   const custoFuneral = 8000;
-  const custoMensal = 43;
+  const custoMensal = 49;
   const custoAnual = custoMensal * 12; // 516
   const economia = custoFuneral - custoAnual; // 7484
   const percentual = Math.round((economia / custoFuneral) * 100); // ~94

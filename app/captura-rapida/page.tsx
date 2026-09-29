@@ -167,7 +167,7 @@ export default function CapturaRapidaPage() {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-[1.15] tracking-tight">
               Tranquilidade para sua família{" "}
               <span className="text-emerald-700 underline decoration-emerald-300 decoration-4 underline-offset-4">
-                a partir de R$ 43/mês
+                a partir de R$ 49/mês
               </span>
             </h1>
 

@@ -202,7 +202,7 @@ export default function ModalFormulario() {
                   style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231A1F36' stroke-width='2.4' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}
                 >
                   <option value="Plano Pet">Plano Pet — R$ 25/mês (Cão ou Gato)</option>
-                  <option value="Amar Plus">Amar Plus — R$ 43/mês (família)</option>
+                  <option value="Amar Plus">Amar Plus — R$ 49/mês (família)</option>
                   <option value="Vida Plus">Vida Plus — R$ 90/mês (família completa)</option>
                 </select>
               </div>

@@ -18,7 +18,7 @@ const QUESTIONS = [
   },
 ];
 
-const PRICES: Record<string, number> = { "Amar Plus": 43, "Vida Plus": 90 };
+const PRICES: Record<string, number> = { "Amar Plus": 49, "Vida Plus": 90 };
 
 function getRec(answers: number[]): string {
   const score = answers.reduce((s, a) => s + a, 0);

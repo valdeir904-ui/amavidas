@@ -9,20 +9,14 @@ import Image from "next/image";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface Respostas {
-  paraQuem: string;
   quantidadePessoas: string;
-  faixaEtaria: string;
   cidade: string;
-  prioridade: string;
-  orcamento: string;
-  intencao: string;
+  tipoContato: string;
+  melhorHorario: string;
   nome: string;
   telefone: string;
   consentimento: boolean;
-  tipoPet?: string;
-  nomePet?: string;
-  portePet?: string;
-  idadePet?: string;
+  perdaRecente?: boolean;
 }
 
 interface PlanoInfo {
@@ -38,7 +32,7 @@ const FALLBACK: Record<string, PlanoInfo> = {
   "amar-plus": {
     slug: "amar-plus",
     nome: "Amar Plus",
-    preco: 43,
+    preco: 49,
     cobertura: 2500,
     tagline: "O equilíbrio certo entre proteção e valor para toda a família",
     beneficios: [
@@ -77,10 +71,8 @@ const FALLBACK: Record<string, PlanoInfo> = {
 };
 
 function recomendarSlug(r: Partial<Respostas>): string {
-  if (r.paraQuem === "pet") return "plano-pet";
-  if (r.quantidadePessoas === "5+") return "vida-plus";
-  if (r.prioridade === "melhor_cobertura") return "vida-plus";
-  if (r.orcamento === "acima-70") return "vida-plus";
+  if (r.quantidadePessoas === "mais_de_8") return "vida-plus";
+  if (r.quantidadePessoas === "5_8") return "vida-plus";
   return "amar-plus";
 }
 
@@ -99,82 +91,13 @@ interface Pergunta {
 
 const PERGUNTAS: Pergunta[] = [
   {
-    campo: "paraQuem",
-    texto: "Olá! Sou a assistente virtual da AmaVidas. 💙\n\nVocê está buscando proteção para quem?",
-    mensagemEmpatica: "Que decisão importante. Vamos encontrar o plano certo para você.",
-    opcoes: [
-      { value: "so_eu", emoji: "👤", label: "Individual (uma pessoa)" },
-      { value: "familia", emoji: "👨‍👩‍👧‍👦", label: "Familiar" },
-      { value: "familia_pet", emoji: "🐾", label: "Familiar e pet" },
-      { value: "pet", emoji: "🐶", label: "Pet" },
-      { value: "terceiros", emoji: "🤝", label: "Para terceiros" },
-    ],
-  },
-  {
     campo: "quantidadePessoas",
-    texto: "Quantas pessoas você quer proteger no total?",
-    mensagemEmpatica: (r) => {
-      if (r.paraQuem === "familia" || r.paraQuem === "familia_pet") return "Sua família segura é a sua maior tranquilidade. Quantos vocês são?";
-      if (r.paraQuem === "terceiros" || r.paraQuem === "pais") return "Cuidar de quem é importante para você é um ato de carinho. Quantos vamos proteger?";
-      return "Ótimo. Proteger quem mais importa.";
-    },
-    opcoes: (r) => {
-      const baseOpcoes = [
-        { value: "1", emoji: "1️⃣", label: "1 pessoa (só eu)" },
-        { value: "2", emoji: "2️⃣", label: "2 pessoas" },
-        { value: "3-4", emoji: "👨‍👩‍👧", label: "3 a 4 pessoas" },
-        { value: "5+", emoji: "👪", label: "5 ou mais pessoas" },
-      ];
-      if (r.paraQuem === "familia" || r.paraQuem === "familia_pet") {
-        return baseOpcoes.filter((o) => o.value !== "1");
-      }
-      return baseOpcoes;
-    },
-  },
-  {
-    campo: "faixaEtaria",
-    texto: "Qual a idade da pessoa mais velha que será incluída?",
-    mensagemEmpatica: "Entendido. A idade é um fator importante para garantirmos a melhor assistência.",
+    texto: "Olá! Sou a assistente virtual da AmaVidas. 💙\n\nQuantas pessoas você quer incluir no plano?",
+    mensagemEmpatica: "Ótimo. Proteger quem mais importa.",
     opcoes: [
-      { value: "ate_40", emoji: "👶", label: "Até 40 anos" },
-      { value: "41_59", emoji: "🧑", label: "Entre 41 e 59 anos" },
-      { value: "60_70", emoji: "🧓", label: "Entre 60 e 70 anos" },
-      { value: "acima_70", emoji: "👵", label: "Acima de 70 anos" },
-    ],
-  },
-  {
-    campo: "tipoPet",
-    texto: "Seu pet é um cão ou um gato?",
-    mensagemEmpatica: "Que carinho especial! Nossos amiguinhos trazem tanta alegria para nossa vida.",
-    opcoes: [
-      { value: "cao", emoji: "🐶", label: "Cão" },
-      { value: "gato", emoji: "🐱", label: "Gato" },
-    ],
-  },
-  {
-    campo: "nomePet",
-    texto: "Qual é o nome do seu pet?",
-    mensagemEmpatica: "Lindo nome! Vamos cuidar muito bem dele(a).",
-    opcoes: null,
-  },
-  {
-    campo: "portePet",
-    texto: (r) => (r.tipoPet === "gato" ? "Qual o porte do seu gato?" : "Qual o porte do seu cão?"),
-    mensagemEmpatica: "Entendido! O Plano Pet atende animais de todos os portes com todo o cuidado.",
-    opcoes: [
-      { value: "pequeno", emoji: "🐕", label: "Pequeno (até 10kg)" },
-      { value: "medio", emoji: "🦮", label: "Médio (10kg a 25kg)" },
-      { value: "grande", emoji: "🐕‍🦺", label: "Grande (acima de 25kg)" },
-    ],
-  },
-  {
-    campo: "idadePet",
-    texto: "Qual a idade do seu pet?",
-    mensagemEmpatica: "Excelente! É muito importante garantir proteção e carinho em todas as fases da vida.",
-    opcoes: [
-      { value: "filhote", emoji: "🐾", label: "Filhote (até 1 ano)" },
-      { value: "adulto", emoji: "🐕", label: "Adulto (1 a 7 anos)" },
-      { value: "idoso", emoji: "🦴", label: "Idoso (acima de 7 anos)" },
+      { value: "ate_4", emoji: "👨‍👩‍👧‍👦", label: "Até 4 pessoas" },
+      { value: "5_8", emoji: "👪", label: "Entre 5 e 8 pessoas" },
+      { value: "mais_de_8", emoji: "👨‍👩‍👧‍👦+", label: "Mais de 8 pessoas" },
     ],
   },
   {
@@ -189,34 +112,21 @@ const PERGUNTAS: Pergunta[] = [
     ],
   },
   {
-    campo: "prioridade",
-    texto: "O que pesa mais na sua escolha?",
-    mensagemEmpatica: "Perfeito. Isso direciona as coberturas que fazem mais sentido para você.",
+    campo: "tipoContato",
+    texto: "Você prefere que nossa equipe entre em contato por WhatsApp ou Ligação?",
+    mensagemEmpatica: "Perfeito. Entraremos em contato da melhor forma para você.",
     opcoes: [
-      { value: "menor_preco", emoji: "💰", label: "Pagar o menor valor" },
-      { value: "equilibrio", emoji: "⚖️", label: "Custo x benefício" },
-      { value: "melhor_cobertura", emoji: "🏆", label: "A melhor cobertura" },
+      { value: "whatsapp", emoji: "💬", label: "WhatsApp" },
+      { value: "ligacao", emoji: "📞", label: "Ligação" },
     ],
   },
   {
-    campo: "orcamento",
-    texto: "Quanto você pode investir por mês?",
-    mensagemEmpatica: "Excelente. Buscando as melhores opções dentro do planejado.",
+    campo: "melhorHorario",
+    texto: "Qual o melhor horário para falarmos?",
+    mensagemEmpatica: "Anotado! Falaremos no seu tempo.",
     opcoes: [
-      { value: "ate-40", emoji: "🟢", label: "Até R$ 40,00 por mês" },
-      { value: "40-70", emoji: "🔵", label: "Entre R$ 40,00 e R$ 70,00" },
-      { value: "acima-70", emoji: "🟣", label: "Acima de R$ 70,00 por mês" },
-      { value: "nao_sei", emoji: "🟡", label: "Quero uma indicação" },
-    ],
-  },
-  {
-    campo: "intencao",
-    texto: "Como podemos te ajudar agora?",
-    mensagemEmpatica: "Maravilhoso. Estamos aqui para ajudar no seu ritmo.",
-    opcoes: [
-      { value: "contratar_agora", emoji: "⚡", label: "Quero contratar o quanto antes" },
-      { value: "entender_melhor", emoji: "🤔", label: "Quero entender melhor antes de decidir" },
-      { value: "pesquisando", emoji: "🔍", label: "Só estou pesquisando" },
+      { value: "manha", emoji: "🌅", label: "Pela manhã" },
+      { value: "tarde", emoji: "🌇", label: "Pela tarde" },
     ],
   },
 ];
@@ -260,6 +170,7 @@ export default function ChatSimulador() {
   const [nomeContato, setNomeContato] = useState("");
   const [telefoneContato, setTelefoneContato] = useState("");
   const [consentimentoContato, setConsentimentoContato] = useState(true);
+  const [perdaRecente, setPerdaRecente] = useState(false);
   const [erroContato, setErroContato] = useState("");
   const [submetendo, setSubmetendo] = useState(false);
 
@@ -317,26 +228,8 @@ export default function ChatSimulador() {
   }, []);
 
   const perguntasAtivas = useMemo(() => {
-    return PERGUNTAS.filter((p) => {
-      const isPetPlan = respostas.paraQuem === "pet";
-      const isPetRelacionado = respostas.paraQuem === "pet" || respostas.paraQuem === "familia_pet";
-
-      if (isPetPlan) {
-        if (p.campo === "quantidadePessoas" || p.campo === "faixaEtaria" || p.campo === "prioridade" || p.campo === "orcamento") {
-          return false;
-        }
-      }
-      if (respostas.paraQuem === "so_eu" && p.campo === "quantidadePessoas") {
-        return false;
-      }
-      if (!isPetRelacionado) {
-        if (p.campo === "tipoPet" || p.campo === "nomePet" || p.campo === "portePet" || p.campo === "idadePet") {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [respostas.paraQuem]);
+    return PERGUNTAS;
+  }, []);
 
   const obterTexto = (p: Pergunta, r: Partial<Respostas>) => typeof p.texto === "function" ? p.texto(r) : p.texto;
   const obterEmpatia = (p: Pergunta, r: Partial<Respostas>) => typeof p.mensagemEmpatica === "function" ? p.mensagemEmpatica(r) : p.mensagemEmpatica;
@@ -353,13 +246,10 @@ export default function ChatSimulador() {
         body: JSON.stringify({
           sessionId,
           ultimaEtapa: etapaIndex,
-          paraQuem: respostasParciais.paraQuem,
           quantidadePessoas: respostasParciais.quantidadePessoas,
-          faixaEtaria: respostasParciais.faixaEtaria,
           cidade: respostasParciais.cidade === "outros" ? cidadeOutros : respostasParciais.cidade,
-          prioridade: respostasParciais.prioridade,
-          orcamento: respostasParciais.orcamento,
-          intencao: respostasParciais.intencao,
+          tipoContato: respostasParciais.tipoContato,
+          melhorHorario: respostasParciais.melhorHorario,
           ...origem,
         }),
       });
@@ -377,25 +267,7 @@ export default function ChatSimulador() {
   }
 
   function adicionarPergunta(index: number, currentResp: Partial<Respostas>) {
-    const ativas = PERGUNTAS.filter((p) => {
-      const isPetPlan = currentResp.paraQuem === "pet";
-      const isPetRelacionado = currentResp.paraQuem === "pet" || currentResp.paraQuem === "familia_pet";
-
-      if (isPetPlan) {
-        if (p.campo === "quantidadePessoas" || p.campo === "faixaEtaria" || p.campo === "prioridade" || p.campo === "orcamento") {
-          return false;
-        }
-      }
-      if (currentResp.paraQuem === "so_eu" && p.campo === "quantidadePessoas") {
-        return false;
-      }
-      if (!isPetRelacionado) {
-        if (p.campo === "tipoPet" || p.campo === "nomePet" || p.campo === "portePet" || p.campo === "idadePet") {
-          return false;
-        }
-      }
-      return true;
-    });
+    const ativas = PERGUNTAS;
 
     const pergunta = ativas[index];
     if (!pergunta) return;
@@ -449,10 +321,6 @@ export default function ChatSimulador() {
     }
 
     const novasRespostas = { ...respostas, [perguntaAtual.campo]: valorFinal };
-
-    if (perguntaAtual.campo === "paraQuem" && (valorReal === "so_eu" || valorReal === "pet")) {
-      novasRespostas.quantidadePessoas = "1";
-    }
 
     setRespostas(novasRespostas);
 
@@ -543,7 +411,8 @@ export default function ChatSimulador() {
         nome: nomeTrim,
         telefone: telefoneContato.trim(),
         consentimento: true,
-        intencao: respostas.intencao || "pesquisando",
+        perdaRecente,
+        intencao: "contratar_agora",
         planoRecomendado: slugRecomendado,
         cidade: respostas.cidade || "Não informada",
         sessionId,
@@ -727,6 +596,19 @@ export default function ChatSimulador() {
                           />
                         </div>
                       </div>
+
+                      {/* Pergunta perda recente (Checkbox) */}
+                      <label className="flex items-start gap-2.5 cursor-pointer pt-1 pb-1">
+                        <input
+                          type="checkbox"
+                          checked={perdaRecente}
+                          onChange={(e) => setPerdaRecente(e.target.checked)}
+                          className="w-4.5 h-4.5 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500 mt-0.5"
+                        />
+                        <span className="text-xs text-slate-700 font-semibold leading-snug pt-0.5">
+                          Você perdeu alguém próximo nos últimos 6 meses?
+                        </span>
+                      </label>
 
                       {/* Consentimento transparente */}
                       <label className="flex items-start gap-2.5 cursor-pointer pt-1">

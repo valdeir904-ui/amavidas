@@ -24,7 +24,7 @@ const FALLBACK_PLANS: DynamicPlan[] = [
     slug: "amar-plus",
     name: "Amar Plus",
     sub: "Mais conforto e acolhimento para sua família.",
-    price: 43,
+    price: 49,
     meta: "Protege você + 6 familiares",
     features: [
       "Urna (caixão) modelo padrão",
