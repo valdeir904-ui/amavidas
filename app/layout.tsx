@@ -4,7 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 
 const lora = Lora({
-  variable: "--font-lora",
+  variable: "--font-lora-v2",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   style: ["normal", "italic"],
@@ -12,7 +12,7 @@ const lora = Lora({
 });
 
 const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+  variable: "--font-dm-sans-v2",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
@@ -57,8 +57,8 @@ export default function RootLayout({
       className={`${lora.variable} ${dmSans.variable} h-full antialiased`}
       style={
         {
-          "--font-serif": `var(--font-lora), Georgia, serif`,
-          "--font-sans": `var(--font-dm-sans), system-ui, -apple-system, sans-serif`,
+          "--font-serif": `var(--font-lora-v2), Georgia, serif`,
+          "--font-sans": `var(--font-dm-sans-v2), system-ui, -apple-system, sans-serif`,
         } as React.CSSProperties
       }
     >
