@@ -207,7 +207,6 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
   const [perdaRecente, setPerdaRecente] = useState(false);
   const [cidadeOutros, setCidadeOutros] = useState("");
   const [mostrarInputCidade, setMostrarInputCidade] = useState(false);
-  const [nomePetInput, setNomePetInput] = useState("");
 
   const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
   const [mensagemEmpatica, setMensagemEmpatica] = useState<string | null>(null);
@@ -362,33 +361,6 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
     }, 1300);
   }
 
-  function confirmarNomePet() {
-    if (!nomePetInput.trim() || opcaoSelecionada) return;
-
-    const novasRespostas = { ...respostas, nomePet: nomePetInput.trim() };
-    setRespostas(novasRespostas);
-    setOpcaoSelecionada(nomePetInput.trim());
-    setMensagemEmpatica(obterMensagemEmpatica(perguntaAtual));
-
-    const indexAtualNoQuiz = perguntasAtivas.findIndex((p) => p.campo === "nomePet");
-    trackAbandono(indexAtualNoQuiz + 1, novasRespostas);
-
-    const isUltima = indexAtualNoQuiz === perguntasAtivas.length - 1;
-    const currentSlug = recomendarSlug(novasRespostas);
-
-    timerRef.current = setTimeout(() => {
-      setMensagemEmpatica(null);
-      setOpcaoSelecionada(null);
-
-      if (isUltima) {
-        setPlanoSlug(currentSlug);
-        setFase("contato");
-        trackAbandono(8, novasRespostas);
-      } else {
-        setPasso(indexAtualNoQuiz + 1);
-      }
-    }, 1300);
-  }
 
   function confirmarCidadeOutros() {
     if (!cidadeOutros.trim() || opcaoSelecionada) return;

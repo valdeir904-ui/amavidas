@@ -177,8 +177,6 @@ export default function ChatSimulador() {
   // Cidade Custom e Nome Pet Custom
   const [cidadeOutros, setCidadeOutros] = useState("");
   const [mostrarInputCidade, setMostrarInputCidade] = useState(false);
-  const [nomePetInput, setNomePetInput] = useState("");
-  const [mostrarInputNomePet, setMostrarInputNomePet] = useState(false);
 
   const chatRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -287,8 +285,6 @@ export default function ChatSimulador() {
           ...prev,
           { id: Date.now().toString() + "_opt", role: "bot", tipo: "opcoes", opcoes, campoContexto: pergunta.campo },
         ]);
-      } else if (pergunta.campo === "nomePet") {
-        setMostrarInputNomePet(true);
       }
     }, 800);
   }
@@ -302,7 +298,6 @@ export default function ChatSimulador() {
     }
 
     setMostrarInputCidade(false);
-    setMostrarInputNomePet(false);
 
     // Adiciona resposta do usuário ao chat
     setMensagens((prev) =>
@@ -362,13 +357,6 @@ export default function ChatSimulador() {
     if (!cidadeOutros.trim()) return;
     handleRespostaUser(cidadeOutros.trim(), `🗺️ ${cidadeOutros.trim()}`);
     setCidadeOutros("");
-  }
-
-  function handleInputNomePetSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!nomePetInput.trim()) return;
-    handleRespostaUser(nomePetInput.trim(), `🐾 ${nomePetInput.trim()}`);
-    setNomePetInput("");
   }
 
   async function handleContatoSubmit(e: React.FormEvent) {
@@ -686,29 +674,6 @@ export default function ChatSimulador() {
           <div ref={chatRef} />
         </AnimatePresence>
       </div>
-
-      {/* Input area for custom pet name */}
-      {mostrarInputNomePet && (
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-white p-3.5 border-t border-slate-200 z-10 shadow-lg">
-          <form onSubmit={handleInputNomePetSubmit} className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Digite o nome do seu pet (ex: Thor, Mel)..."
-              value={nomePetInput}
-              onChange={(e) => setNomePetInput(e.target.value)}
-              className="flex-1 bg-slate-100 px-4 py-3 rounded-full text-slate-800 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00B4C8]"
-              autoFocus
-            />
-            <button
-              type="submit"
-              disabled={!nomePetInput.trim()}
-              className="w-12 h-12 bg-[#008ba3] hover:bg-[#00768b] text-white rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:bg-slate-350 transition-colors shadow-sm cursor-pointer"
-            >
-              <Send className="w-5 h-5 ml-1" />
-            </button>
-          </form>
-        </motion.div>
-      )}
 
       {/* Input area for custom city if "outros" was selected */}
       {mostrarInputCidade && (
