@@ -576,7 +576,7 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
             </p>
 
             {/* Opções (Touch target mínimo 48px, contraste garantido) */}
-            {obterOpcoes(perguntaAtual) !== null ? (
+            {obterOpcoes(perguntaAtual) !== null && (
               mostrarInputCidade ? (
                 <div className="space-y-4">
                   <input
@@ -649,29 +649,6 @@ export default function Simulador({ onClose }: { onClose?: () => void }) {
                   })}
                 </div>
               )
-            ) : (
-              <div className="space-y-4 mb-6">
-                <input
-                  type="text"
-                  required
-                  value={nomePetInput}
-                  onChange={(e) => setNomePetInput(e.target.value)}
-                  placeholder="Digite o nome do seu pet (ex: Thor, Mel)..."
-                  className="w-full h-12 px-4 border border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none transition-all bg-white text-slate-900 font-medium text-base"
-                  onKeyDown={(e) => { if (e.key === "Enter" && nomePetInput.trim()) confirmarNomePet(); }}
-                  autoFocus
-                />
-                <button
-                  disabled={!nomePetInput.trim()}
-                  onClick={confirmarNomePet}
-                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-base font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  <span>Continuar</span>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
-                </button>
-              </div>
             )}
 
             {/* Mensagem Empática */}
